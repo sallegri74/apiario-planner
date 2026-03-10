@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pianificatore Apiario</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --honey: #F5A623; --honey-light: #FFF3D6; --honey-dark: #C47F0A;
+            --green: #4CAF50; --green-light: #E8F5E9; --green-dark: #2E7D32;
+            --red: #E53935; --red-light: #FFEBEE;
+            --orange: #FF9800; --orange-light: #FFF3E0;
+            --blue: #1976D2; --blue-light: #E3F2FD;
+            --gray: #757575; --gray-light: #F5F5F5; --gray-dark: #424242;
+            --white: #FFFFFF;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1); --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
+            --radius: 12px;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(135deg,#FFF8E1 0%,#F1F8E9 100%); color:var(--gray-dark); min-height:100vh; }
+
+        .header { background:linear-gradient(135deg,var(--honey-dark) 0%,var(--honey) 50%,var(--green) 100%); color:white; padding:16px 24px; box-shadow:var(--shadow); position:sticky; top:0; z-index:100; }
+        .header-content { max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+        .header h1 { font-size:1.5em; display:flex; align-items:center; gap:8px; }
+
+        .main { max-width:1400px; margin:0 auto; padding:20px; }
+
+        /* Apiary tabs */
+        .apiary-tabs { display:flex; gap:0; margin-bottom:20px; background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); overflow-x:auto; }
+        .apiary-tab { padding:12px 20px; border:none; background:none; cursor:pointer; font-size:0.92em; font-weight:600; color:var(--gray); border-bottom:3px solid transparent; transition:all .2s; display:flex; align-items:center; gap:8px; white-space:nowrap; font-family:inherit; }
+        .apiary-tab:hover { background:var(--honey-light); }
+        .apiary-tab.active { color:var(--honey-dark); border-bottom-color:var(--honey); background:var(--honey-light); }
+        .apiary-tab .tab-color { width:12px; height:12px; border-radius:50%; border:2px solid white; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
+
+        .current-period { background:var(--white); border-radius:var(--radius); padding:18px 22px; margin-bottom:20px; box-shadow:var(--shadow); border-left:5px solid var(--honey); }
+        .current-period h2 { color:var(--honey-dark); font-size:1.2em; margin-bottom:4px; }
+        .current-period .period-desc { color:var(--gray); font-size:0.9em; margin-bottom:10px; }
+        .task-list { list-style:none; }
+        .task-list li { padding:6px 10px; margin:3px 0; border-radius:6px; display:flex; align-items:flex-start; gap:8px; font-size:0.9em; }
+        .task-list li:hover { background:var(--gray-light); }
+        .task-icon { flex-shrink:0; width:22px; text-align:center; }
+        .task-priority-high { border-left:3px solid var(--red); }
+        .task-priority-medium { border-left:3px solid var(--orange); }
+        .task-priority-low { border-left:3px solid var(--green); }
+
+        .dashboard { display:grid; grid-template-columns:1fr; gap:18px; margin-bottom:20px; }
+        .card { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+        .card:hover { box-shadow:var(--shadow-hover); }
+        .card-header { padding:14px 18px; font-weight:700; font-size:1em; display:flex; align-items:center; gap:8px; border-bottom:1px solid #eee; }
+        .card-body { padding:14px 18px; }
+
+        .varroa-header { background:linear-gradient(135deg,#FF6F00,#FF9800); color:white; }
+        .weather-header { background:linear-gradient(135deg,#1565C0,#42A5F5); color:white; }
+        .calendar-header { background:linear-gradient(135deg,var(--green-dark),var(--green)); color:white; }
+        .planner-header { background:linear-gradient(135deg,#E65100,#FF8F00); color:white; }
+        .map-header { background:linear-gradient(135deg,#1B5E20,#43A047); color:white; }
+        .links-header { background:linear-gradient(135deg,#6A1B9A,#AB47BC); color:white; }
+
+        .treatment-card { padding:10px; margin:6px 0; border-radius:8px; border:1px solid #eee; }
+        .treatment-card.suitable { background:var(--green-light); border-color:var(--green); }
+        .treatment-card.marginal { background:var(--orange-light); border-color:var(--orange); }
+        .treatment-card.unsuitable { background:var(--red-light); border-color:var(--red); }
+        .treatment-name { font-weight:600; font-size:0.92em; margin-bottom:3px; }
+        .treatment-info { font-size:0.82em; color:var(--gray); }
+        .treatment-badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:0.78em; font-weight:600; color:white; }
+        .badge-ok { background:var(--green); } .badge-warn { background:var(--orange); } .badge-no { background:var(--red); }
+
+        .varroa-summary { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+        .varroa-stat { padding:6px 12px; border-radius:8px; font-size:0.83em; font-weight:600; }
+        .varroa-stat.good { background:var(--green-light); color:var(--green-dark); }
+        .varroa-stat.warning { background:var(--orange-light); color:#E65100; }
+        .varroa-stat.bad { background:var(--red-light); color:var(--red); }
+
+        .forecast-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+        @media(max-width:700px){ .forecast-grid{grid-template-columns:repeat(4,1fr);} }
+        .forecast-day { text-align:center; padding:8px 3px; border-radius:8px; background:var(--gray-light); cursor:pointer; position:relative; transition:transform .2s; }
+        .forecast-day:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+        .forecast-day.today { background:var(--blue-light); border:2px solid var(--blue); }
+        .forecast-day .day-name { font-size:.72em; font-weight:600; color:var(--gray); text-transform:uppercase; }
+        .forecast-day .day-date { font-size:.68em; color:var(--gray); }
+        .forecast-day .weather-icon { font-size:1.4em; margin:3px 0; }
+        .forecast-day .temp { font-size:.82em; font-weight:600; }
+        .forecast-day .temp-max { color:var(--red); } .forecast-day .temp-min { color:var(--blue); }
+        .forecast-day .precip { font-size:.68em; color:var(--blue); margin-top:2px; }
+        .forecast-day .varroa-indicator { position:absolute; top:3px; right:3px; width:9px; height:9px; border-radius:50%; }
+        .varroa-ok{background:var(--green);} .varroa-warn{background:var(--orange);} .varroa-no{background:var(--red);}
+        .week-label { font-size:.78em; font-weight:600; color:var(--gray); padding:8px 0 3px; }
+
+        .timeline { display:flex; overflow-x:auto; gap:0; padding:14px 0; scrollbar-width:thin; }
+        .timeline-item { min-width:130px; padding:10px; text-align:center; border-right:1px solid #eee; flex-shrink:0; cursor:pointer; position:relative; transition:background .2s; }
+        .timeline-item:hover { background:var(--honey-light); }
+        .timeline-item.active { background:var(--honey-light); border-bottom:3px solid var(--honey); }
+        .timeline-item.past { opacity:.5; }
+        .timeline-month { font-size:.68em; color:var(--gray); text-transform:uppercase; letter-spacing:1px; }
+        .timeline-name { font-size:.82em; font-weight:600; margin:5px 0; color:var(--gray-dark); }
+        .timeline-icon { font-size:1.4em; }
+        .timeline-flowering { font-size:.68em; color:var(--green); }
+
+        .detail-panel { display:none; background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 22px; margin-bottom:18px; border-left:5px solid var(--green); animation:slideDown .3s ease; }
+        .detail-panel.visible { display:block; }
+        @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+        .detail-panel h3 { color:var(--green-dark); margin-bottom:10px; }
+        .detail-tasks { list-style:none; }
+        .detail-tasks li { padding:6px 0; border-bottom:1px solid #f0f0f0; font-size:.9em; display:flex; gap:8px; }
+
+        .tab-bar { display:flex; gap:3px; margin-bottom:10px; border-bottom:2px solid #eee; overflow-x:auto; }
+        .tab-btn { padding:7px 14px; border:none; background:none; cursor:pointer; font-size:.88em; font-weight:600; color:var(--gray); border-bottom:3px solid transparent; transition:all .2s; font-family:inherit; white-space:nowrap; }
+        .tab-btn.active { color:var(--honey-dark); border-bottom-color:var(--honey); }
+        .tab-btn:hover { color:var(--honey-dark); }
+
+        .hourly-table { width:100%; border-collapse:collapse; font-size:.83em; }
+        .hourly-table th { background:var(--gray-light); padding:7px; text-align:left; font-weight:600; position:sticky; top:0; }
+        .hourly-table td { padding:5px 7px; border-bottom:1px solid #f0f0f0; }
+        .hourly-table tr:hover { background:var(--blue-light); }
+
+        .links-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; }
+        .link-card { display:block; padding:12px; border-radius:8px; border:1px solid #eee; text-decoration:none; color:var(--gray-dark); transition:all .2s; }
+        .link-card:hover { border-color:var(--honey); background:var(--honey-light); }
+        .link-card .link-title { font-weight:600; font-size:.88em; margin-bottom:3px; }
+        .link-card .link-desc { font-size:.78em; color:var(--gray); }
+
+        .loading { text-align:center; padding:30px; color:var(--gray); }
+        .spinner { display:inline-block; width:36px; height:36px; border:4px solid var(--honey-light); border-top-color:var(--honey); border-radius:50%; animation:spin .8s linear infinite; }
+        @keyframes spin { to{transform:rotate(360deg);} }
+
+        .footer { text-align:center; padding:18px; color:var(--gray); font-size:.78em; }
+        .footer a { color:var(--honey-dark); text-decoration:none; } .footer a:hover { text-decoration:underline; }
+
+        /* GANTT */
+        .gantt-wrapper { overflow-x:auto; scrollbar-width:thin; position:relative; }
+        .gantt { min-width:1100px; position:relative; }
+        .gantt-months { display:grid; grid-template-columns:320px repeat(12,1fr); border-bottom:2px solid #ddd; position:sticky; top:0; background:white; z-index:2; }
+        .gantt-months .gantt-label { padding:7px 10px; font-weight:700; font-size:.83em; color:var(--gray-dark); border-right:1px solid #eee; }
+        .gantt-month-cell { text-align:center; padding:5px 2px; font-size:.72em; font-weight:700; color:var(--gray); text-transform:uppercase; border-right:1px solid #f0f0f0; }
+        .gantt-month-cell.current-month { background:var(--honey-light); color:var(--honey-dark); font-weight:800; }
+        .gantt-row { display:grid; grid-template-columns:320px repeat(12,1fr); min-height:36px; border-bottom:1px solid #f0f0f0; align-items:center; position:relative; }
+        .gantt-row:hover { background:#FAFAFA; }
+        .gantt-row .gantt-label { padding:5px 10px; font-size:.8em; font-weight:600; color:var(--gray-dark); border-right:1px solid #eee; display:flex; align-items:center; gap:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .gantt-cell { height:100%; min-height:36px; border-right:1px solid #f5f5f5; position:relative; }
+        .gantt-cell.current-month { background:rgba(245,166,35,.05); }
+        .gantt-bar { position:absolute; height:20px; top:50%; transform:translateY(-50%); border-radius:10px; font-size:.68em; font-weight:600; color:white; display:flex; align-items:center; justify-content:center; padding:0 5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:default; z-index:1; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .15s,box-shadow .15s; }
+        .gantt-bar:hover { transform:translateY(-50%) scale(1.05); box-shadow:0 2px 8px rgba(0,0,0,.3); z-index:5; }
+        .gantt-bar.cat-varroa{background:linear-gradient(135deg,#C62828,#E53935);} .gantt-bar.cat-raccolte{background:linear-gradient(135deg,#F57F17,#FDD835);color:#5D4037;} .gantt-bar.cat-nutrizione{background:linear-gradient(135deg,#1565C0,#42A5F5);} .gantt-bar.cat-gestione{background:linear-gradient(135deg,#2E7D32,#66BB6A);} .gantt-bar.cat-controlli{background:linear-gradient(135deg,#6A1B9A,#AB47BC);} .gantt-bar.cat-sciamatura{background:linear-gradient(135deg,#E65100,#FF9800);} .gantt-bar.cat-custom{background:linear-gradient(135deg,#37474F,#78909C);}
+        .gantt-bar.completed { opacity:.5; text-decoration:line-through; }
+        .gantt-category-row { display:grid; grid-template-columns:320px repeat(12,1fr); background:var(--gray-light); border-bottom:1px solid #ddd; }
+        .gantt-category-row .gantt-label { padding:5px 10px; font-size:.78em; font-weight:800; color:var(--gray-dark); text-transform:uppercase; letter-spacing:.5px; border-right:1px solid #eee; }
+        .gantt-today-marker { position:absolute; top:0; bottom:0; width:2px; background:var(--red); z-index:3; pointer-events:none; }
+        .gantt-today-marker::before { content:"OGGI"; position:absolute; top:-16px; left:-14px; font-size:.58em; font-weight:800; color:var(--red); background:var(--red-light); padding:1px 4px; border-radius:3px; }
+        .gantt-check { cursor:pointer; user-select:none; }
+        .gantt-done-date { width:130px; padding:4px 6px; border:1px solid #ddd; border-radius:5px; font-size:.85em; color:var(--gray); background:var(--white); flex-shrink:0; cursor:pointer; }
+        .gantt-done-date:disabled { opacity:.3; cursor:default; background:var(--gray-light); }
+        .gantt-done-date:not(:disabled) { color:var(--green-dark); border-color:var(--green); background:var(--green-light); }
+        .gantt-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; padding-top:8px; border-top:1px solid #eee; }
+        .gantt-legend-item { display:flex; align-items:center; gap:4px; font-size:.73em; color:var(--gray); }
+        .gantt-legend-color { width:12px; height:12px; border-radius:6px; }
+
+        .planner-toolbar { display:flex; gap:7px; align-items:center; flex-wrap:wrap; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #eee; }
+        .planner-toolbar input,.planner-toolbar select { padding:5px 9px; border:1px solid #ddd; border-radius:6px; font-size:.83em; font-family:inherit; }
+        .planner-toolbar input:focus,.planner-toolbar select:focus { outline:none; border-color:var(--honey); box-shadow:0 0 0 2px rgba(245,166,35,.2); }
+        .planner-btn { padding:5px 12px; border:none; border-radius:6px; font-size:.83em; font-weight:600; cursor:pointer; font-family:inherit; }
+        .planner-btn-add { background:var(--honey); color:white; } .planner-btn-add:hover { background:var(--honey-dark); }
+        .planner-btn-clear { background:var(--gray-light); color:var(--gray); } .planner-btn-clear:hover { background:#e0e0e0; }
+        .planner-btn-del { background:none; border:none; color:var(--red); cursor:pointer; font-size:1em; padding:2px 5px; border-radius:4px; opacity:.6; } .planner-btn-del:hover { opacity:1; background:var(--red-light); }
+
+        /* MAP */
+        #apiaryMap { width:100%; height:340px; border-radius:8px; border:1px solid #ddd; z-index:1; }
+        .apiary-panel { display:flex; gap:14px; margin-top:12px; }
+        @media(max-width:800px){ .apiary-panel{flex-direction:column;} }
+        .apiary-list { flex:1; min-width:0; }
+        .apiary-list h4 { font-size:.88em; color:var(--gray-dark); margin-bottom:6px; }
+        .apiary-item { display:flex; align-items:center; gap:7px; padding:7px 9px; border:1px solid #eee; border-radius:8px; margin-bottom:5px; font-size:.85em; transition:background .15s; }
+        .apiary-item:hover { background:var(--green-light); }
+        .apiary-item .apiary-color { width:12px; height:12px; border-radius:50%; flex-shrink:0; border:2px solid white; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
+        .apiary-item .apiary-name { font-weight:600; flex:1; }
+        .apiary-item .apiary-coords { font-size:.8em; color:var(--gray); }
+        .apiary-item .apiary-btn { background:none; border:none; cursor:pointer; font-size:1em; padding:2px 4px; border-radius:4px; opacity:.5; } .apiary-item .apiary-btn:hover { opacity:1; }
+        .apiary-form { width:250px; flex-shrink:0; background:var(--gray-light); border-radius:8px; padding:12px; }
+        .apiary-form h4 { font-size:.88em; color:var(--gray-dark); margin-bottom:8px; }
+        .apiary-form label { display:block; font-size:.78em; font-weight:600; color:var(--gray); margin-bottom:2px; margin-top:7px; }
+        .apiary-form label:first-of-type { margin-top:0; }
+        .apiary-form input { width:100%; padding:5px 7px; border:1px solid #ddd; border-radius:6px; font-size:.85em; font-family:inherit; }
+        .apiary-form input:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 2px rgba(76,175,80,.2); }
+        .apiary-form .hint { font-size:.73em; color:var(--gray); margin-top:3px; }
+        .apiary-form .apiary-form-btns { display:flex; gap:5px; margin-top:10px; }
+        .apiary-form .apiary-form-btns button { flex:1; padding:6px 8px; border:none; border-radius:6px; font-size:.83em; font-weight:600; cursor:pointer; font-family:inherit; }
+        .apiary-form .btn-save { background:var(--green); color:white; } .apiary-form .btn-save:hover { background:var(--green-dark); }
+        .apiary-form .btn-cancel { background:#e0e0e0; color:var(--gray-dark); }
+
+        /* Bee SVG marker */
+        .bee-marker { width:38px; height:38px; filter:drop-shadow(0 2px 4px rgba(0,0,0,.35)); cursor:pointer; transition:transform .15s; }
+        .bee-marker:hover { transform:scale(1.2); }
+
+        /* Hive history */
+        .hive-history-panel { margin-top:8px; border:1px solid #eee; border-radius:8px; overflow:hidden; }
+        .hive-history-toggle { display:flex; align-items:center; gap:6px; padding:6px 12px; background:var(--honey-light); cursor:pointer; font-size:.82em; font-weight:600; color:var(--honey-dark); user-select:none; border:none; width:100%; text-align:left; font-family:inherit; }
+        .hive-history-toggle:hover { background:#FFE0A0; }
+        .hive-history-toggle .arrow { transition:transform .2s; font-size:.7em; }
+        .hive-history-toggle .arrow.open { transform:rotate(90deg); }
+        .hive-history-body { display:none; padding:8px 12px; background:var(--white); }
+        .hive-history-body.open { display:block; }
+        .hive-history-add { display:flex; gap:5px; align-items:center; flex-wrap:wrap; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid #eee; }
+        .hive-history-add input,.hive-history-add select { padding:4px 6px; border:1px solid #ddd; border-radius:5px; font-size:.82em; font-family:inherit; }
+        .hive-history-add input:focus { outline:none; border-color:var(--honey); }
+        .hive-history-add button { padding:4px 10px; border:none; border-radius:5px; font-size:.82em; font-weight:600; cursor:pointer; background:var(--honey); color:white; font-family:inherit; }
+        .hive-history-add button:hover { background:var(--honey-dark); }
+        .hive-history-table { width:100%; border-collapse:collapse; font-size:.8em; }
+        .hive-history-table th { background:var(--gray-light); padding:5px 8px; text-align:left; font-weight:600; font-size:.85em; }
+        .hive-history-table td { padding:4px 8px; border-bottom:1px solid #f0f0f0; }
+        .hive-history-table tr:hover { background:var(--honey-light); }
+        .hive-history-table .hive-del { background:none; border:none; cursor:pointer; color:var(--red); opacity:.5; font-size:.9em; padding:2px 4px; border-radius:3px; }
+        .hive-history-table .hive-del:hover { opacity:1; background:var(--red-light); }
+        .hive-delta { font-size:.78em; font-weight:600; padding:1px 5px; border-radius:4px; }
+        .hive-delta.pos { color:var(--green-dark); background:var(--green-light); }
+        .hive-delta.neg { color:var(--red); background:var(--red-light); }
+        .hive-delta.zero { color:var(--gray); }
+
+        /* Hive evolution row in Gantt */
+        .gantt-hive-row { display:grid; grid-template-columns:320px repeat(12,1fr); min-height:52px; border-bottom:2px solid #eed; background:var(--honey-light); align-items:end; }
+        .gantt-hive-row .gantt-label { padding:5px 10px; font-size:.78em; font-weight:700; color:var(--honey-dark); border-right:1px solid #eee; display:flex; align-items:center; gap:5px; }
+        .gantt-hive-cell { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; padding:3px 2px 4px; border-right:1px solid rgba(0,0,0,.05); position:relative; }
+        .gantt-hive-cell.current-month { background:rgba(245,166,35,.15); }
+        .gantt-hive-bar { width:60%; border-radius:4px 4px 0 0; background:linear-gradient(180deg,var(--honey),var(--honey-dark)); min-height:2px; transition:height .3s; }
+        .gantt-hive-count { font-size:.7em; font-weight:700; color:var(--honey-dark); margin-top:1px; line-height:1; }
+        .gantt-hive-cell .hive-cell-delta { position:absolute; top:2px; right:2px; font-size:.58em; font-weight:700; }
+        .gantt-hive-cell .hive-cell-delta.pos { color:var(--green-dark); }
+        .gantt-hive-cell .hive-cell-delta.neg { color:var(--red); }
+
+        /* GTS & Flowering */
+        .gts-header { background:linear-gradient(135deg,#2E7D32,#66BB6A); color:white; }
+        .gts-value-box { display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:14px; }
+        .gts-big { font-size:2.2em; font-weight:800; color:var(--green-dark); line-height:1; }
+        .gts-unit { font-size:.8em; font-weight:600; color:var(--gray); }
+        .gts-status { padding:4px 12px; border-radius:8px; font-size:.85em; font-weight:600; }
+        .gts-progress-wrap { position:relative; height:28px; background:var(--gray-light); border-radius:14px; overflow:hidden; margin-bottom:6px; }
+        .gts-progress-fill { height:100%; border-radius:14px; background:linear-gradient(90deg,#C8E6C9 0%,#66BB6A 30%,#FFD54F 60%,#FF9800 85%,#E53935 100%); transition:width .5s; }
+        .gts-progress-marker { position:absolute; top:0; height:100%; width:2px; background:var(--green-dark); z-index:2; }
+        .gts-progress-marker::after { content:attr(data-label); position:absolute; top:-16px; left:50%; transform:translateX(-50%); font-size:.58em; font-weight:700; color:var(--green-dark); white-space:nowrap; background:rgba(255,255,255,.85); padding:1px 3px; border-radius:3px; }
+        .gts-progress-now { position:absolute; top:0; height:100%; width:3px; background:var(--red); z-index:3; }
+        .gts-progress-now::before { content:"GTS"; position:absolute; top:-16px; left:-8px; font-size:.6em; font-weight:800; color:var(--red); background:var(--red-light); padding:1px 4px; border-radius:3px; }
+
+        .bloom-bar { display:flex; flex-direction:column; gap:0; margin-top:10px; }
+        .bloom-track { position:relative; height:24px; background:linear-gradient(90deg,#E8F5E9 0%,#C8E6C9 15%,#A5D6A7 30%,#81C784 50%,#66BB6A 70%,#43A047 100%); border-radius:12px; overflow:visible; margin:6px 0 4px; }
+        .bloom-item { position:absolute; top:-2px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; cursor:default; z-index:1; }
+        .bloom-icon { font-size:1.2em; line-height:1; filter:drop-shadow(0 1px 2px rgba(0,0,0,.2)); }
+        .bloom-label { font-size:.58em; font-weight:600; color:var(--gray-dark); white-space:nowrap; margin-top:1px; max-width:60px; text-align:center; overflow:hidden; text-overflow:ellipsis; }
+        .bloom-gts { font-size:.52em; color:var(--gray); }
+        .bloom-now-line { position:absolute; top:-4px; bottom:-20px; width:2px; background:var(--red); z-index:5; transform:translateX(-50%); }
+        .bloom-now-line::after { content:"OGGI"; position:absolute; bottom:-14px; left:-10px; font-size:.5em; font-weight:800; color:var(--red); background:var(--red-light); padding:1px 3px; border-radius:2px; }
+        .bloom-legend { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; padding-top:8px; border-top:1px solid #eee; }
+        .bloom-legend-item { font-size:.72em; display:flex; align-items:center; gap:3px; color:var(--gray); }
+        .bloom-past { opacity:.4; }
+        .bloom-active { animation:bloomPulse 1.5s ease-in-out infinite; }
+        @keyframes bloomPulse { 0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.2)} }
+
+        @media(max-width:600px){ .header h1{font-size:1.2em;} .forecast-grid{grid-template-columns:repeat(3,1fr);} .timeline-item{min-width:110px;} }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <h1>&#127855; Pianificatore Apiario</h1>
+    </div>
+</div>
+
+<div class="main">
+    <!-- Map -->
+    <div class="card" style="margin-bottom:20px;">
+        <div class="card-header map-header">&#128506; I miei Apiari</div>
+        <div class="card-body">
+            <div id="apiaryMap"></div>
+            <div class="apiary-panel">
+                <div class="apiary-list">
+                    <h4>Apiari registrati</h4>
+                    <div id="apiaryListContainer"></div>
+                </div>
+                <div class="apiary-form" id="apiaryForm">
+                    <h4 id="apiaryFormTitle">Aggiungi apiario</h4>
+                    <label>Nome</label>
+                    <input type="text" id="apiaryNameInput" placeholder="es. Apiario Claro" />
+                    <label>Latitudine</label>
+                    <input type="number" id="apiaryLatInput" step="0.0001" placeholder="es. 46.2607" />
+                    <label>Longitudine</label>
+                    <input type="number" id="apiaryLonInput" step="0.0001" placeholder="es. 9.0291" />
+                    <p class="hint">Clicca sulla mappa per compilare le coordinate. Lo storico arnie si gestisce dal planner.</p>
+                    <input type="hidden" id="apiaryEditId" value="" />
+                    <div class="apiary-form-btns">
+                        <button class="btn-save" onclick="saveApiary()">Salva</button>
+                        <button class="btn-cancel" onclick="resetApiaryForm()">Annulla</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Apiary selector tabs -->
+    <div class="apiary-tabs" id="apiaryTabs"></div>
+
+    <!-- Current period -->
+    <div class="current-period" id="currentPeriod">
+        <div class="loading"><div class="spinner"></div><p style="margin-top:10px">Caricamento...</p></div>
+    </div>
+
+    <!-- Dashboard (content changes per apiary) -->
+    <div class="dashboard" id="dashboard">
+        <!-- Planner -->
+        <div class="card">
+            <div class="card-header planner-header">&#128197; Planner Annuale - Linea del Tempo</div>
+            <div class="card-body">
+                <div class="planner-toolbar">
+                    <input type="text" id="plannerName" placeholder="Nome attivita..." style="flex:1;min-width:140px" />
+                    <select id="plannerCategory">
+                        <option value="varroa">Varroa</option><option value="raccolte">Raccolte</option>
+                        <option value="nutrizione">Nutrizione</option><option value="gestione">Gestione colonie</option>
+                        <option value="controlli">Controlli</option><option value="sciamatura">Sciamatura</option>
+                        <option value="custom">Altro</option>
+                    </select>
+                    <input type="date" id="plannerStart" /><input type="date" id="plannerEnd" />
+                    <button class="planner-btn planner-btn-add" onclick="addPlannerActivity()">+ Aggiungi</button>
+                    <button class="planner-btn planner-btn-clear" onclick="clearCustomActivities()">Svuota custom</button>
+                </div>
+                <div class="gantt-wrapper"><div class="gantt" id="ganttChart"></div></div>
+                <div class="gantt-legend" id="ganttLegend"></div>
+            </div>
+        </div>
+
+        <!-- Weather 14-day -->
+        <div class="card">
+            <div class="card-header weather-header">&#9925; Previsioni Meteo 14 giorni</div>
+            <div class="card-body" id="weatherSection"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- GTS & Flowering -->
+        <div class="card">
+            <div class="card-header gts-header">&#127793; Grünlandtemperatursumme &amp; Fioriture</div>
+            <div class="card-body" id="gtsSection"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Varroa -->
+        <div class="card">
+            <div class="card-header varroa-header">&#128027; Varroawetter - Finestre di trattamento</div>
+            <div class="card-body" id="varroaSection"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Hourly -->
+        <div class="card" id="hourlyCard" style="display:none;">
+            <div class="card-header varroa-header">&#128337; Dettaglio orario - Idoneita trattamenti</div>
+            <div class="card-body">
+                <div class="tab-bar" id="hourlyTabs"></div>
+                <div id="hourlySection"></div>
+            </div>
+        </div>
+
+        <!-- Seasonal Calendar -->
+        <div class="card">
+            <div class="card-header calendar-header">&#128197; Calendario Stagionale - Concetto Aziendale</div>
+            <div class="card-body"><div class="timeline" id="timeline"></div></div>
+        </div>
+        <div class="detail-panel" id="detailPanel"></div>
+
+        <!-- Links -->
+        <div class="card">
+            <div class="card-header links-header">&#128218; Prontuari e Risorse - apicoltura.ch</div>
+            <div class="card-body"><div class="links-grid" id="linksGrid"></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    Previsioni: <a href="https://open-meteo.com/" target="_blank">Open-Meteo (MeteoSwiss)</a> |
+    Guida apicola: <a href="https://www.apicoltura.ch/apicoltura/concetto-aziendale-e-prontuari/" target="_blank">apicoltura.ch</a> |
+    Logica Varroa basata su soglie SSA/BGD
+</div>
+
+<script>
+// ============================================================
+// BEE SVG (inline for markers)
+// ============================================================
+const BEE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="bee-marker">
+  <ellipse cx="32" cy="38" rx="14" ry="16" fill="#FFD54F" stroke="#F57F17" stroke-width="2"/>
+  <rect x="18" y="30" width="28" height="5" rx="2" fill="#4E342E"/>
+  <rect x="18" y="38" width="28" height="5" rx="2" fill="#4E342E"/>
+  <rect x="18" y="46" width="28" height="4" rx="2" fill="#4E342E"/>
+  <ellipse cx="32" cy="24" rx="10" ry="9" fill="#FFD54F" stroke="#F57F17" stroke-width="2"/>
+  <circle cx="28" cy="23" r="2.5" fill="#212121"/><circle cx="36" cy="23" r="2.5" fill="#212121"/>
+  <ellipse cx="18" cy="28" rx="9" ry="5" fill="rgba(200,230,255,0.55)" stroke="#90CAF9" stroke-width="1" transform="rotate(-30 18 28)"/>
+  <ellipse cx="46" cy="28" rx="9" ry="5" fill="rgba(200,230,255,0.55)" stroke="#90CAF9" stroke-width="1" transform="rotate(30 46 28)"/>
+  <line x1="28" y1="16" x2="24" y2="8" stroke="#4E342E" stroke-width="2" stroke-linecap="round"/>
+  <line x1="36" y1="16" x2="40" y2="8" stroke="#4E342E" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="24" cy="7" r="2" fill="#4E342E"/><circle cx="40" cy="7" r="2" fill="#4E342E"/>
+</svg>`;
+
+// ============================================================
+// APIARY DATA
+// ============================================================
+const APIARY_COLORS = ["#E53935","#1E88E5","#43A047","#FB8C00","#8E24AA","#00ACC1","#D81B60","#6D4C41"];
+
+function getDefaultApiaries() {
+    return [
+        { id: "a1", name: "Apiario Claro", lat: 46.2607, lon: 9.0291, color: APIARY_COLORS[0], hivesHistory: [] },
+        { id: "a2", name: "Apiario Toma", lat: 46.2830, lon: 9.0185, color: APIARY_COLORS[1], hivesHistory: [] }
+    ];
+}
+function loadApiaries() {
+    try {
+        const s = localStorage.getItem("apiario-planner-apiaries");
+        if (s) {
+            const data = JSON.parse(s);
+            // Migrate: if old format has 'hives' number, convert to hivesHistory
+            data.forEach(a => {
+                if (!a.hivesHistory) {
+                    a.hivesHistory = [];
+                    if (a.hives && a.hives > 0) {
+                        a.hivesHistory.push({ date: new Date().toISOString().slice(0,10), count: a.hives, note: "Migrazione" });
+                    }
+                    delete a.hives;
+                }
+                // Sort history by date descending
+                a.hivesHistory.sort((x,y) => y.date.localeCompare(x.date));
+            });
+            return data;
+        }
+    } catch(e) {}
+    return getDefaultApiaries();
+}
+function getCurrentHives(apiary) {
+    if (!apiary || !apiary.hivesHistory || !apiary.hivesHistory.length) return 0;
+    return apiary.hivesHistory[0].count;
+}
+function getCurrentNucs(apiary) {
+    if (!apiary || !apiary.hivesHistory || !apiary.hivesHistory.length) return 0;
+    return apiary.hivesHistory[0].nucs || 0;
+}
+function addHiveHistoryEntry(apiaryId, date, count, nucs, note) {
+    const a = apiaries.find(x => x.id === apiaryId);
+    if (!a) return;
+    if (!a.hivesHistory) a.hivesHistory = [];
+    a.hivesHistory.push({ date, count: parseInt(count)||0, nucs: parseInt(nucs)||0, note: note||'' });
+    a.hivesHistory.sort((x,y) => y.date.localeCompare(x.date));
+    saveApiariesData(apiaries);
+    renderGantt();
+    renderApiaryTabs();
+    renderApiaryList();
+}
+function deleteHiveHistoryEntry(apiaryId, idx) {
+    const a = apiaries.find(x => x.id === apiaryId);
+    if (!a || !a.hivesHistory) return;
+    a.hivesHistory.splice(idx, 1);
+    saveApiariesData(apiaries);
+    renderGantt();
+    renderApiaryTabs();
+    renderApiaryList();
+}
+function saveApiariesData(data) {
+    try { localStorage.setItem("apiario-planner-apiaries", JSON.stringify(data)); } catch(e) {}
+}
+
+let apiaries = loadApiaries();
+let apiaryMap = null, apiaryMarkers = [], tempMarker = null;
+let activeApiaryId = apiaries.length > 0 ? apiaries[0].id : null;
+
+// Per-apiary weather cache
+let weatherCache = {}; // { apiaryId: { daily, hourly } }
+
+// ============================================================
+// PER-APIARY PLANNER DATA
+// ============================================================
+function getPlannerKey(apiaryId) { return "apiario-planner-data-" + apiaryId; }
+
+function getDefaultActivities() {
+    const y = new Date().getFullYear();
+    return [
+        { id:"v1",name:"Monit. caduta varroa",cat:"varroa",start:`${y}-01-01`,end:`${y}-02-28`,done:false,doneDate:null,system:true },
+        { id:"v2",name:"Telaino da fuco",cat:"varroa",start:`${y}-04-01`,end:`${y}-06-15`,done:false,doneDate:null,system:true },
+        { id:"v3",name:"Monit. varroa (zucchero a velo)",cat:"varroa",start:`${y}-06-01`,end:`${y}-07-15`,done:false,doneDate:null,system:true },
+        { id:"v4",name:"1\u00B0 trattamento estivo (ac. formico)",cat:"varroa",start:`${y}-07-15`,end:`${y}-08-15`,done:false,doneDate:null,system:true },
+        { id:"v5",name:"2\u00B0 trattamento estivo",cat:"varroa",start:`${y}-08-15`,end:`${y}-09-15`,done:false,doneDate:null,system:true },
+        { id:"v6",name:"Trattamento invernale (ac. ossalico)",cat:"varroa",start:`${y}-11-15`,end:`${y}-12-31`,done:false,doneDate:null,system:true },
+        { id:"r1",name:"Raccolta miele primavera",cat:"raccolte",start:`${y}-05-01`,end:`${y}-05-31`,done:false,doneDate:null,system:true },
+        { id:"r2",name:"Raccolta castagno/tiglio",cat:"raccolte",start:`${y}-06-15`,end:`${y}-07-10`,done:false,doneDate:null,system:true },
+        { id:"r3",name:"Raccolta melata",cat:"raccolte",start:`${y}-07-01`,end:`${y}-07-31`,done:false,doneDate:null,system:true },
+        { id:"n1",name:"Nutrimento emergenza (candito)",cat:"nutrizione",start:`${y}-02-01`,end:`${y}-03-15`,done:false,doneDate:null,system:true },
+        { id:"n2",name:"Nutrizione stimolante",cat:"nutrizione",start:`${y}-08-01`,end:`${y}-09-15`,done:false,doneDate:null,system:true },
+        { id:"n3",name:"Nutrizione invernale (sciroppo)",cat:"nutrizione",start:`${y}-09-01`,end:`${y}-09-30`,done:false,doneDate:null,system:true },
+        { id:"g1",name:"Rinnovo favi",cat:"gestione",start:`${y}-03-15`,end:`${y}-05-15`,done:false,doneDate:null,system:true },
+        { id:"g2",name:"Ampliamento nido/melario",cat:"gestione",start:`${y}-04-01`,end:`${y}-06-30`,done:false,doneDate:null,system:true },
+        { id:"g3",name:"Produzione nuclei/regine",cat:"gestione",start:`${y}-05-01`,end:`${y}-06-30`,done:false,doneDate:null,system:true },
+        { id:"g4",name:"Preparazione invernamento",cat:"gestione",start:`${y}-09-15`,end:`${y}-10-31`,done:false,doneDate:null,system:true },
+        { id:"c1",name:"Controllo invernale (peso arnie)",cat:"controlli",start:`${y}-01-01`,end:`${y}-02-28`,done:false,doneDate:null,system:true },
+        { id:"c2",name:"Prima ispezione primaverile",cat:"controlli",start:`${y}-03-01`,end:`${y}-03-31`,done:false,doneDate:null,system:true },
+        { id:"c3",name:"Controlli settimanali (celle reali)",cat:"controlli",start:`${y}-04-01`,end:`${y}-06-15`,done:false,doneDate:null,system:true },
+        { id:"c4",name:"Valutazione forza famiglie",cat:"controlli",start:`${y}-09-01`,end:`${y}-09-30`,done:false,doneDate:null,system:true },
+        { id:"s1",name:"Prevenzione sciamatura",cat:"sciamatura",start:`${y}-04-01`,end:`${y}-06-15`,done:false,doneDate:null,system:true },
+        { id:"s2",name:"Sciami artificiali",cat:"sciamatura",start:`${y}-04-15`,end:`${y}-05-31`,done:false,doneDate:null,system:true },
+    ];
+}
+
+function loadPlannerForApiary(apiaryId) {
+    try { const s = localStorage.getItem(getPlannerKey(apiaryId)); if (s) return JSON.parse(s); } catch(e) {}
+    return getDefaultActivities();
+}
+function savePlannerForApiary(apiaryId, data) {
+    try { localStorage.setItem(getPlannerKey(apiaryId), JSON.stringify(data)); } catch(e) {}
+}
+
+function getActivePlanner() { return loadPlannerForApiary(activeApiaryId); }
+function saveActivePlanner(data) { savePlannerForApiary(activeApiaryId, data); }
+
+// ============================================================
+// SEASONAL CALENDAR
+// ============================================================
+const SEASONAL_CALENDAR = [
+    { id:1,month:"Gen-Feb",name:"Controllo invernale",icon:"\u2744\uFE0F",flowering:"",monthRange:[1,2],tasks:[
+        {text:"Controllare riserve di cibo (peso arnia)",priority:"high",icon:"\u2696\uFE0F"},
+        {text:"Verificare assenza di umidita e muffa",priority:"medium",icon:"\uD83D\uDC41"},
+        {text:"Controllare portina di volo",priority:"medium",icon:"\uD83D\uDEAA"},
+        {text:"Monitorare caduta naturale varroa",priority:"high",icon:"\uD83D\uDC1B"},
+        {text:"Non aprire le arnie se T < 10\u00B0C",priority:"high",icon:"\u26A0\uFE0F"}]},
+    { id:2,month:"Feb",name:"Fine inverno",icon:"\uD83C\uDF28\uFE0F",flowering:"",monthRange:[2,2],tasks:[
+        {text:"Nutrimento d'emergenza (candito)",priority:"high",icon:"\uD83C\uDF6D"},
+        {text:"Preparare materiale (telai, fogli cerei)",priority:"medium",icon:"\uD83D\uDD27"},
+        {text:"Pianificare obiettivi stagionali",priority:"low",icon:"\uD83D\uDCDD"},
+        {text:"Ordinare regine se necessario",priority:"low",icon:"\uD83D\uDC51"}]},
+    { id:3,month:"Feb-Mar",name:"Primo volo di pulizia",icon:"\uD83D\uDC1D",flowering:"",monthRange:[2,3],tasks:[
+        {text:"Osservare attivita di volo",priority:"high",icon:"\uD83D\uDC41"},
+        {text:"Valutare forza delle famiglie",priority:"high",icon:"\uD83D\uDCCA"},
+        {text:"Verificare presenza regina",priority:"high",icon:"\uD83D\uDC51"}]},
+    { id:4,month:"Mar",name:"Fioritura noccioli",icon:"\uD83C\uDF33",flowering:"Noccioli, crochi",monthRange:[3,3],tasks:[
+        {text:"Prima ispezione (se T > 15\u00B0C)",priority:"high",icon:"\uD83D\uDD0D"},
+        {text:"Valutare riserve polline e miele",priority:"high",icon:"\uD83C\uDF6F"},
+        {text:"Restringere nido se famiglia debole",priority:"medium",icon:"\uD83D\uDCCF"},
+        {text:"Unire famiglie troppo deboli",priority:"medium",icon:"\uD83E\uDD1D"}]},
+    { id:5,month:"Mar-Apr",name:"Fioritura salici",icon:"\uD83C\uDF33",flowering:"Salici, tarassaco",monthRange:[3,4],tasks:[
+        {text:"Rinnovo favi vecchi/scuri",priority:"high",icon:"\uD83D\uDD04"},
+        {text:"Ampliare nido con nuovi telai",priority:"medium",icon:"\u2795"},
+        {text:"Inserire telaino da fuco",priority:"high",icon:"\uD83D\uDC1B"}]},
+    { id:6,month:"Apr",name:"Fioritura ciliegi",icon:"\uD83C\uDF38",flowering:"Ciliegi, pruni",monthRange:[4,4],tasks:[
+        {text:"Aggiungere melario",priority:"high",icon:"\uD83D\uDCE6"},
+        {text:"Controllare celle reali (sciamatura)",priority:"high",icon:"\u26A0\uFE0F"},
+        {text:"Ritaglio favi da fuco",priority:"high",icon:"\u2702\uFE0F"}]},
+    { id:7,month:"Apr-Mag",name:"Fioritura meli",icon:"\uD83C\uDF4E",flowering:"Meli, peri, colza",monthRange:[4,5],tasks:[
+        {text:"Controllo settimanale celle reali",priority:"high",icon:"\uD83D\uDC51"},
+        {text:"Sciami artificiali se necessario",priority:"medium",icon:"\uD83E\uDE90"},
+        {text:"Continuare ritaglio favi da fuco",priority:"high",icon:"\u2702\uFE0F"}]},
+    { id:8,month:"Mag",name:"Fioritura colza/acacia",icon:"\uD83C\uDF3B",flowering:"Colza, robinia",monthRange:[5,5],tasks:[
+        {text:"Raccolta miele primaverile",priority:"high",icon:"\uD83C\uDF6F"},
+        {text:"Prevenzione sciamatura attiva",priority:"high",icon:"\u26A0\uFE0F"},
+        {text:"Produzione nuclei e regine",priority:"medium",icon:"\uD83D\uDC51"}]},
+    { id:9,month:"Giu",name:"Fioritura tiglio",icon:"\uD83C\uDF33",flowering:"Tiglio, castagno",monthRange:[6,6],tasks:[
+        {text:"Raccolta miele castagno/tiglio",priority:"high",icon:"\uD83C\uDF6F"},
+        {text:"Monitoraggio varroa (zucchero a velo)",priority:"high",icon:"\uD83D\uDC1B"},
+        {text:"Valutare trattamento estivo",priority:"high",icon:"\uD83E\uDDEA"}]},
+    { id:10,month:"Lug",name:"Melata / Ultimo raccolto",icon:"\uD83C\uDF32",flowering:"Abete, melata",monthRange:[7,7],tasks:[
+        {text:"Ultima raccolta miele (melata)",priority:"high",icon:"\uD83C\uDF6F"},
+        {text:"Togliere melari",priority:"high",icon:"\uD83D\uDCE6"},
+        {text:"Monitoraggio varroa pre-trattamento",priority:"high",icon:"\uD83D\uDC1B"}]},
+    { id:11,month:"Lug-Ago",name:"1\u00B0 Trattamento estivo",icon:"\uD83D\uDCA7",flowering:"",monthRange:[7,8],tasks:[
+        {text:"Acido formico 60% (lungo termine)",priority:"high",icon:"\uD83D\uDCA7"},
+        {text:"OPPURE: FormicPro / MAQS",priority:"high",icon:"\uD83E\uDE7A"},
+        {text:"OPPURE: Timolo (Thymovar) se T 15-30\u00B0C",priority:"high",icon:"\uD83C\uDF3F"},
+        {text:"Controllare Varroawetter!",priority:"high",icon:"\u26A0\uFE0F"},
+        {text:"Nutrire dopo trattamento",priority:"high",icon:"\uD83C\uDF70"}]},
+    { id:12,month:"Ago-Set",name:"2\u00B0 Trattamento estivo",icon:"\uD83D\uDCA7",flowering:"",monthRange:[8,9],tasks:[
+        {text:"Secondo trattamento formico se necessario",priority:"high",icon:"\uD83D\uDCA7"},
+        {text:"Monitorare caduta varroa",priority:"high",icon:"\uD83D\uDCCA"},
+        {text:"Obiettivo: < 1 varroa/giorno",priority:"high",icon:"\uD83C\uDFAF"}]},
+    { id:13,month:"Set",name:"Nutrizione invernale",icon:"\uD83C\uDF70",flowering:"",monthRange:[9,9],tasks:[
+        {text:"Sciroppo 3:2 o 2:1",priority:"high",icon:"\uD83C\uDF70"},
+        {text:"Obiettivo: 20-25 kg riserve",priority:"high",icon:"\u2696\uFE0F"},
+        {text:"Ridurre portina (anti-saccheggio)",priority:"medium",icon:"\uD83D\uDEAA"}]},
+    { id:14,month:"Set-Ott",name:"Preparazione invernamento",icon:"\uD83C\uDF42",flowering:"",monthRange:[9,10],tasks:[
+        {text:"Completare nutrizione",priority:"high",icon:"\uD83C\uDF70"},
+        {text:"Verificare peso arnie",priority:"high",icon:"\u2696\uFE0F"},
+        {text:"Protezioni contro picchi/topi",priority:"medium",icon:"\uD83D\uDEE1\uFE0F"}]},
+    { id:15,month:"Ott-Nov",name:"Inizio riposo invernale",icon:"\uD83C\uDF41",flowering:"",monthRange:[10,11],tasks:[
+        {text:"Cartoncino monitoraggio varroa",priority:"medium",icon:"\uD83D\uDC1B"},
+        {text:"Ridurre disturbo al minimo",priority:"high",icon:"\uD83D\uDE34"},
+        {text:"Preparare trattamento invernale",priority:"medium",icon:"\uD83D\uDD27"}]},
+    { id:16,month:"Nov-Dic",name:"Trattamento invernale",icon:"\u2744\uFE0F",flowering:"",monthRange:[11,12],tasks:[
+        {text:"Acido ossalico gocciolamento (senza covata)",priority:"high",icon:"\uD83D\uDCA7"},
+        {text:"OPPURE: sublimazione Varrox",priority:"high",icon:"\uD83D\uDCA8"},
+        {text:"T ideale: 0-5\u00B0C, no pioggia",priority:"high",icon:"\uD83C\uDF21\uFE0F"},
+        {text:"UN SOLO trattamento ossalico!",priority:"high",icon:"\u26A0\uFE0F"}]},
+    { id:17,month:"Dic-Gen",name:"Periodo senza covata",icon:"\u2744\uFE0F",flowering:"",monthRange:[12,1],tasks:[
+        {text:"Se non fatto: trattamento ossalico",priority:"high",icon:"\uD83D\uDCA7"},
+        {text:"Controllare peso mensilmente",priority:"medium",icon:"\u2696\uFE0F"},
+        {text:"Non disturbare: periodo di glomere",priority:"high",icon:"\uD83D\uDCA4"}]},
+    { id:18,month:"Gen",name:"Pianificazione nuova stagione",icon:"\uD83D\uDCDD",flowering:"",monthRange:[1,1],tasks:[
+        {text:"Analizzare risultati stagione",priority:"medium",icon:"\uD83D\uDCCA"},
+        {text:"Ordinare materiale",priority:"medium",icon:"\uD83D\uDCE6"},
+        {text:"Pianificare concetto aziendale",priority:"high",icon:"\uD83D\uDCDD"},
+        {text:"Controllare scadenza prodotti trattamenti",priority:"medium",icon:"\uD83D\uDCC5"}]}
+];
+
+// ============================================================
+// TREATMENTS
+// ============================================================
+const TREATMENTS = [
+    { name:"Acido formico 60% (lungo termine)",id:"formic_long",season:"summer",tempMin:12,tempMax:25,tempIdealMin:15,tempIdealMax:22,notes:"Diffusore Liebig/Nassenheider. 7-14 giorni.",duration:"7-14 giorni" },
+    { name:"FormicPro / MAQS",id:"formicpro",season:"summer",tempMin:10,tempMax:29.5,tempIdealMin:15,tempIdealMax:25,notes:"Strisce acido formico. 7 giorni.",duration:"7 giorni" },
+    { name:"Thymovar",id:"thymovar",season:"summer",tempMin:12,tempMax:30,tempIdealMin:15,tempIdealMax:25,notes:"Strisce timolo. 2x 3-4 settimane.",duration:"6-8 settimane" },
+    { name:"ApiLife Var",id:"apilife",season:"summer",tempMin:15,tempMax:30,tempIdealMin:18,tempIdealMax:25,notes:"Tavoletta timolo/eucaliptolo.",duration:"5 settimane" },
+    { name:"Acido ossalico (gocciolamento)",id:"oxalic_drip",season:"winter",tempMin:-5,tempMax:8,tempIdealMin:0,tempIdealMax:5,notes:"Senza covata. UN SOLO trattamento.",duration:"Singola" },
+    { name:"Acido ossalico (sublimazione)",id:"oxalic_sub",season:"winter",tempMin:-10,tempMax:10,tempIdealMin:0,tempIdealMax:5,notes:"Varrox. Senza covata.",duration:"Singola" }
+];
+
+const RESOURCE_LINKS = [
+    { title:"Concetto aziendale (PDF)",desc:"Modello pianificazione stagionale",url:"https://www.apicoltura.ch/fileadmin/user_upload_relaunch/Documente-IT/Salute_delle_api/modello_concetto_aziendale.pdf" },
+    { title:"Concetto aziendale interattivo",desc:"Piattaforma web personalizzata",url:"https://concettoaziendale.apiservice.ch/" },
+    { title:"Concetto Varroa",desc:"Guida completa lotta varroa",url:"https://www.apicoltura.ch/apicoltura/concetto-aziendale-e-prontuari/" },
+    { title:"Trattamenti estivi",desc:"Acido formico: Liebig, Nassenheider, FAM",url:"https://www.apicoltura.ch/apicoltura/concetto-aziendale-e-prontuari/" },
+    { title:"Trattamenti invernali",desc:"Acido ossalico: gocciolamento, sublimazione",url:"https://www.apicoltura.ch/apicoltura/concetto-aziendale-e-prontuari/" },
+    { title:"Diagnostica varroa",desc:"Caduta naturale, zucchero a velo, lavaggio",url:"https://www.apicoltura.ch/apicoltura/concetto-aziendale-e-prontuari/" },
+    { title:"Nutrizione delle api",desc:"Alimentazione supplementare",url:"https://www.apicoltura.ch/apicoltura/concetto-aziendale-e-prontuari/" },
+    { title:"SSA - Servizio Sanitario Apistico",desc:"Hotline: 0800 274 274",url:"https://www.apicoltura.ch/" }
+];
+
+// ============================================================
+// WEATHER
+// ============================================================
+function getWeatherIcon(c){const i={0:"\u2600\uFE0F",1:"\uD83C\uDF24\uFE0F",2:"\u26C5",3:"\u2601\uFE0F",45:"\uD83C\uDF2B\uFE0F",48:"\uD83C\uDF2B\uFE0F",51:"\uD83C\uDF26\uFE0F",53:"\uD83C\uDF26\uFE0F",55:"\uD83C\uDF27\uFE0F",61:"\uD83C\uDF27\uFE0F",63:"\uD83C\uDF27\uFE0F",65:"\uD83C\uDF27\uFE0F",71:"\uD83C\uDF28\uFE0F",73:"\u2744\uFE0F",75:"\u2744\uFE0F",80:"\uD83C\uDF26\uFE0F",81:"\uD83C\uDF27\uFE0F",82:"\u26C8\uFE0F",95:"\u26C8\uFE0F",96:"\u26C8\uFE0F"};return i[c]||"\u2601\uFE0F";}
+function getWeatherDesc(c){const d={0:"Sereno",1:"Prev. sereno",2:"Parz. nuvoloso",3:"Coperto",45:"Nebbia",51:"Pioviggine",61:"Pioggia leggera",63:"Pioggia",65:"Pioggia intensa",71:"Neve leggera",73:"Neve",75:"Neve intensa",80:"Rovescio",82:"Temporale",95:"Temporale"};return d[c]||"N/D";}
+
+function evaluateTreatment(t,tMax,tMin,tAvg,hum,precip){
+    const m=new Date().getMonth()+1, isSu=m>=6&&m<=9, isWi=m>=10||m<=2;
+    if(t.season==="summer"&&!isSu)return{status:"off-season",label:"Fuori stagione"};
+    if(t.season==="winter"&&!isWi)return{status:"off-season",label:"Fuori stagione"};
+    if(tMax>t.tempMax+3||tMin<t.tempMin-3)return{status:"unsuitable",label:"Inadatto"};
+    if(tMax>t.tempMax||tMin<t.tempMin)return{status:"marginal",label:"Marginale"};
+    if(precip>5&&t.season==="summer")return{status:"marginal",label:"Pioggia"};
+    if(tAvg>=t.tempIdealMin&&tAvg<=t.tempIdealMax)return{status:"suitable",label:"Ideale"};
+    if(tMin>=t.tempMin&&tMax<=t.tempMax)return{status:"suitable",label:"Adatto"};
+    return{status:"marginal",label:"Accettabile"};
+}
+
+async function fetchWeatherForApiary(apiaryId) {
+    const ap = apiaries.find(a=>a.id===apiaryId);
+    if(!ap) return null;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${ap.lat}&longitude=${ap.lon}&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum,relative_humidity_2m_mean,wind_speed_10m_max&hourly=temperature_2m,relative_humidity_2m,weathercode,precipitation&forecast_days=14&timezone=Europe/Zurich&models=best_match`;
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        weatherCache[apiaryId] = { daily: data.daily, hourly: data.hourly };
+        return data;
+    } catch(e) { console.error("Weather error:",e); return null; }
+}
+
+// ============================================================
+// MAP
+// ============================================================
+function initMap() {
+    let cLat=46.27, cLon=9.025;
+    if(apiaries.length>0){ cLat=apiaries.reduce((s,a)=>s+a.lat,0)/apiaries.length; cLon=apiaries.reduce((s,a)=>s+a.lon,0)/apiaries.length; }
+    apiaryMap = L.map('apiaryMap').setView([cLat,cLon],13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19}).addTo(apiaryMap);
+    apiaryMap.on('click',function(e){
+        document.getElementById('apiaryLatInput').value=e.latlng.lat.toFixed(4);
+        document.getElementById('apiaryLonInput').value=e.latlng.lng.toFixed(4);
+        if(tempMarker)apiaryMap.removeLayer(tempMarker);
+        tempMarker=L.circleMarker([e.latlng.lat,e.latlng.lng],{radius:8,color:'#999',fillColor:'#ccc',fillOpacity:.6,weight:2,dashArray:'4'}).addTo(apiaryMap).bindPopup('Nuova posizione').openPopup();
+    });
+    renderApiaryMarkers();
+    renderApiaryList();
+}
+
+function renderApiaryMarkers() {
+    apiaryMarkers.forEach(m=>apiaryMap.removeLayer(m));
+    apiaryMarkers=[];
+    apiaries.forEach(a=>{
+        const isActive = a.id === activeApiaryId;
+        const marker = L.marker([a.lat,a.lon],{
+            icon: L.divIcon({
+                className:'',
+                html: `<div style="position:relative">${BEE_SVG}<div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);background:${a.color};color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.3);border:${isActive?'2px solid #FFD54F':'1px solid rgba(255,255,255,.5)'}">${a.name}</div></div>`,
+                iconSize:[44,52],iconAnchor:[22,38],popupAnchor:[0,-40]
+            })
+        }).addTo(apiaryMap);
+        marker.bindPopup(`<div style="font-family:inherit"><strong>${a.name}</strong><br><span style="font-size:.85em;color:#666">Lat: ${a.lat.toFixed(4)} | Lon: ${a.lon.toFixed(4)}</span><br><button onclick="switchApiary('${a.id}')" style="margin-top:6px;padding:4px 12px;background:var(--honey);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:.85em">Seleziona</button></div>`);
+        marker.on('click',()=>{ switchApiary(a.id); });
+        apiaryMarkers.push(marker);
+    });
+    if(apiaries.length>1){ apiaryMap.fitBounds(L.featureGroup(apiaryMarkers).getBounds().pad(0.3)); }
+    else if(apiaries.length===1){ apiaryMap.setView([apiaries[0].lat,apiaries[0].lon],14); }
+}
+
+function renderApiaryList() {
+    const c=document.getElementById('apiaryListContainer');
+    if(!apiaries.length){c.innerHTML='<p style="color:var(--gray);font-size:.85em">Nessun apiario. Aggiungine uno!</p>';return;}
+    let h='';
+    apiaries.forEach(a=>{
+        const act=a.id===activeApiaryId;
+        h+=`<div class="apiary-item" style="${act?'background:var(--green-light);border-color:var(--green)':''}">
+            <div class="apiary-color" style="background:${a.color}"></div>
+            <span class="apiary-name" style="cursor:pointer" onclick="switchApiary('${a.id}')">${a.name}</span>
+            <span class="apiary-coords">${a.lat.toFixed(4)}, ${a.lon.toFixed(4)}</span>
+            <span style="font-size:.78em;font-weight:600;color:var(--honey-dark)" title="Arnie attive">\uD83D\uDCE6 ${getCurrentHives(a)}</span>
+            <span style="font-size:.78em;font-weight:600;color:var(--blue)" title="Nuclei">\uD83E\uDEB9 ${getCurrentNucs(a)}</span>
+            <button class="apiary-btn" onclick="editApiary('${a.id}')" title="Modifica">\u270F\uFE0F</button>
+            <button class="apiary-btn" onclick="zoomToApiary('${a.id}')" title="Zoom">\uD83D\uDD0D</button>
+            <button class="apiary-btn" onclick="deleteApiary('${a.id}')" title="Elimina">\u2716</button>
+        </div>`;
+    });
+    c.innerHTML=h;
+}
+
+function saveApiary() {
+    const name=document.getElementById('apiaryNameInput').value.trim();
+    const lat=parseFloat(document.getElementById('apiaryLatInput').value);
+    const lon=parseFloat(document.getElementById('apiaryLonInput').value);
+    const editId=document.getElementById('apiaryEditId').value;
+    if(!name){alert('Inserisci il nome');return;} if(isNaN(lat)||isNaN(lon)){alert('Coordinate non valide');return;}
+    if(editId){const a=apiaries.find(x=>x.id===editId);if(a){a.name=name;a.lat=lat;a.lon=lon;}}
+    else{apiaries.push({id:'a'+Date.now(),name,lat,lon,hivesHistory:[],color:APIARY_COLORS[apiaries.length%APIARY_COLORS.length]});}
+    saveApiariesData(apiaries);renderApiaryMarkers();renderApiaryList();renderApiaryTabs();resetApiaryForm();
+    if(tempMarker){apiaryMap.removeLayer(tempMarker);tempMarker=null;}
+    if(!activeApiaryId&&apiaries.length>0){switchApiary(apiaries[0].id);}
+}
+function editApiary(id){const a=apiaries.find(x=>x.id===id);if(!a)return;document.getElementById('apiaryFormTitle').textContent='Modifica apiario';document.getElementById('apiaryNameInput').value=a.name;document.getElementById('apiaryLatInput').value=a.lat;document.getElementById('apiaryLonInput').value=a.lon;document.getElementById('apiaryEditId').value=a.id;}
+function deleteApiary(id){apiaries=apiaries.filter(x=>x.id!==id);saveApiariesData(apiaries);if(activeApiaryId===id){activeApiaryId=apiaries.length>0?apiaries[0].id:null;}renderApiaryMarkers();renderApiaryList();renderApiaryTabs();resetApiaryForm();if(activeApiaryId)switchApiary(activeApiaryId);}
+function zoomToApiary(id){const a=apiaries.find(x=>x.id===id);if(!a)return;apiaryMap.setView([a.lat,a.lon],16);const i=apiaries.indexOf(a);if(apiaryMarkers[i])apiaryMarkers[i].openPopup();}
+function resetApiaryForm(){document.getElementById('apiaryFormTitle').textContent='Aggiungi apiario';['apiaryNameInput','apiaryLatInput','apiaryLonInput'].forEach(id=>document.getElementById(id).value='');document.getElementById('apiaryEditId').value='';if(tempMarker){apiaryMap.removeLayer(tempMarker);tempMarker=null;}}
+
+// ============================================================
+// APIARY TABS & SWITCHING
+// ============================================================
+function renderApiaryTabs() {
+    const c=document.getElementById('apiaryTabs');
+    let h='';
+    apiaries.forEach(a=>{
+        h+=`<button class="apiary-tab ${a.id===activeApiaryId?'active':''}" onclick="switchApiary('${a.id}')">
+            <div class="tab-color" style="background:${a.color}"></div>
+            ${a.name} <span style="font-size:.78em;opacity:.7">(${getCurrentHives(a)} arnie, ${getCurrentNucs(a)} nuclei)</span>
+        </button>`;
+    });
+    c.innerHTML=h;
+}
+
+async function switchApiary(id) {
+    if(!apiaries.find(a=>a.id===id))return;
+    activeApiaryId=id;
+    renderApiaryTabs();
+    renderApiaryList();
+    renderApiaryMarkers();
+    renderCurrentPeriod();
+    renderGantt();
+    document.getElementById('hourlyCard').style.display='none';
+
+    // Show loading
+    document.getElementById('weatherSection').innerHTML='<div class="loading"><div class="spinner"></div></div>';
+    document.getElementById('varroaSection').innerHTML='<div class="loading"><div class="spinner"></div></div>';
+    document.getElementById('gtsSection').innerHTML='<div class="loading"><div class="spinner"></div></div>';
+
+    // Fetch weather if not cached
+    if(!weatherCache[id]) await fetchWeatherForApiary(id);
+    renderWeather();
+    renderVarroa();
+
+    // Fetch GTS if not cached
+    if(!gtsCache[id]) await fetchGTSForApiary(id);
+    renderGTS();
+}
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+function getCurrentPeriod(){
+    const m=new Date().getMonth()+1;let r=[];
+    for(const p of SEASONAL_CALENDAR){const[s,e]=p.monthRange;if(s<=e){if(m>=s&&m<=e)r.push(p);}else{if(m>=s||m<=e)r.push(p);}}
+    return r.length>0?r:[SEASONAL_CALENDAR[0]];
+}
+
+function renderCurrentPeriod(){
+    const ap=apiaries.find(a=>a.id===activeApiaryId);
+    const periods=getCurrentPeriod();const c=document.getElementById('currentPeriod');
+    let h=`<div style="font-size:.8em;color:var(--honey-dark);font-weight:600;margin-bottom:6px">\uD83D\uDCCD ${ap?ap.name:'Nessun apiario selezionato'}</div>`;
+    for(const p of periods){
+        h+=`<h2>${p.icon} ${p.name}</h2>`;
+        h+=p.flowering?`<div class="period-desc">Fioritura: ${p.flowering} | ${p.month}</div>`:`<div class="period-desc">${p.month}</div>`;
+        h+='<ul class="task-list">';
+        for(const t of p.tasks)h+=`<li class="task-priority-${t.priority}"><span class="task-icon">${t.icon}</span><span>${t.text}</span></li>`;
+        h+='</ul>';
+        if(periods.indexOf(p)<periods.length-1)h+='<hr style="margin:12px 0;border:none;border-top:1px solid #eee">';
+    }
+    c.innerHTML=h;
+}
+
+function renderWeather(){
+    const wd=weatherCache[activeApiaryId];
+    if(!wd||!wd.daily){document.getElementById('weatherSection').innerHTML='<p style="color:var(--red)">Errore caricamento meteo</p>';return;}
+    const ap=apiaries.find(a=>a.id===activeApiaryId);
+    const days=wd.daily.time,dn=["Dom","Lun","Mar","Mer","Gio","Ven","Sab"],today=new Date().toISOString().split("T")[0];
+    let h=`<div style="font-weight:700;font-size:.88em;margin-bottom:8px">\uD83D\uDCCD ${ap?ap.name:''} - Prossimi 14 giorni</div>`;
+    h+='<div class="week-label">Questa settimana</div><div class="forecast-grid">';
+    for(let i=0;i<Math.min(7,days.length);i++)h+=mkFDay(i,wd.daily,dn,today);
+    h+='</div>';
+    if(days.length>7){h+='<div class="week-label" style="margin-top:10px">Prossima settimana</div><div class="forecast-grid">';for(let i=7;i<days.length;i++)h+=mkFDay(i,wd.daily,dn,today);h+='</div>';}
+    h+='<p style="font-size:.7em;color:var(--gray);margin-top:6px">\uD83D\uDFE2 Trattamento ideale \u00A0 \uD83D\uDFE0 Marginale \u00A0 \uD83D\uDD34 Inadatto \u00A0|\u00A0 Clicca per dettaglio orario \u00A0|\u00A0 Dati: Open-Meteo (MeteoSwiss)</p>';
+    document.getElementById('weatherSection').innerHTML=h;
+}
+
+function mkFDay(i,daily,dn,today){
+    const d=new Date(daily.time[i]+"T00:00:00"),tMax=daily.temperature_2m_max[i],tMin=daily.temperature_2m_min[i],tAvg=(tMax+tMin)/2,prec=daily.precipitation_sum[i],hum=daily.relative_humidity_2m_mean?daily.relative_humidity_2m_mean[i]:null;
+    let vc="";const cm=new Date().getMonth()+1;
+    const rel=TREATMENTS.filter(t=>(t.season==="summer"&&cm>=6&&cm<=9)||(t.season==="winter"&&(cm>=10||cm<=2)));
+    if(rel.length>0){const b=rel.map(t=>evaluateTreatment(t,tMax,tMin,tAvg,hum,prec)).reduce((b,c)=>{const o={suitable:3,marginal:2,unsuitable:1,"off-season":0};return(o[c.status]||0)>(o[b.status]||0)?c:b;});vc=b.status==="suitable"?"varroa-ok":b.status==="marginal"?"varroa-warn":"varroa-no";}
+    return `<div class="forecast-day ${daily.time[i]===today?'today':''}" onclick="showHourly(${i})" title="${getWeatherDesc(daily.weathercode[i])}\nT: ${Math.round(tMin)}\u00B0/${Math.round(tMax)}\u00B0C\nPioggia: ${prec.toFixed(1)}mm">
+        ${vc?'<div class="varroa-indicator '+vc+'"></div>':''}
+        <div class="day-name">${dn[d.getDay()]}</div><div class="day-date">${d.getDate()}/${d.getMonth()+1}</div>
+        <div class="weather-icon">${getWeatherIcon(daily.weathercode[i])}</div>
+        <div class="temp"><span class="temp-max">${Math.round(tMax)}\u00B0</span> <span class="temp-min">${Math.round(tMin)}\u00B0</span></div>
+        ${prec>0?'<div class="precip">\uD83D\uDCA7 '+prec.toFixed(1)+'mm</div>':'<div class="precip">&nbsp;</div>'}
+    </div>`;
+}
+
+function renderVarroa(){
+    const wd=weatherCache[activeApiaryId];
+    if(!wd||!wd.daily){document.getElementById('varroaSection').innerHTML='<p style="color:var(--red)">Dati meteo non disponibili</p>';return;}
+    const daily=wd.daily,cm=new Date().getMonth()+1,ap=apiaries.find(a=>a.id===activeApiaryId);
+    let h=`<div style="font-weight:700;font-size:.88em;margin-bottom:8px">\uD83D\uDCCD ${ap?ap.name:''}</div>`;
+    const rel=TREATMENTS.filter(t=>(t.season==="summer"&&cm>=6&&cm<=9)||(t.season==="winter"&&(cm>=10||cm<=2)));
+    if(!rel.length){
+        h+=`<div style="padding:10px;background:var(--blue-light);border-radius:8px;margin-bottom:10px"><strong>\u2139\uFE0F Mese ${cm}:</strong> Nessun trattamento varroa previsto in questo periodo.</div>`;
+        TREATMENTS.forEach(t=>{h+=`<div class="treatment-card" style="opacity:.7"><div class="treatment-name">${t.name} <span class="treatment-badge badge-no">Fuori stagione</span></div><div class="treatment-info">T: ${t.tempMin}\u00B0C - ${t.tempMax}\u00B0C | ${t.season==='summer'?'Estivo (giu-set)':'Invernale (ott-feb)'} | ${t.duration}<br><em>${t.notes}</em></div></div>`;});
+    } else {
+        let sD=0,mD=0;
+        for(let i=0;i<daily.time.length;i++){const tMax=daily.temperature_2m_max[i],tMin=daily.temperature_2m_min[i],tAvg=(tMax+tMin)/2,pr=daily.precipitation_sum[i],hu=daily.relative_humidity_2m_mean?daily.relative_humidity_2m_mean[i]:null;const b=rel.map(t=>evaluateTreatment(t,tMax,tMin,tAvg,hu,pr)).reduce((b,c)=>{const o={suitable:3,marginal:2,unsuitable:1,"off-season":0};return(o[c.status]||0)>(o[b.status]||0)?c:b;});if(b.status==="suitable")sD++;else if(b.status==="marginal")mD++;}
+        h+='<div class="varroa-summary">';
+        h+=`<div class="varroa-stat good">\u2705 ${sD} giorni ideali</div><div class="varroa-stat warning">\u26A0\uFE0F ${mD} marginali</div><div class="varroa-stat bad">\u274C ${daily.time.length-sD-mD} inadatti</div></div>`;
+        const aMax=daily.temperature_2m_max.slice(0,4).reduce((a,b)=>a+b,0)/4,aMin=daily.temperature_2m_min.slice(0,4).reduce((a,b)=>a+b,0)/4,aAvg=(aMax+aMin)/2,aPr=daily.precipitation_sum.slice(0,4).reduce((a,b)=>a+b,0)/4,aHu=daily.relative_humidity_2m_mean?daily.relative_humidity_2m_mean.slice(0,4).reduce((a,b)=>a+b,0)/4:null;
+        rel.forEach(t=>{const r=evaluateTreatment(t,aMax,aMin,aAvg,aHu,aPr),bc=r.status==="suitable"?"badge-ok":r.status==="marginal"?"badge-warn":"badge-no";
+        h+=`<div class="treatment-card ${r.status}"><div class="treatment-name">${t.name} <span class="treatment-badge ${bc}">${r.label}</span></div><div class="treatment-info">T richiesta: ${t.tempMin}\u00B0C - ${t.tempMax}\u00B0C (ideale: ${t.tempIdealMin}\u00B0C - ${t.tempIdealMax}\u00B0C)<br>T prossimi 4gg: ${Math.round(aMin)}\u00B0C - ${Math.round(aMax)}\u00B0C<br>${t.duration} | <em>${t.notes}</em></div></div>`;});
+    }
+    document.getElementById('varroaSection').innerHTML=h;
+}
+
+function showHourly(dayIdx){
+    const wd=weatherCache[activeApiaryId];if(!wd||!wd.hourly)return;
+    const card=document.getElementById('hourlyCard');card.style.display='block';
+    const dn=["Dom","Lun","Mar","Mer","Gio","Ven","Sab"];
+    let tabs='';for(let i=0;i<Math.min(14,wd.daily.time.length);i++){const d=new Date(wd.daily.time[i]+"T00:00:00");tabs+=`<button class="tab-btn ${i===dayIdx?'active':''}" onclick="renderHourly(${i})">${dn[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}</button>`;}
+    document.getElementById('hourlyTabs').innerHTML=tabs;
+    renderHourly(dayIdx);card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderHourly(dayIdx){
+    const wd=weatherCache[activeApiaryId];if(!wd)return;
+    document.querySelectorAll('#hourlyTabs .tab-btn').forEach((b,i)=>b.classList.toggle('active',i===dayIdx));
+    const sH=dayIdx*24,eH=sH+24,cm=new Date().getMonth()+1;
+    const rel=TREATMENTS.filter(t=>(t.season==="summer"&&cm>=6&&cm<=9)||(t.season==="winter"&&(cm>=10||cm<=2)));
+    let h='<table class="hourly-table"><thead><tr><th>Ora</th><th>Meteo</th><th>T\u00B0C</th><th>Um.</th><th>Pioggia</th>';
+    rel.forEach(t=>{h+=`<th>${t.name.split('(')[0].trim()}</th>`;});h+='</tr></thead><tbody>';
+    for(let i=sH;i<eH&&i<wd.hourly.time.length;i++){
+        const hr=new Date(wd.hourly.time[i]).getHours(),tmp=wd.hourly.temperature_2m[i],hu=wd.hourly.relative_humidity_2m[i],wc=wd.hourly.weathercode[i],pr=wd.hourly.precipitation[i];
+        h+=`<tr><td><strong>${String(hr).padStart(2,'0')}:00</strong></td><td>${getWeatherIcon(wc)} ${getWeatherDesc(wc)}</td><td>${tmp.toFixed(1)}\u00B0C</td><td>${hu}%</td><td>${pr>0?pr.toFixed(1)+' mm':'-'}</td>`;
+        rel.forEach(t=>{let st,cl;if(tmp>=t.tempIdealMin&&tmp<=t.tempIdealMax&&pr===0){st="\u2705 Ideale";cl="var(--green)";}else if(tmp>=t.tempMin&&tmp<=t.tempMax&&pr<2){st="\u26A0\uFE0F OK";cl="var(--orange)";}else{st="\u274C No";cl="var(--red)";}h+=`<td style="color:${cl};font-weight:600;font-size:.83em">${st}</td>`;});
+        h+='</tr>';
+    }
+    h+='</tbody></table>';document.getElementById('hourlySection').innerHTML=h;
+}
+
+function renderTimeline(){
+    const c=document.getElementById('timeline'),cur=getCurrentPeriod().map(p=>p.id),cm=new Date().getMonth()+1;let h='';
+    SEASONAL_CALENDAR.forEach(p=>{const act=cur.includes(p.id);const[s,e]=p.monthRange;let past=s<=e?cm>e:cm>e&&cm<s;
+        h+=`<div class="timeline-item ${act?'active':''} ${past&&!act?'past':''}" onclick="showDetail(${p.id})"><div class="timeline-month">${p.month}</div><div class="timeline-icon">${p.icon}</div><div class="timeline-name">${p.name}</div>${p.flowering?'<div class="timeline-flowering">\uD83C\uDF3C '+p.flowering+'</div>':''}</div>`;});
+    c.innerHTML=h;
+    setTimeout(()=>{const a=c.querySelector('.active');if(a)a.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});},100);
+}
+
+function showDetail(pid){
+    const p=SEASONAL_CALENDAR.find(s=>s.id===pid);if(!p)return;const panel=document.getElementById('detailPanel');
+    let h=`<h3>${p.icon} ${p.name} (${p.month})</h3>`;if(p.flowering)h+=`<p style="color:var(--green);margin-bottom:8px">Fioritura: ${p.flowering}</p>`;
+    h+='<ul class="detail-tasks">';p.tasks.forEach(t=>{h+=`<li><span class="task-icon">${t.icon}</span><span>${t.text}</span></li>`;});h+='</ul>';
+    h+=`<p style="margin-top:10px;font-size:.82em;color:var(--gray)">Fonte: <a href="https://www.apicoltura.ch/apicoltura/concetto-aziendale-e-prontuari/" target="_blank">apicoltura.ch</a></p>`;
+    panel.innerHTML=h;panel.classList.add('visible');panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderLinks(){
+    let h='';RESOURCE_LINKS.forEach(l=>{h+=`<a class="link-card" href="${l.url}" target="_blank" rel="noopener"><div class="link-title">${l.title}</div><div class="link-desc">${l.desc}</div></a>`;});
+    document.getElementById('linksGrid').innerHTML=h;
+}
+
+// ============================================================
+// GTS (Grünlandtemperatursumme) & FLOWERING
+// ============================================================
+// GTS-soglie fioriture (piena fioritura / Massentracht)
+// Fonti: KIV Dortmund, cbrell.de, beelogger.de, WetterOnline, gabot.de
+// Robinia/Castagno/Tiglio: stima per Ticino (250m, clima insubrico) da apilocali.ch, MeteoSvizzera
+const GTS_BLOOMS = [
+    { gts:50,   name:"Bucaneve",          icon:"\u2744\uFE0F",  nameDE:"Schneeglöckchen", src:"KIV" },   // 35-70
+    { gts:90,   name:"Nocciolo",          icon:"\uD83C\uDF3F",  nameDE:"Hasel", src:"KIV" },              // 65-120
+    { gts:110,  name:"Croco",             icon:"\uD83C\uDF3C",  nameDE:"Krokus", src:"KIV" },             // 65-120
+    { gts:200,  name:"Salice / Forsizia", icon:"\uD83C\uDF31",  nameDE:"Salweide / Forsythie", src:"KIV" }, // 175-260, inizio vegetazione
+    { gts:360,  name:"Betulla (prefior.)",icon:"\uD83C\uDF33",  nameDE:"Birke Vorblüte", src:"KIV" },     // 335-380
+    { gts:530,  name:"Ciliegio",          icon:"\uD83C\uDF38",  nameDE:"Kirsche Vollblüte", src:"KIV" },  // 530
+    { gts:550,  name:"Colza",             icon:"\uD83D\uDFE1",  nameDE:"Raps Vollblüte", src:"KIV" },     // 550
+    { gts:700,  name:"Melo / Tarassaco",  icon:"\uD83C\uDF3A",  nameDE:"Apfel / Löwenzahn", src:"KIV" },  // 700
+    { gts:950,  name:"Robinia",           icon:"\uD83C\uDF3B",  nameDE:"Robinie", src:"TI" },             // ~mag, stima Ticino
+    { gts:1500, name:"Castagno",          icon:"\uD83C\uDF30",  nameDE:"Kastanie", src:"TI" },            // ~metà giu, tracht principale TI
+    { gts:1650, name:"Tiglio",            icon:"\uD83C\uDF43",  nameDE:"Linde", src:"TI" }                // ~giu-lug, concomitante castagno
+];
+const GTS_MAX = 1800;
+
+let gtsCache = {}; // { apiaryId: { gts, daily: [{date,tMean,factor,contrib,cumGts}] } }
+
+async function fetchGTSForApiary(apiaryId) {
+    const ap = apiaries.find(a => a.id === apiaryId);
+    if (!ap) return null;
+    const year = new Date().getFullYear();
+    const startDate = `${year}-01-01`;
+    const today = new Date().toISOString().slice(0, 10);
+    // Use Tmax+Tmin/2 (standard GTS method, matches Varroawetter) with MeteoSwiss model
+    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${ap.lat}&longitude=${ap.lon}&start_date=${startDate}&end_date=${today}&daily=temperature_2m_max,temperature_2m_min&timezone=Europe/Zurich&models=best_match`;
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!data.daily || !data.daily.time) return null;
+        let gts = 0;
+        const daily = [];
+        for (let i = 0; i < data.daily.time.length; i++) {
+            const date = data.daily.time[i];
+            const tMax = data.daily.temperature_2m_max[i];
+            const tMin = data.daily.temperature_2m_min[i];
+            const tMean = (tMax + tMin) / 2;
+            const month = new Date(date + "T00:00:00").getMonth() + 1;
+            let factor = 1.0;
+            if (month === 1) factor = 0.5;
+            else if (month === 2) factor = 0.75;
+            const contrib = tMean > 0 ? tMean * factor : 0;
+            gts += contrib;
+            daily.push({ date, tMax, tMin, tMean: Math.round(tMean * 10) / 10, factor, contrib: Math.round(contrib * 10) / 10, cumGts: Math.round(gts * 10) / 10 });
+        }
+        gtsCache[apiaryId] = { gts: Math.round(gts * 10) / 10, daily };
+        return gtsCache[apiaryId];
+    } catch (e) { console.error("GTS fetch error:", e); return null; }
+}
+
+function renderGTS() {
+    const sec = document.getElementById('gtsSection');
+    const gd = gtsCache[activeApiaryId];
+    const ap = apiaries.find(a => a.id === activeApiaryId);
+    if (!gd) { sec.innerHTML = '<p style="color:var(--gray)">Caricamento dati GTS...</p>'; return; }
+
+    const gts = gd.gts;
+    const pct = Math.min(100, (gts / GTS_MAX) * 100);
+
+    // Find current bloom phase
+    let currentBloom = null, nextBloom = null;
+    for (let i = 0; i < GTS_BLOOMS.length; i++) {
+        if (gts >= GTS_BLOOMS[i].gts) currentBloom = GTS_BLOOMS[i];
+        else { nextBloom = GTS_BLOOMS[i]; break; }
+    }
+
+    // Status text
+    let statusText = '', statusClass = '';
+    if (gts < 200) { statusText = 'Pre-vegetazione'; statusClass = 'background:var(--blue-light);color:var(--blue)'; }
+    else if (gts < 530) { statusText = 'Sviluppo primaverile'; statusClass = 'background:var(--green-light);color:var(--green-dark)'; }
+    else if (gts < 700) { statusText = 'Fioritura primaverile'; statusClass = 'background:var(--honey-light);color:var(--honey-dark)'; }
+    else if (gts < 950) { statusText = 'Tarda primavera'; statusClass = 'background:var(--orange-light);color:#E65100'; }
+    else if (gts < 1500) { statusText = 'Inizio estate / Robinia'; statusClass = 'background:var(--green-light);color:var(--green-dark)'; }
+    else if (gts < 1800) { statusText = 'Tracht estiva (Castagno/Tiglio)'; statusClass = 'background:var(--honey-light);color:var(--honey-dark)'; }
+    else { statusText = 'Fine fioriture principali'; statusClass = 'background:var(--gray-light);color:var(--gray)'; }
+
+    let h = `<div style="font-weight:700;font-size:.88em;margin-bottom:10px">\uD83D\uDCCD ${ap ? ap.name : ''}</div>`;
+
+    // GTS value box
+    h += `<div class="gts-value-box">`;
+    h += `<div><div class="gts-big">${gts}</div><div class="gts-unit">Gradi-giorno (GTS)</div></div>`;
+    h += `<div class="gts-status" style="${statusClass}">${statusText}</div>`;
+    if (currentBloom) h += `<div style="font-size:.85em">Fase attuale: <strong>${currentBloom.icon} ${currentBloom.name}</strong></div>`;
+    if (nextBloom) h += `<div style="font-size:.82em;color:var(--gray)">Prossima: ${nextBloom.icon} ${nextBloom.name} (GTS ${nextBloom.gts}, mancano ~${Math.round(nextBloom.gts - gts)})</div>`;
+    h += `</div>`;
+
+    // Progress bar
+    h += `<div class="gts-progress-wrap">`;
+    h += `<div class="gts-progress-fill" style="width:${pct}%"></div>`;
+    // Threshold markers
+    [200, 530, 700, 950, 1500].forEach(v => {
+        const p = (v / GTS_MAX) * 100;
+        h += `<div class="gts-progress-marker" style="left:${p}%" data-label="${v}"></div>`;
+    });
+    // Current position
+    h += `<div class="gts-progress-now" style="left:${pct}%"></div>`;
+    h += `</div>`;
+
+    // Bloom evolution bar
+    h += `<div class="bloom-bar">`;
+    h += `<div style="font-size:.82em;font-weight:700;color:var(--green-dark);margin-bottom:2px">\uD83C\uDF3C Evoluzione fioriture</div>`;
+    h += `<div class="bloom-track">`;
+    // Current GTS line
+    h += `<div class="bloom-now-line" style="left:${pct}%"></div>`;
+    // Bloom markers
+    GTS_BLOOMS.forEach(b => {
+        const bp = (b.gts / GTS_MAX) * 100;
+        const isPast = gts >= b.gts;
+        const isActive = currentBloom && b.gts === currentBloom.gts;
+        h += `<div class="bloom-item ${isPast && !isActive ? 'bloom-past' : ''} ${isActive ? 'bloom-active' : ''}" style="left:${bp}%" title="${b.name} (${b.nameDE}) - GTS ${b.gts}">`;
+        h += `<div class="bloom-icon">${b.icon}</div>`;
+        h += `<div class="bloom-label">${b.name}</div>`;
+        h += `<div class="bloom-gts">${b.gts}</div>`;
+        h += `</div>`;
+    });
+    h += `</div>`;
+
+    // Legend
+    h += `<div class="bloom-legend">`;
+    GTS_BLOOMS.forEach(b => {
+        const isPast = gts >= b.gts;
+        const srcTag = b.src==='TI' ? '<span title="Stima per Ticino" style="color:var(--orange);font-size:.8em">~</span>' : '';
+        h += `<div class="bloom-legend-item" style="${isPast ? '' : 'opacity:.5'}">${b.icon} <span>${b.name}</span> <span style="color:var(--gray);font-size:.9em">(${b.gts}${srcTag})</span></div>`;
+    });
+    h += `<div class="bloom-legend-item" style="margin-left:auto;font-size:.68em;color:var(--gray)">Fonti: KIV Dortmund, gabot.de | <span style="color:var(--orange)">~</span> = stima Ticino</div>`;
+    h += `</div>`;
+    h += `</div>`;
+
+    // Link to Varroawetter
+    h += `<div style="margin-top:12px;padding-top:8px;border-top:1px solid #eee;font-size:.78em;color:var(--gray)">`;
+    h += `Formula GTS: somma cumulativa delle temperature medie giornaliere >0\u00B0C dal 1\u00B0 gennaio (fattore 0.5 gen, 0.75 feb, 1.0 mar+). `;
+    h += `Dati: <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> | `;
+    h += `Ref: <a href="https://lakelandengineering.ch/Varroawetter/index.php" target="_blank">Varroawetter Schweiz</a>`;
+    h += `</div>`;
+
+    sec.innerHTML = h;
+}
+
+// ============================================================
+// GANTT PLANNER (per-apiary)
+// ============================================================
+const PLANNER_CATS={varroa:{label:"Trattamenti Varroa",icon:"\uD83D\uDC1B",color:"#E53935"},raccolte:{label:"Raccolte miele",icon:"\uD83C\uDF6F",color:"#FDD835"},nutrizione:{label:"Nutrizione",icon:"\uD83C\uDF6C",color:"#42A5F5"},gestione:{label:"Gestione colonie",icon:"\uD83D\uDC1D",color:"#66BB6A"},controlli:{label:"Controlli",icon:"\uD83D\uDD0D",color:"#AB47BC"},sciamatura:{label:"Sciamatura",icon:"\uD83C\uDF00",color:"#FF9800"},custom:{label:"Altro",icon:"\uD83D\uDCCC",color:"#78909C"}};
+const MN=["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
+
+function addPlannerActivity(){
+    const nm=document.getElementById('plannerName').value.trim(),cat=document.getElementById('plannerCategory').value,s=document.getElementById('plannerStart').value,e=document.getElementById('plannerEnd').value;
+    if(!nm){alert('Inserisci nome');return;}if(!s||!e){alert('Inserisci date');return;}if(s>e){alert('Data inizio prima della fine');return;}
+    const data=getActivePlanner();data.push({id:'u'+Date.now(),name:nm,cat,start:s,end:e,done:false,doneDate:null,system:false});
+    saveActivePlanner(data);renderGantt();document.getElementById('plannerName').value='';
+}
+function toggleActivityDone(id){const d=getActivePlanner(),a=d.find(x=>x.id===id);if(a){a.done=!a.done;a.doneDate=a.done?new Date().toISOString().split('T')[0]:null;saveActivePlanner(d);renderGantt();}}
+function changeDoneDate(id,v){const d=getActivePlanner(),a=d.find(x=>x.id===id);if(a&&a.done){a.doneDate=v||null;if(!v)a.done=false;saveActivePlanner(d);renderGantt();}}
+function deleteActivity(id){const d=getActivePlanner().filter(x=>x.id!==id);saveActivePlanner(d);renderGantt();}
+function clearCustomActivities(){const d=getActivePlanner().filter(x=>x.system);saveActivePlanner(d);renderGantt();}
+
+function renderGantt(){
+    const activities=getActivePlanner();
+    const container=document.getElementById('ganttChart'),year=new Date().getFullYear(),curM=new Date().getMonth(),now=new Date();
+    const ap=apiaries.find(a=>a.id===activeApiaryId);
+    const dim=[];for(let m=0;m<12;m++)dim.push(new Date(year,m+1,0).getDate());const totD=dim.reduce((a,b)=>a+b,0);
+    let todayDOY=0;for(let m=0;m<now.getMonth();m++)todayDOY+=dim[m];todayDOY+=now.getDate();
+    const catOrd=["varroa","raccolte","nutrizione","gestione","controlli","sciamatura","custom"];
+    const grp={};catOrd.forEach(c=>grp[c]=[]);activities.forEach(a=>{if(!grp[a.cat])grp[a.cat]=[];grp[a.cat].push(a);});
+    const hivesCount=ap?getCurrentHives(ap):0;
+    const nucsCount=ap?getCurrentNucs(ap):0;
+    const hist=ap&&ap.hivesHistory?ap.hivesHistory:[];
+    const todayStr=new Date().toISOString().slice(0,10);
+    let h=`<div style="font-size:.82em;font-weight:600;color:var(--honey-dark);margin-bottom:6px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">\uD83D\uDCCD ${ap?ap.name:''}<span style="background:var(--honey-light);padding:3px 10px;border-radius:8px;font-size:.92em">\uD83D\uDCE6 Arnie: <strong>${hivesCount}</strong></span><span style="background:var(--blue-light);padding:3px 10px;border-radius:8px;font-size:.92em">\uD83E\uDEB9 Nuclei: <strong>${nucsCount}</strong></span></div>`;
+    // Hive history panel
+    h+=`<div class="hive-history-panel">`;
+    h+=`<button class="hive-history-toggle" onclick="toggleHiveHistory()"><span class="arrow" id="hiveHistArrow">\u25B6</span> Storico arnie e nuclei (${hist.length} registrazioni)</button>`;
+    h+=`<div class="hive-history-body" id="hiveHistBody">`;
+    // Add form
+    h+=`<div class="hive-history-add">`;
+    h+=`<input type="date" id="hiveHistDate" value="${todayStr}" style="width:130px" />`;
+    h+=`<input type="number" id="hiveHistCount" min="0" step="1" placeholder="N. arnie" style="width:80px" />`;
+    h+=`<input type="number" id="hiveHistNucs" min="0" step="1" placeholder="N. nuclei" style="width:80px" />`;
+    h+=`<input type="text" id="hiveHistNote" placeholder="Nota (opzionale)" style="flex:1;min-width:100px" />`;
+    h+=`<button onclick="addHiveHistoryEntry('${ap?ap.id:''}',document.getElementById('hiveHistDate').value,document.getElementById('hiveHistCount').value,document.getElementById('hiveHistNucs').value,document.getElementById('hiveHistNote').value)">+ Registra</button>`;
+    h+=`</div>`;
+    // Table
+    if(hist.length){
+        h+=`<table class="hive-history-table"><thead><tr><th>Data</th><th>Arnie</th><th>\u0394</th><th>Nuclei</th><th>\u0394</th><th>Nota</th><th></th></tr></thead><tbody>`;
+        hist.forEach((entry,i)=>{
+            const prev=i<hist.length-1?hist[i+1]:null;
+            let deltaH='',deltaN='';
+            if(prev!==null){
+                const dh=entry.count-(prev.count||0);
+                if(dh>0) deltaH=`<span class="hive-delta pos">+${dh}</span>`;
+                else if(dh<0) deltaH=`<span class="hive-delta neg">${dh}</span>`;
+                else deltaH=`<span class="hive-delta zero">=</span>`;
+                const dn=(entry.nucs||0)-(prev.nucs||0);
+                if(dn>0) deltaN=`<span class="hive-delta pos">+${dn}</span>`;
+                else if(dn<0) deltaN=`<span class="hive-delta neg">${dn}</span>`;
+                else deltaN=`<span class="hive-delta zero">=</span>`;
+            }
+            h+=`<tr><td>${formatDateIT(entry.date)}</td><td><strong>${entry.count}</strong></td><td>${deltaH}</td><td><strong>${entry.nucs||0}</strong></td><td>${deltaN}</td><td style="color:var(--gray);font-size:.9em">${entry.note||''}</td>`;
+            h+=`<td><button class="hive-del" onclick="deleteHiveHistoryEntry('${ap?ap.id:''}',${i})" title="Elimina">\u2716</button></td></tr>`;
+        });
+        h+=`</tbody></table>`;
+    } else {
+        h+=`<p style="color:var(--gray);font-size:.82em;text-align:center;padding:8px">Nessuna registrazione. Aggiungi il primo conteggio di arnie e nuclei.</p>`;
+    }
+    h+=`</div></div>`;
+    h+='<div class="gantt-months"><div class="gantt-label">Attivita</div>';
+    for(let m=0;m<12;m++)h+=`<div class="gantt-month-cell ${m===curM?'current-month':''}">${MN[m]}</div>`;h+='</div>';
+    // Hive & nucs evolution rows
+    const perMonth=getHivesPerMonth(ap,year);
+    const maxHv=Math.max(...perMonth.hives.filter(v=>v!==null),1);
+    const maxNc=Math.max(...perMonth.nucs.filter(v=>v!==null),1);
+    // Arnie row
+    h+='<div class="gantt-hive-row"><div class="gantt-label">\uD83D\uDCE6 Arnie</div>';
+    for(let m=0;m<12;m++){
+        const v=perMonth.hives[m];const prev=m>0?perMonth.hives[m-1]:null;
+        const barH=v!==null?Math.max(4,Math.round((v/maxHv)*36)):0;
+        let dH='';
+        if(v!==null&&prev!==null){const d=v-prev;if(d>0)dH=`<span class="hive-cell-delta pos">+${d}</span>`;else if(d<0)dH=`<span class="hive-cell-delta neg">${d}</span>`;}
+        h+=`<div class="gantt-hive-cell ${m===curM?'current-month':''}">`;
+        if(v!==null){h+=dH;h+=`<div class="gantt-hive-bar" style="height:${barH}px" title="${MN[m]}: ${v} arnie"></div>`;h+=`<div class="gantt-hive-count">${v}</div>`;}
+        else{h+=`<div class="gantt-hive-count" style="color:var(--gray);opacity:.4">-</div>`;}
+        h+=`</div>`;
+    }
+    h+='</div>';
+    // Nuclei row
+    h+='<div class="gantt-hive-row" style="background:var(--blue-light);border-bottom:2px solid #cde"><div class="gantt-label" style="color:var(--blue)">\uD83E\uDEB9 Nuclei</div>';
+    for(let m=0;m<12;m++){
+        const v=perMonth.nucs[m];const prev=m>0?perMonth.nucs[m-1]:null;
+        const barH=v!==null?Math.max(4,Math.round((v/maxNc)*36)):0;
+        let dN='';
+        if(v!==null&&prev!==null){const d=v-prev;if(d>0)dN=`<span class="hive-cell-delta pos">+${d}</span>`;else if(d<0)dN=`<span class="hive-cell-delta neg">${d}</span>`;}
+        h+=`<div class="gantt-hive-cell ${m===curM?'current-month':''}">`;
+        if(v!==null){h+=dN;h+=`<div class="gantt-hive-bar" style="height:${barH}px;background:linear-gradient(180deg,var(--blue),#1565C0)" title="${MN[m]}: ${v} nuclei"></div>`;h+=`<div class="gantt-hive-count" style="color:var(--blue)">${v}</div>`;}
+        else{h+=`<div class="gantt-hive-count" style="color:var(--gray);opacity:.4">-</div>`;}
+        h+=`</div>`;
+    }
+    h+='</div>';
+    for(const cat of catOrd){const acts=grp[cat];if(!acts.length)continue;const ci=PLANNER_CATS[cat];
+        h+='<div class="gantt-category-row"><div class="gantt-label">'+ci.icon+' '+ci.label+'</div>';for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+='</div>';
+        acts.forEach(a=>{const dd=a.done&&a.doneDate?formatDateIT(a.doneDate):'';
+            h+='<div class="gantt-row"><div class="gantt-label">';
+            h+=`<span class="gantt-check" onclick="toggleActivityDone('${a.id}')" title="${a.done?'Segna da fare':'Completa'}">${a.done?'\u2705':'\u2B1C'}</span>`;
+            h+=`<span style="${a.done?'text-decoration:line-through;opacity:.5':''};flex:1;overflow:hidden;text-overflow:ellipsis" title="${a.name}">${a.name}</span>`;
+            h+=`<input type="date" class="gantt-done-date" value="${a.doneDate||''}" ${a.done?'':'disabled'} title="${a.done?'Completata: '+dd:'Completa prima'}" onchange="changeDoneDate('${a.id}',this.value)"/>`;
+            h+=(!a.system?`<button class="planner-btn-del" onclick="deleteActivity('${a.id}')">\u2716</button>`:'');
+            h+='</div>';for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+='</div>';
+        });
+    }
+    container.innerHTML=h;
+    // Position bars
+    const rows=container.querySelectorAll('.gantt-row');let idx=0;
+    for(const cat of catOrd){const acts=grp[cat];if(!acts.length)continue;
+        acts.forEach(a=>{const row=rows[idx];if(!row){idx++;return;}
+            const sd=new Date(a.start+"T00:00:00"),ed=new Date(a.end+"T00:00:00");
+            let sDOY=0;for(let m=0;m<sd.getMonth();m++)sDOY+=dim[m];sDOY+=sd.getDate();
+            let eDOY=0;for(let m=0;m<ed.getMonth();m++)eDOY+=dim[m];eDOY+=ed.getDate();
+            sDOY=Math.max(1,sDOY);eDOY=Math.min(totD,eDOY);
+            const cells=row.querySelectorAll('.gantt-cell');if(cells.length<12){idx++;return;}
+            const gL=cells[0].offsetLeft,gW=cells[11].offsetLeft+cells[11].offsetWidth-gL;
+            const bL=gL+(sDOY-1)/totD*gW,bW=Math.max(8,(eDOY-sDOY+1)/totD*gW);
+            const bar=document.createElement('div');bar.className=`gantt-bar cat-${a.cat} ${a.done?'completed':''}`;
+            bar.style.left=bL+'px';bar.style.width=bW+'px';
+            bar.title=`${a.name}\n${formatDateIT(a.start)} - ${formatDateIT(a.end)}${a.done?'\n\u2705 '+formatDateIT(a.doneDate):''}`;
+            if(bW>55)bar.textContent=a.name;row.style.position='relative';row.appendChild(bar);idx++;
+        });
+    }
+    // Today marker
+    const mRow=container.querySelector('.gantt-months');if(mRow){const mc=mRow.querySelectorAll('.gantt-month-cell');if(mc.length>=12){const gL=mc[0].offsetLeft,gW=mc[11].offsetLeft+mc[11].offsetWidth-gL,tX=gL+(todayDOY-1)/totD*gW;const mk=document.createElement('div');mk.className='gantt-today-marker';mk.style.left=tX+'px';container.style.position='relative';container.appendChild(mk);}}
+    // Legend
+    let lg='';catOrd.forEach(c=>{if(!grp[c].length)return;const ci=PLANNER_CATS[c];lg+=`<div class="gantt-legend-item"><div class="gantt-legend-color" style="background:${ci.color}"></div>${ci.icon} ${ci.label}</div>`;});
+    lg+=`<div class="gantt-legend-item" style="margin-left:auto"><span style="color:var(--red);font-weight:700">|</span> Oggi \u00A0 \u2B1C Da fare \u00A0 \u2705 Completata</div>`;
+    document.getElementById('ganttLegend').innerHTML=lg;
+}
+
+function formatDateIT(ds){if(!ds)return'';const d=new Date(ds+"T00:00:00");return`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;}
+
+// Get hive+nucs count at end of each month for a given year
+function getHivesPerMonth(apiary, year) {
+    const hives = new Array(12).fill(null);
+    const nucs = new Array(12).fill(null);
+    if (!apiary || !apiary.hivesHistory || !apiary.hivesHistory.length) return { hives, nucs };
+    const sorted = [...apiary.hivesHistory].sort((a,b) => a.date.localeCompare(b.date));
+    for (let m = 0; m < 12; m++) {
+        const endOfMonth = `${year}-${String(m+1).padStart(2,'0')}-${new Date(year,m+1,0).getDate()}`;
+        let vh = null, vn = null;
+        for (const entry of sorted) {
+            if (entry.date <= endOfMonth) { vh = entry.count; vn = entry.nucs || 0; }
+            else break;
+        }
+        hives[m] = vh;
+        nucs[m] = vn;
+    }
+    return { hives, nucs };
+}
+
+function toggleHiveHistory(){
+    const body=document.getElementById('hiveHistBody');
+    const arrow=document.getElementById('hiveHistArrow');
+    if(!body||!arrow)return;
+    const open=body.classList.toggle('open');
+    arrow.classList.toggle('open',open);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init(){
+    initMap();
+    renderApiaryTabs();
+    renderTimeline();
+    renderLinks();
+    renderCurrentPeriod();
+    renderGantt();
+    const today=new Date(),ts=today.toISOString().split("T")[0],i2w=new Date(today.getTime()+14*86400000).toISOString().split("T")[0];
+    document.getElementById('plannerStart').value=ts;document.getElementById('plannerEnd').value=i2w;
+    if(activeApiaryId){
+        await fetchWeatherForApiary(activeApiaryId);
+        renderWeather();renderVarroa();
+        await fetchGTSForApiary(activeApiaryId);
+        renderGTS();
+    }
+}
+init();
+</script>
+</body>
+</html>

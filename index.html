@@ -254,7 +254,63 @@
         .bloom-active { animation:bloomPulse 1.5s ease-in-out infinite; }
         @keyframes bloomPulse { 0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.2)} }
 
-        @media(max-width:600px){ .header h1{font-size:1.2em;} .forecast-grid{grid-template-columns:repeat(3,1fr);} .timeline-item{min-width:110px;} }
+        /* Diary */
+        .diary-header { background:linear-gradient(135deg,#5D4037,#8D6E63); color:white; }
+        .diary-form { display:grid; grid-template-columns:130px 1fr 1fr auto; gap:6px; align-items:end; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #eee; }
+        .diary-form label { font-size:.72em; font-weight:600; color:var(--gray); display:block; margin-bottom:2px; }
+        .diary-form input,.diary-form select { width:100%; padding:8px 8px; border:1px solid #ddd; border-radius:6px; font-size:.85em; font-family:inherit; }
+        .diary-form input:focus,.diary-form select:focus { outline:none; border-color:var(--honey); box-shadow:0 0 0 2px rgba(245,166,35,.2); }
+        .diary-form textarea { width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-size:.85em; font-family:inherit; resize:vertical; min-height:50px; }
+        .diary-form textarea:focus { outline:none; border-color:var(--honey); box-shadow:0 0 0 2px rgba(245,166,35,.2); }
+        .diary-btn-add { padding:8px 16px; border:none; border-radius:6px; font-size:.85em; font-weight:700; cursor:pointer; font-family:inherit; background:var(--honey); color:white; min-height:44px; white-space:nowrap; }
+        .diary-btn-add:hover { background:var(--honey-dark); }
+        .diary-details-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:6px; }
+        .diary-details-toggle { background:none; border:none; font-size:.78em; color:var(--blue); cursor:pointer; padding:4px 0; font-family:inherit; font-weight:600; }
+        .diary-details-toggle:hover { text-decoration:underline; }
+        .diary-details-area { display:none; margin-top:6px; }
+        .diary-details-area.open { display:block; }
+        .diary-filter { display:flex; gap:6px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+        .diary-filter select,.diary-filter input { padding:6px 8px; border:1px solid #ddd; border-radius:6px; font-size:.83em; font-family:inherit; }
+        .diary-filter-label { font-size:.82em; font-weight:600; color:var(--gray); }
+
+        .diary-entry { border:1px solid #eee; border-radius:10px; margin-bottom:8px; overflow:hidden; transition:box-shadow .2s; }
+        .diary-entry:hover { box-shadow:var(--shadow); }
+        .diary-entry-header { display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer; background:var(--gray-light); }
+        .diary-entry-header:hover { background:#EEEEEE; }
+        .diary-entry-icon { font-size:1.2em; flex-shrink:0; }
+        .diary-entry-date { font-size:.82em; font-weight:700; color:var(--gray-dark); min-width:75px; }
+        .diary-entry-hive { font-size:.82em; font-weight:600; color:var(--honey-dark); background:var(--honey-light); padding:2px 8px; border-radius:10px; white-space:nowrap; }
+        .diary-entry-type { font-size:.75em; font-weight:600; color:white; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+        .diary-entry-preview { font-size:.8em; color:var(--gray); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+        .diary-entry-arrow { font-size:.7em; color:var(--gray); transition:transform .2s; flex-shrink:0; }
+        .diary-entry-arrow.open { transform:rotate(90deg); }
+        .diary-entry-body { display:none; padding:10px 12px; border-top:1px solid #eee; background:var(--white); }
+        .diary-entry-body.open { display:block; }
+        .diary-entry-detail { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:6px; margin-bottom:8px; }
+        .diary-detail-item { font-size:.8em; padding:5px 8px; border-radius:6px; background:var(--gray-light); }
+        .diary-detail-item strong { display:block; font-size:.85em; color:var(--gray); margin-bottom:1px; }
+        .diary-entry-notes { font-size:.85em; color:var(--gray-dark); padding:8px; background:#FAFAFA; border-radius:6px; margin-top:6px; white-space:pre-wrap; word-break:break-word; }
+        .diary-entry-actions { display:flex; gap:6px; margin-top:8px; justify-content:flex-end; }
+        .diary-del-btn { background:none; border:1px solid var(--red); color:var(--red); padding:4px 12px; border-radius:6px; font-size:.78em; cursor:pointer; font-family:inherit; min-height:36px; }
+        .diary-del-btn:hover { background:var(--red-light); }
+        .diary-empty { text-align:center; padding:30px 10px; color:var(--gray); font-size:.88em; }
+
+        .type-ispezione { background:#1976D2; } .type-trattamento { background:#E53935; }
+        .type-nutrizione { background:#FB8C00; } .type-raccolta { background:#FFD54F; color:#5D4037; }
+        .type-sciamatura { background:#AB47BC; } .type-altro { background:#78909C; }
+
+        @media(max-width:800px){
+            .diary-form { grid-template-columns:1fr 1fr; }
+            .diary-details-grid { grid-template-columns:1fr 1fr; }
+        }
+        @media(max-width:600px){
+            .header h1{font-size:1.2em;} .forecast-grid{grid-template-columns:repeat(3,1fr);} .timeline-item{min-width:110px;}
+            .diary-form { grid-template-columns:1fr; }
+            .diary-details-grid { grid-template-columns:1fr; }
+            .diary-entry-header { flex-wrap:wrap; gap:5px; }
+            .diary-entry-preview { order:10; width:100%; flex-basis:100%; white-space:normal; }
+            .diary-entry-detail { grid-template-columns:1fr 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -324,6 +380,12 @@
                 <div class="gantt-wrapper"><div class="gantt" id="ganttChart"></div></div>
                 <div class="gantt-legend" id="ganttLegend"></div>
             </div>
+        </div>
+
+        <!-- Diario dell'Apiario -->
+        <div class="card">
+            <div class="card-header diary-header">&#128214; Diario dell'Apiario</div>
+            <div class="card-body" id="diarySection"></div>
         </div>
 
         <!-- Weather 14-day -->
@@ -760,6 +822,7 @@ async function switchApiary(id) {
     // Fetch GTS if not cached
     if(!gtsCache[id]) await fetchGTSForApiary(id);
     renderGTS();
+    renderDiary();
 }
 
 // ============================================================
@@ -1025,6 +1088,199 @@ function renderGTS() {
 }
 
 // ============================================================
+// DIARY (per-apiary)
+// ============================================================
+const DIARY_TYPES = {
+    ispezione:   { label:"Ispezione",   icon:"\uD83D\uDD0D", cls:"type-ispezione" },
+    trattamento: { label:"Trattamento", icon:"\uD83D\uDC8A", cls:"type-trattamento" },
+    nutrizione:  { label:"Nutrizione",  icon:"\uD83C\uDF6F", cls:"type-nutrizione" },
+    raccolta:    { label:"Raccolta",    icon:"\uD83C\uDF7A", cls:"type-raccolta" },
+    sciamatura:  { label:"Sciamatura",  icon:"\uD83D\uDC1D", cls:"type-sciamatura" },
+    altro:       { label:"Altro",       icon:"\uD83D\uDCCB", cls:"type-altro" }
+};
+
+function getDiaryKey(apiaryId) { return "apiario-diary-" + apiaryId; }
+function loadDiary(apiaryId) {
+    try { const s = localStorage.getItem(getDiaryKey(apiaryId)); if (s) return JSON.parse(s); } catch(e) {}
+    return [];
+}
+function saveDiary(apiaryId, data) {
+    try { localStorage.setItem(getDiaryKey(apiaryId), JSON.stringify(data)); } catch(e) {}
+}
+function getActiveDiary() { return loadDiary(activeApiaryId); }
+
+function getDiaryHiveNames(apiaryId) {
+    const diary = loadDiary(apiaryId);
+    const names = new Set();
+    diary.forEach(e => { if (e.hive) names.add(e.hive); });
+    return [...names].sort();
+}
+
+let diaryFilter = '';
+let diaryOpenEntries = {};
+
+function addDiaryEntry() {
+    const date = document.getElementById('diaryDate').value;
+    const hive = document.getElementById('diaryHive').value.trim();
+    const type = document.getElementById('diaryType').value;
+    if (!date) { alert('Inserisci la data'); return; }
+    if (!hive) { alert('Inserisci il nome dell\'arnia o nucleo'); return; }
+
+    const entry = {
+        id: 'd' + Date.now(),
+        date, hive, type,
+        queen: document.getElementById('diaryQueen').value,
+        temper: document.getElementById('diaryTemper').value,
+        strength: document.getElementById('diaryStrength').value,
+        brood: document.getElementById('diaryCovata').value,
+        food: document.getElementById('diaryFood').value,
+        varroa: document.getElementById('diaryVarroa').value.trim(),
+        notes: document.getElementById('diaryNotes').value.trim()
+    };
+
+    const diary = getActiveDiary();
+    diary.push(entry);
+    diary.sort((a, b) => b.date.localeCompare(a.date));
+    saveDiary(activeApiaryId, diary);
+
+    // Reset form fields
+    document.getElementById('diaryHive').value = '';
+    document.getElementById('diaryVarroa').value = '';
+    document.getElementById('diaryNotes').value = '';
+    renderDiary();
+}
+
+function deleteDiaryEntry(idx) {
+    const diary = getActiveDiary();
+    diary.splice(idx, 1);
+    saveDiary(activeApiaryId, diary);
+    renderDiary();
+}
+
+function toggleDiaryEntry(id) {
+    diaryOpenEntries[id] = !diaryOpenEntries[id];
+    const body = document.getElementById('diary-body-' + id);
+    const arrow = document.getElementById('diary-arrow-' + id);
+    if (body) body.classList.toggle('open', diaryOpenEntries[id]);
+    if (arrow) arrow.classList.toggle('open', diaryOpenEntries[id]);
+}
+
+function setDiaryFilter(val) {
+    diaryFilter = val;
+    renderDiary();
+}
+
+function toggleDiaryForm() {
+    const area = document.getElementById('diaryDetailsArea');
+    if (area) area.classList.toggle('open');
+}
+
+function renderDiary() {
+    const sec = document.getElementById('diarySection');
+    const ap = apiaries.find(a => a.id === activeApiaryId);
+    if (!ap) { sec.innerHTML = ''; return; }
+
+    const diary = getActiveDiary();
+    const hiveNames = getDiaryHiveNames(activeApiaryId);
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    let h = `<div style="font-weight:700;font-size:.88em;margin-bottom:10px">\uD83D\uDCCD ${ap.name}</div>`;
+
+    // Form
+    h += `<div class="diary-form">`;
+    h += `<div><label>Data</label><input type="date" id="diaryDate" value="${todayStr}" /></div>`;
+    h += `<div><label>Arnia / Nucleo</label><input type="text" id="diaryHive" list="diaryHiveList" placeholder="es. Arnia 1, Nucleo A" /></div>`;
+    h += `<datalist id="diaryHiveList">`;
+    hiveNames.forEach(n => { h += `<option value="${n}">`; });
+    h += `</datalist>`;
+    h += `<div><label>Tipo visita</label><select id="diaryType">`;
+    Object.keys(DIARY_TYPES).forEach(k => { h += `<option value="${k}">${DIARY_TYPES[k].icon} ${DIARY_TYPES[k].label}</option>`; });
+    h += `</select></div>`;
+    h += `<div><label>&nbsp;</label><button class="diary-btn-add" onclick="addDiaryEntry()">\u2795 Registra</button></div>`;
+    h += `</div>`;
+
+    // Details toggle
+    h += `<button class="diary-details-toggle" onclick="toggleDiaryForm()">\u25BC Dettagli visita (regina, covata, scorte...)</button>`;
+    h += `<div class="diary-details-area" id="diaryDetailsArea">`;
+    h += `<div class="diary-details-grid">`;
+    h += `<div><label>Regina</label><select id="diaryQueen"><option value="non verificata">Non verificata</option><option value="vista">Vista</option><option value="non vista">Non vista</option><option value="celle reali">Celle reali</option></select></div>`;
+    h += `<div><label>Temperamento</label><select id="diaryTemper"><option value="">--</option><option value="calma">Calma</option><option value="nervosa">Nervosa</option><option value="aggressiva">Aggressiva</option></select></div>`;
+    h += `<div><label>Forza colonia</label><select id="diaryStrength"><option value="">--</option><option value="forte">Forte</option><option value="media">Media</option><option value="debole">Debole</option></select></div>`;
+    h += `<div><label>Covata</label><select id="diaryCovata"><option value="">--</option><option value="ottima">Ottima</option><option value="buona">Buona</option><option value="irregolare">Irregolare</option><option value="assente">Assente</option></select></div>`;
+    h += `<div><label>Scorte</label><select id="diaryFood"><option value="">--</option><option value="abbondanti">Abbondanti</option><option value="sufficienti">Sufficienti</option><option value="scarse">Scarse</option></select></div>`;
+    h += `<div><label>Varroa (conteggio/note)</label><input type="text" id="diaryVarroa" placeholder="es. 3 su 100 api" /></div>`;
+    h += `</div>`;
+    h += `<div style="margin-top:6px"><label>Note</label><textarea id="diaryNotes" placeholder="Osservazioni, azioni eseguite..."></textarea></div>`;
+    h += `</div>`;
+
+    // Filter
+    if (hiveNames.length > 0) {
+        h += `<div class="diary-filter">`;
+        h += `<span class="diary-filter-label">\uD83D\uDD0D Filtra:</span>`;
+        h += `<select onchange="setDiaryFilter(this.value)"><option value="">Tutte le arnie</option>`;
+        hiveNames.forEach(n => { h += `<option value="${n}" ${diaryFilter === n ? 'selected' : ''}>${n}</option>`; });
+        h += `</select>`;
+        if (diaryFilter) h += `<span style="font-size:.82em;color:var(--gray)">${diary.filter(e => e.hive === diaryFilter).length} visite</span>`;
+        h += `</div>`;
+    }
+
+    // Entries
+    const filtered = diaryFilter ? diary.filter(e => e.hive === diaryFilter) : diary;
+    if (filtered.length === 0) {
+        h += `<div class="diary-empty">\uD83D\uDCDD ${diary.length === 0 ? 'Nessuna visita registrata. Aggiungi la prima!' : 'Nessun risultato per il filtro selezionato.'}</div>`;
+    } else {
+        filtered.forEach((e, i) => {
+            const realIdx = diary.indexOf(e);
+            const dt = DIARY_TYPES[e.type] || DIARY_TYPES.altro;
+            const isOpen = diaryOpenEntries[e.id];
+
+            h += `<div class="diary-entry">`;
+            // Header
+            h += `<div class="diary-entry-header" onclick="toggleDiaryEntry('${e.id}')">`;
+            h += `<span class="diary-entry-icon">${dt.icon}</span>`;
+            h += `<span class="diary-entry-date">${formatDateIT(e.date)}</span>`;
+            h += `<span class="diary-entry-hive">\uD83D\uDCE6 ${e.hive}</span>`;
+            h += `<span class="diary-entry-type ${dt.cls}">${dt.label}</span>`;
+            h += `<span class="diary-entry-preview">${e.notes || ''}</span>`;
+            h += `<span class="diary-entry-arrow ${isOpen ? 'open' : ''}" id="diary-arrow-${e.id}">\u25B6</span>`;
+            h += `</div>`;
+
+            // Body
+            h += `<div class="diary-entry-body ${isOpen ? 'open' : ''}" id="diary-body-${e.id}">`;
+            // Detail grid
+            const details = [];
+            if (e.queen && e.queen !== 'non verificata') details.push({ label: 'Regina', val: e.queen });
+            if (e.temper) details.push({ label: 'Temperamento', val: e.temper });
+            if (e.strength) details.push({ label: 'Forza', val: e.strength });
+            if (e.brood) details.push({ label: 'Covata', val: e.brood });
+            if (e.food) details.push({ label: 'Scorte', val: e.food });
+            if (e.varroa) details.push({ label: 'Varroa', val: e.varroa });
+
+            if (details.length) {
+                h += `<div class="diary-entry-detail">`;
+                details.forEach(d => {
+                    let color = 'var(--gray-dark)';
+                    if (['forte', 'ottima', 'abbondanti', 'vista', 'calma'].includes(d.val)) color = 'var(--green-dark)';
+                    if (['debole', 'assente', 'scarse', 'aggressiva'].includes(d.val)) color = 'var(--red)';
+                    if (['irregolare', 'nervosa'].includes(d.val)) color = 'var(--orange)';
+                    h += `<div class="diary-detail-item"><strong>${d.label}</strong><span style="color:${color};font-weight:600">${d.val}</span></div>`;
+                });
+                h += `</div>`;
+            }
+
+            if (e.notes) h += `<div class="diary-entry-notes">${e.notes}</div>`;
+
+            h += `<div class="diary-entry-actions">`;
+            h += `<button class="diary-del-btn" onclick="event.stopPropagation();deleteDiaryEntry(${realIdx})">\u2716 Elimina</button>`;
+            h += `</div>`;
+            h += `</div></div>`;
+        });
+    }
+
+    sec.innerHTML = h;
+}
+
+// ============================================================
 // GANTT PLANNER (per-apiary)
 // ============================================================
 const PLANNER_CATS={varroa:{label:"Trattamenti Varroa",icon:"\uD83D\uDC1B",color:"#E53935"},raccolte:{label:"Raccolte miele",icon:"\uD83C\uDF6F",color:"#FDD835"},nutrizione:{label:"Nutrizione",icon:"\uD83C\uDF6C",color:"#42A5F5"},gestione:{label:"Gestione colonie",icon:"\uD83D\uDC1D",color:"#66BB6A"},controlli:{label:"Controlli",icon:"\uD83D\uDD0D",color:"#AB47BC"},sciamatura:{label:"Sciamatura",icon:"\uD83C\uDF00",color:"#FF9800"},custom:{label:"Altro",icon:"\uD83D\uDCCC",color:"#78909C"}};
@@ -1205,6 +1461,7 @@ async function init(){
         renderWeather();renderVarroa();
         await fetchGTSForApiary(activeApiaryId);
         renderGTS();
+        renderDiary();
     }
 }
 init();

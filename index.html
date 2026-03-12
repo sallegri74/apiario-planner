@@ -24,6 +24,8 @@
         .header { background:linear-gradient(135deg,var(--honey-dark) 0%,var(--honey) 50%,var(--green) 100%); color:white; padding:16px 24px; box-shadow:var(--shadow); position:sticky; top:0; z-index:100; }
         .header-content { max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
         .header h1 { font-size:1.5em; display:flex; align-items:center; gap:8px; }
+        .bee-logo { animation: beeFloat 3s ease-in-out infinite; filter:drop-shadow(1px 2px 2px rgba(0,0,0,0.2)); }
+        @keyframes beeFloat { 0%,100%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-4px) rotate(2deg); } }
 
         .main { max-width:1400px; margin:0 auto; padding:20px; }
 
@@ -254,6 +256,60 @@
         .bloom-active { animation:bloomPulse 1.5s ease-in-out infinite; }
         @keyframes bloomPulse { 0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.2)} }
 
+        /* Hive Registry */
+        .registry-header { background:linear-gradient(135deg,#E65100,#FF8F00); color:white; }
+        .registry-summary { display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #eee; }
+        .registry-count { font-size:.88em; font-weight:700; display:flex; align-items:center; gap:4px; }
+        .registry-count .num { font-size:1.4em; color:var(--honey-dark); }
+        .registry-form { display:grid; grid-template-columns:1fr 100px 110px 130px 1fr auto; gap:6px; align-items:end; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #eee; }
+        .registry-form label { font-size:.72em; font-weight:600; color:var(--gray); display:block; margin-bottom:2px; }
+        .registry-form input,.registry-form select { width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-size:.85em; font-family:inherit; }
+        .registry-form input:focus,.registry-form select:focus { outline:none; border-color:var(--honey); box-shadow:0 0 0 2px rgba(245,166,35,.2); }
+        .registry-btn-add { padding:8px 14px; border:none; border-radius:6px; font-size:.85em; font-weight:700; cursor:pointer; font-family:inherit; background:#E65100; color:white; min-height:44px; white-space:nowrap; }
+        .registry-btn-add:hover { background:#BF360C; }
+        .hive-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px; }
+        .hive-card { border:2px solid #eee; border-radius:10px; padding:12px; transition:box-shadow .2s, border-color .2s; cursor:pointer; position:relative; }
+        .hive-card:hover { box-shadow:var(--shadow); }
+        .hive-card.selected { border-color:var(--honey); box-shadow:0 0 0 3px rgba(245,166,35,.25); }
+        .hive-card-top { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+        .hive-card-name { font-size:1em; font-weight:700; color:var(--gray-dark); }
+        .hive-type-badge { font-size:.72em; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+        .hive-type-arnia { background:#FFF3E0; color:#E65100; }
+        .hive-type-nucleo { background:#E3F2FD; color:#1565C0; }
+        .hive-status-badge { font-size:.7em; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+        .hive-status-attiva { background:#E8F5E9; color:#2E7D32; }
+        .hive-status-inattiva { background:#F5F5F5; color:#757575; }
+        .hive-status-persa { background:#FFEBEE; color:#C62828; }
+        .hive-status-venduta { background:#E3F2FD; color:#1565C0; }
+        .hive-status-unita { background:#FFF3E0; color:#E65100; }
+        .hive-card-info { font-size:.78em; color:var(--gray); display:flex; gap:8px; flex-wrap:wrap; }
+        .hive-card-note { font-size:.78em; color:var(--gray); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .hive-card-actions { position:absolute; top:8px; right:8px; display:flex; gap:4px; }
+        .hive-card-actions select { font-size:.72em; padding:2px 4px; border:1px solid #ddd; border-radius:4px; background:white; cursor:pointer; }
+        .hive-card-actions button { background:none; border:none; font-size:.85em; cursor:pointer; padding:2px 4px; opacity:.5; }
+        .hive-card-actions button:hover { opacity:1; }
+        .hive-empty { text-align:center; padding:24px; color:var(--gray); font-size:.88em; }
+
+        /* Hive Report */
+        .hive-report { margin-top:14px; border:2px solid var(--honey); border-radius:12px; overflow:hidden; animation:fadeIn .3s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+        .hive-report-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:linear-gradient(135deg,#FFF8E1,#FFF3E0); border-bottom:1px solid #eee; }
+        .hive-report-title { font-size:1em; font-weight:700; color:var(--honey-dark); }
+        .hive-report-close { background:none; border:none; font-size:1.2em; cursor:pointer; padding:4px 8px; color:var(--gray); }
+        .hive-report-close:hover { color:var(--red); }
+        .hive-report-body { padding:14px 16px; }
+        .hive-report-stats { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; margin-bottom:14px; }
+        .hive-stat { padding:8px 10px; border-radius:8px; background:var(--gray-light); text-align:center; }
+        .hive-stat-value { font-size:1.3em; font-weight:800; color:var(--honey-dark); }
+        .hive-stat-label { font-size:.72em; color:var(--gray); font-weight:600; }
+        .hive-report-timeline { max-height:400px; overflow-y:auto; }
+        .hive-report-entry { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid #f0f0f0; }
+        .hive-report-entry:last-child { border-bottom:none; }
+        .hive-report-entry-date { font-size:.8em; font-weight:700; color:var(--gray-dark); min-width:70px; }
+        .hive-report-entry-type { font-size:.72em; font-weight:600; color:white; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+        .hive-report-entry-details { font-size:.82em; color:var(--gray); flex:1; }
+        .hive-report-empty { text-align:center; padding:20px; color:var(--gray); font-size:.85em; }
+
         /* Diary */
         .diary-header { background:linear-gradient(135deg,#5D4037,#8D6E63); color:white; }
         .diary-form { display:grid; grid-template-columns:130px 1fr 1fr auto; gap:6px; align-items:end; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #eee; }
@@ -300,11 +356,16 @@
         .type-sciamatura { background:#AB47BC; } .type-altro { background:#78909C; }
 
         @media(max-width:800px){
+            .registry-form { grid-template-columns:1fr 1fr; }
+            .hive-grid { grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
             .diary-form { grid-template-columns:1fr 1fr; }
             .diary-details-grid { grid-template-columns:1fr 1fr; }
         }
         @media(max-width:600px){
             .header h1{font-size:1.2em;} .forecast-grid{grid-template-columns:repeat(3,1fr);} .timeline-item{min-width:110px;}
+            .registry-form { grid-template-columns:1fr; }
+            .hive-grid { grid-template-columns:1fr; }
+            .hive-report-stats { grid-template-columns:repeat(2,1fr); }
             .diary-form { grid-template-columns:1fr; }
             .diary-details-grid { grid-template-columns:1fr; }
             .diary-entry-header { flex-wrap:wrap; gap:5px; }
@@ -317,7 +378,36 @@
 
 <div class="header">
     <div class="header-content">
-        <h1>&#127855; Pianificatore Apiario</h1>
+        <h1><svg class="bee-logo" width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- Wings -->
+          <ellipse cx="35" cy="32" rx="18" ry="12" fill="rgba(255,255,255,0.85)" stroke="#fff" stroke-width="1.5" transform="rotate(-25 35 32)"/>
+          <ellipse cx="65" cy="32" rx="18" ry="12" fill="rgba(255,255,255,0.85)" stroke="#fff" stroke-width="1.5" transform="rotate(25 65 32)"/>
+          <!-- Body -->
+          <ellipse cx="50" cy="58" rx="22" ry="26" fill="#FFD54F"/>
+          <!-- Stripes -->
+          <rect x="28" y="48" width="44" height="6" rx="3" fill="#4E342E"/>
+          <rect x="30" y="60" width="40" height="6" rx="3" fill="#4E342E"/>
+          <rect x="33" y="72" width="34" height="5" rx="2.5" fill="#4E342E"/>
+          <!-- Head -->
+          <circle cx="50" cy="32" r="14" fill="#FFD54F"/>
+          <!-- Eyes -->
+          <circle cx="44" cy="29" r="4" fill="#4E342E"/>
+          <circle cx="56" cy="29" r="4" fill="#4E342E"/>
+          <circle cx="45.2" cy="27.8" r="1.5" fill="#fff"/>
+          <circle cx="57.2" cy="27.8" r="1.5" fill="#fff"/>
+          <!-- Smile -->
+          <path d="M43 35 Q50 42 57 35" fill="none" stroke="#4E342E" stroke-width="2" stroke-linecap="round"/>
+          <!-- Antennae -->
+          <path d="M44 20 Q40 8 33 5" fill="none" stroke="#4E342E" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M56 20 Q60 8 67 5" fill="none" stroke="#4E342E" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="33" cy="5" r="3" fill="#FF8F00"/>
+          <circle cx="67" cy="5" r="3" fill="#FF8F00"/>
+          <!-- Stinger -->
+          <path d="M50 84 L47 92 L50 89 L53 92 Z" fill="#4E342E"/>
+          <!-- Cheeks -->
+          <circle cx="39" cy="35" r="3.5" fill="rgba(255,138,101,0.45)"/>
+          <circle cx="61" cy="35" r="3.5" fill="rgba(255,138,101,0.45)"/>
+        </svg> Pianificatore Apiario</h1>
     </div>
 </div>
 
@@ -380,6 +470,12 @@
                 <div class="gantt-wrapper"><div class="gantt" id="ganttChart"></div></div>
                 <div class="gantt-legend" id="ganttLegend"></div>
             </div>
+        </div>
+
+        <!-- Registro Arnie -->
+        <div class="card">
+            <div class="card-header registry-header">&#128221; Registro Arnie</div>
+            <div class="card-body" id="hiveRegistrySection"></div>
         </div>
 
         <!-- Diario dell'Apiario -->
@@ -822,6 +918,8 @@ async function switchApiary(id) {
     // Fetch GTS if not cached
     if(!gtsCache[id]) await fetchGTSForApiary(id);
     renderGTS();
+    selectedHiveId=null;
+    renderHiveRegistry();
     renderDiary();
 }
 
@@ -1088,6 +1186,203 @@ function renderGTS() {
 }
 
 // ============================================================
+// HIVE REGISTRY (per-apiary)
+// ============================================================
+const HIVE_STATUSES = {
+    attiva:   { label:"Attiva",   cls:"hive-status-attiva" },
+    inattiva: { label:"Inattiva", cls:"hive-status-inattiva" },
+    persa:    { label:"Persa",    cls:"hive-status-persa" },
+    venduta:  { label:"Venduta",  cls:"hive-status-venduta" },
+    unita:    { label:"Unita",    cls:"hive-status-unita" }
+};
+
+function getHiveRegistryKey(apiaryId){ return "apiario-hives-"+apiaryId; }
+function loadHiveRegistry(apiaryId){ try{return JSON.parse(localStorage.getItem(getHiveRegistryKey(apiaryId)))||[];}catch(e){return [];} }
+function saveHiveRegistry(apiaryId,data){ localStorage.setItem(getHiveRegistryKey(apiaryId),JSON.stringify(data)); }
+function getActiveHiveRegistry(){ return loadHiveRegistry(activeApiaryId); }
+
+function getActiveHives(apiaryId){
+    return loadHiveRegistry(apiaryId).filter(h=>h.status==="attiva");
+}
+
+let selectedHiveId = null;
+
+function addHiveToRegistry(){
+    const name=document.getElementById("regHiveName").value.trim();
+    if(!name){alert("Inserisci un nome per l'arnia");return;}
+    const type=document.getElementById("regHiveType").value;
+    const status=document.getElementById("regHiveStatus").value;
+    const created=document.getElementById("regHiveDate").value||new Date().toISOString().split("T")[0];
+    const notes=document.getElementById("regHiveNotes").value.trim();
+    const reg=loadHiveRegistry(activeApiaryId);
+    reg.push({id:"h"+Date.now(),name,type,status,created,notes});
+    reg.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+    saveHiveRegistry(activeApiaryId,reg);
+    document.getElementById("regHiveName").value="";
+    document.getElementById("regHiveNotes").value="";
+    renderHiveRegistry();
+    renderDiary(); // update diary select
+}
+
+function updateHiveStatus(hiveId,newStatus){
+    const reg=loadHiveRegistry(activeApiaryId);
+    const h=reg.find(x=>x.id===hiveId);
+    if(h){h.status=newStatus; saveHiveRegistry(activeApiaryId,reg); renderHiveRegistry(); renderDiary();}
+}
+
+function deleteHive(hiveId){
+    if(!confirm("Eliminare questa arnia dal registro?"))return;
+    let reg=loadHiveRegistry(activeApiaryId);
+    reg=reg.filter(x=>x.id!==hiveId);
+    saveHiveRegistry(activeApiaryId,reg);
+    if(selectedHiveId===hiveId) selectedHiveId=null;
+    renderHiveRegistry();
+    renderDiary();
+}
+
+function selectHive(hiveId){
+    selectedHiveId = selectedHiveId===hiveId ? null : hiveId;
+    renderHiveRegistry();
+}
+
+function buildHiveReport(hive){
+    const diary=loadDiary(activeApiaryId);
+    const entries=diary.filter(e=>e.hive===hive.name).sort((a,b)=>b.date.localeCompare(a.date));
+    const now=new Date();
+    const yearStart=now.getFullYear()+"-01-01";
+
+    // Stats
+    const totalVisits=entries.length;
+    const lastVisit=entries.length?entries[0]:null;
+    const daysSinceLast=lastVisit?Math.floor((now-new Date(lastVisit.date))/(86400000)):null;
+    const treatmentsThisYear=entries.filter(e=>e.type==="trattamento"&&e.date>=yearStart).length;
+    const lastInspection=entries.find(e=>e.type==="ispezione");
+    const lastTreatment=entries.find(e=>e.type==="trattamento");
+
+    let h=`<div class="hive-report">`;
+    h+=`<div class="hive-report-header">`;
+    h+=`<span class="hive-report-title">📊 Report: ${hive.name}</span>`;
+    h+=`<button class="hive-report-close" onclick="selectedHiveId=null;renderHiveRegistry()">✕</button>`;
+    h+=`</div>`;
+    h+=`<div class="hive-report-body">`;
+
+    // Stats grid
+    h+=`<div class="hive-report-stats">`;
+    h+=`<div class="hive-stat"><div class="hive-stat-value">${totalVisits}</div><div class="hive-stat-label">Visite totali</div></div>`;
+    h+=`<div class="hive-stat"><div class="hive-stat-value">${daysSinceLast!==null?daysSinceLast+"g":"—"}</div><div class="hive-stat-label">Dall'ultima visita</div></div>`;
+    h+=`<div class="hive-stat"><div class="hive-stat-value">${treatmentsThisYear}</div><div class="hive-stat-label">Trattamenti ${now.getFullYear()}</div></div>`;
+
+    // Last inspection details
+    if(lastInspection){
+        const details=[];
+        if(lastInspection.queen&&lastInspection.queen!=="non verificata") details.push(lastInspection.queen==="vista"?"👑 Vista":"⚠️ Non vista");
+        if(lastInspection.strength) details.push(lastInspection.strength==="forte"?"💪 Forte":lastInspection.strength==="media"?"➡️ Media":"⚠️ Debole");
+        if(lastInspection.brood) details.push(lastInspection.brood==="ottima"?"🥚 Ottima":lastInspection.brood==="buona"?"🥚 Buona":lastInspection.brood==="irregolare"?"⚠️ Irregolare":"❌ Assente");
+        if(lastInspection.food) details.push(lastInspection.food==="abbondanti"?"🍯 Abbondanti":lastInspection.food==="sufficienti"?"🍯 Sufficienti":"⚠️ Scarse");
+        h+=`<div class="hive-stat"><div class="hive-stat-value" style="font-size:.85em">${details.join(" ")||"—"}</div><div class="hive-stat-label">Ultima ispezione (${formatDateIT(lastInspection.date)})</div></div>`;
+    }
+    h+=`</div>`;
+
+    // Timeline
+    h+=`<div style="font-weight:700;font-size:.88em;margin-bottom:8px;color:var(--gray-dark)">Cronologia visite</div>`;
+    if(entries.length===0){
+        h+=`<div class="hive-report-empty">Nessuna visita registrata per questa arnia</div>`;
+    } else {
+        h+=`<div class="hive-report-timeline">`;
+        entries.forEach(e=>{
+            const dt=DIARY_TYPES[e.type]||DIARY_TYPES.altro;
+            const details=[];
+            if(e.queen&&e.queen!=="non verificata") details.push("Regina: "+e.queen);
+            if(e.temper) details.push("Temp.: "+e.temper);
+            if(e.strength) details.push("Forza: "+e.strength);
+            if(e.brood) details.push("Covata: "+e.brood);
+            if(e.food) details.push("Scorte: "+e.food);
+            if(e.varroa) details.push("Varroa: "+e.varroa);
+            if(e.notes) details.push(e.notes);
+            h+=`<div class="hive-report-entry">`;
+            h+=`<span class="hive-report-entry-date">${formatDateIT(e.date)}</span>`;
+            h+=`<span class="hive-report-entry-type ${dt.cls}">${dt.icon} ${dt.label}</span>`;
+            h+=`<span class="hive-report-entry-details">${details.join(" · ")||"—"}</span>`;
+            h+=`</div>`;
+        });
+        h+=`</div>`;
+    }
+    h+=`</div></div>`;
+    return h;
+}
+
+function renderHiveRegistry(){
+    const sec=document.getElementById("hiveRegistrySection");
+    if(!sec||!activeApiaryId)return;
+    const reg=loadHiveRegistry(activeApiaryId);
+    const activeHives=reg.filter(h=>h.status==="attiva"&&h.type==="arnia").length;
+    const activeNucs=reg.filter(h=>h.status==="attiva"&&h.type==="nucleo").length;
+    const today=new Date().toISOString().split("T")[0];
+
+    let h="";
+
+    // Summary
+    h+=`<div class="registry-summary">`;
+    h+=`<div class="registry-count">🐝 Arnie attive: <span class="num">${activeHives}</span></div>`;
+    h+=`<div class="registry-count">📦 Nuclei attivi: <span class="num">${activeNucs}</span></div>`;
+    h+=`<div class="registry-count" style="color:var(--gray)">Totale registrate: <span class="num" style="color:var(--gray-dark)">${reg.length}</span></div>`;
+    h+=`</div>`;
+
+    // Add form
+    h+=`<div class="registry-form">`;
+    h+=`<div><label>Nome / Numero</label><input type="text" id="regHiveName" placeholder="es. Arnia 1"></div>`;
+    h+=`<div><label>Tipo</label><select id="regHiveType"><option value="arnia">Arnia</option><option value="nucleo">Nucleo</option></select></div>`;
+    h+=`<div><label>Stato</label><select id="regHiveStatus"><option value="attiva">Attiva</option><option value="inattiva">Inattiva</option><option value="persa">Persa</option><option value="venduta">Venduta</option><option value="unita">Unita</option></select></div>`;
+    h+=`<div><label>Data</label><input type="date" id="regHiveDate" value="${today}"></div>`;
+    h+=`<div><label>Note</label><input type="text" id="regHiveNotes" placeholder="Origine, note..."></div>`;
+    h+=`<div><label>&nbsp;</label><button class="registry-btn-add" onclick="addHiveToRegistry()">+ Aggiungi</button></div>`;
+    h+=`</div>`;
+
+    // Hive grid
+    if(reg.length===0){
+        h+=`<div class="hive-empty">Nessuna arnia registrata. Aggiungi la tua prima arnia!</div>`;
+    } else {
+        h+=`<div class="hive-grid">`;
+        reg.forEach(hv=>{
+            const st=HIVE_STATUSES[hv.status]||HIVE_STATUSES.attiva;
+            const sel=selectedHiveId===hv.id?" selected":"";
+            h+=`<div class="hive-card${sel}" onclick="selectHive('${hv.id}')">`;
+            h+=`<div class="hive-card-actions">`;
+            h+=`<select onchange="updateHiveStatus('${hv.id}',this.value);event.stopPropagation()" onclick="event.stopPropagation()">`;
+            Object.keys(HIVE_STATUSES).forEach(k=>{
+                h+=`<option value="${k}"${hv.status===k?" selected":""}>${HIVE_STATUSES[k].label}</option>`;
+            });
+            h+=`</select>`;
+            h+=`<button onclick="deleteHive('${hv.id}');event.stopPropagation()" title="Elimina">🗑️</button>`;
+            h+=`</div>`;
+            h+=`<div class="hive-card-top">`;
+            h+=`<span class="hive-card-name">${hv.name}</span>`;
+            h+=`<span class="hive-type-badge hive-type-${hv.type}">${hv.type==="arnia"?"🐝 Arnia":"📦 Nucleo"}</span>`;
+            h+=`<span class="hive-status-badge ${st.cls}">${st.label}</span>`;
+            h+=`</div>`;
+            h+=`<div class="hive-card-info">`;
+            h+=`<span>📅 ${formatDateIT(hv.created)}</span>`;
+            // Count diary entries for this hive
+            const diary=loadDiary(activeApiaryId);
+            const visits=diary.filter(e=>e.hive===hv.name).length;
+            if(visits>0) h+=`<span>📋 ${visits} visit${visits===1?"a":"e"}</span>`;
+            h+=`</div>`;
+            if(hv.notes) h+=`<div class="hive-card-note">${hv.notes}</div>`;
+            h+=`</div>`;
+        });
+        h+=`</div>`;
+    }
+
+    // Report for selected hive
+    if(selectedHiveId){
+        const hive=reg.find(x=>x.id===selectedHiveId);
+        if(hive) h+=buildHiveReport(hive);
+    }
+
+    sec.innerHTML=h;
+}
+
+// ============================================================
 // DIARY (per-apiary)
 // ============================================================
 const DIARY_TYPES = {
@@ -1121,10 +1416,11 @@ let diaryOpenEntries = {};
 
 function addDiaryEntry() {
     const date = document.getElementById('diaryDate').value;
-    const hive = document.getElementById('diaryHive').value.trim();
+    let hive = document.getElementById('diaryHive').value.trim();
+    if(hive==="__tutte__") hive="Tutte";
     const type = document.getElementById('diaryType').value;
     if (!date) { alert('Inserisci la data'); return; }
-    if (!hive) { alert('Inserisci il nome dell\'arnia o nucleo'); return; }
+    if (!hive) { alert('Seleziona un\'arnia o nucleo'); return; }
 
     const entry = {
         id: 'd' + Date.now(),
@@ -1189,10 +1485,21 @@ function renderDiary() {
     // Form
     h += `<div class="diary-form">`;
     h += `<div><label>Data</label><input type="date" id="diaryDate" value="${todayStr}" /></div>`;
-    h += `<div><label>Arnia / Nucleo</label><input type="text" id="diaryHive" list="diaryHiveList" placeholder="es. Arnia 1, Nucleo A" /></div>`;
-    h += `<datalist id="diaryHiveList">`;
-    hiveNames.forEach(n => { h += `<option value="${n}">`; });
-    h += `</datalist>`;
+    // Populate from hive registry if available, fallback to free text with datalist
+    const regHives = loadHiveRegistry(activeApiaryId);
+    const activeRegHives = regHives.filter(h2=>h2.status==="attiva");
+    if(activeRegHives.length > 0){
+        h += `<div><label>Arnia / Nucleo</label><select id="diaryHive">`;
+        h += `<option value="">-- Seleziona --</option>`;
+        h += `<option value="__tutte__">Tutte (operazione generale)</option>`;
+        activeRegHives.forEach(hv => { h += `<option value="${hv.name}">${hv.type==="nucleo"?"📦":"🐝"} ${hv.name}</option>`; });
+        h += `</select></div>`;
+    } else {
+        h += `<div><label>Arnia / Nucleo</label><input type="text" id="diaryHive" list="diaryHiveList" placeholder="es. Arnia 1, Nucleo A" /></div>`;
+        h += `<datalist id="diaryHiveList">`;
+        hiveNames.forEach(n => { h += `<option value="${n}">`; });
+        h += `</datalist>`;
+    }
     h += `<div><label>Tipo visita</label><select id="diaryType">`;
     Object.keys(DIARY_TYPES).forEach(k => { h += `<option value="${k}">${DIARY_TYPES[k].icon} ${DIARY_TYPES[k].label}</option>`; });
     h += `</select></div>`;
@@ -1213,12 +1520,14 @@ function renderDiary() {
     h += `<div style="margin-top:6px"><label>Note</label><textarea id="diaryNotes" placeholder="Osservazioni, azioni eseguite..."></textarea></div>`;
     h += `</div>`;
 
-    // Filter
-    if (hiveNames.length > 0) {
+    // Filter - combine registry names + diary names
+    const allNames = new Set([...regHives.map(h2=>h2.name), ...hiveNames]);
+    const sortedNames = [...allNames].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+    if (sortedNames.length > 0) {
         h += `<div class="diary-filter">`;
         h += `<span class="diary-filter-label">\uD83D\uDD0D Filtra:</span>`;
         h += `<select onchange="setDiaryFilter(this.value)"><option value="">Tutte le arnie</option>`;
-        hiveNames.forEach(n => { h += `<option value="${n}" ${diaryFilter === n ? 'selected' : ''}>${n}</option>`; });
+        sortedNames.forEach(n => { h += `<option value="${n}" ${diaryFilter === n ? 'selected' : ''}>${n}</option>`; });
         h += `</select>`;
         if (diaryFilter) h += `<span style="font-size:.82em;color:var(--gray)">${diary.filter(e => e.hive === diaryFilter).length} visite</span>`;
         h += `</div>`;
@@ -1461,6 +1770,7 @@ async function init(){
         renderWeather();renderVarroa();
         await fetchGTSForApiary(activeApiaryId);
         renderGTS();
+        renderHiveRegistry();
         renderDiary();
     }
 }

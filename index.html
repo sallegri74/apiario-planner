@@ -76,6 +76,7 @@
         .varroa-stat.bad { background:var(--red-light); color:var(--red); }
 
         .forecast-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+        .top-row-weather .forecast-grid { grid-template-columns:repeat(4,1fr); }
         @media(max-width:700px){ .forecast-grid{grid-template-columns:repeat(4,1fr);} }
         .forecast-day { text-align:center; padding:8px 3px; border-radius:8px; background:var(--gray-light); cursor:pointer; position:relative; transition:transform .2s; }
         .forecast-day:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
@@ -166,8 +167,14 @@
         .planner-btn-clear { background:var(--gray-light); color:var(--gray); } .planner-btn-clear:hover { background:#e0e0e0; }
         .planner-btn-del { background:none; border:none; color:var(--red); cursor:pointer; font-size:1em; padding:2px 5px; border-radius:4px; opacity:.6; } .planner-btn-del:hover { opacity:1; background:var(--red-light); }
 
+        /* TOP ROW: Map + Weather side by side */
+        .top-row { display:flex; gap:20px; margin-bottom:20px; }
+        .top-row-map { flex:1; min-width:0; }
+        .top-row-weather { flex:1; min-width:0; }
+        .top-row-weather .card-body { max-height:600px; overflow-y:auto; }
+
         /* MAP */
-        #apiaryMap { width:100%; height:340px; border-radius:8px; border:1px solid #ddd; z-index:1; }
+        #apiaryMap { width:100%; height:280px; border-radius:8px; border:1px solid #ddd; z-index:1; }
         .apiary-panel { display:flex; gap:14px; margin-top:12px; }
         @media(max-width:800px){ .apiary-panel{flex-direction:column;} }
         .apiary-list { flex:1; min-width:0; }
@@ -355,6 +362,9 @@
         .type-nutrizione { background:#FB8C00; } .type-raccolta { background:#FFD54F; color:#5D4037; }
         .type-sciamatura { background:#AB47BC; } .type-altro { background:#78909C; }
 
+        @media(max-width:900px){
+            .top-row { flex-direction:column; }
+        }
         @media(max-width:800px){
             .registry-form { grid-template-columns:1fr 1fr; }
             .hive-grid { grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
@@ -412,32 +422,41 @@
 </div>
 
 <div class="main">
-    <!-- Map -->
-    <div class="card" style="margin-bottom:20px;">
-        <div class="card-header map-header">&#128506; I miei Apiari</div>
-        <div class="card-body">
-            <div id="apiaryMap"></div>
-            <div class="apiary-panel">
-                <div class="apiary-list">
-                    <h4>Apiari registrati</h4>
-                    <div id="apiaryListContainer"></div>
-                </div>
-                <div class="apiary-form" id="apiaryForm">
-                    <h4 id="apiaryFormTitle">Aggiungi apiario</h4>
-                    <label>Nome</label>
-                    <input type="text" id="apiaryNameInput" placeholder="es. Apiario Claro" />
-                    <label>Latitudine</label>
-                    <input type="number" id="apiaryLatInput" step="0.0001" placeholder="es. 46.2607" />
-                    <label>Longitudine</label>
-                    <input type="number" id="apiaryLonInput" step="0.0001" placeholder="es. 9.0291" />
-                    <p class="hint">Clicca sulla mappa per compilare le coordinate. Lo storico arnie si gestisce dal planner.</p>
-                    <input type="hidden" id="apiaryEditId" value="" />
-                    <div class="apiary-form-btns">
-                        <button class="btn-save" onclick="saveApiary()">Salva</button>
-                        <button class="btn-cancel" onclick="resetApiaryForm()">Annulla</button>
+    <!-- Top row: Map + Weather side by side -->
+    <div class="top-row">
+        <!-- Map -->
+        <div class="card top-row-map">
+            <div class="card-header map-header">&#128506; I miei Apiari</div>
+            <div class="card-body">
+                <div id="apiaryMap"></div>
+                <div class="apiary-panel">
+                    <div class="apiary-list">
+                        <h4>Apiari registrati</h4>
+                        <div id="apiaryListContainer"></div>
+                    </div>
+                    <div class="apiary-form" id="apiaryForm">
+                        <h4 id="apiaryFormTitle">Aggiungi apiario</h4>
+                        <label>Nome</label>
+                        <input type="text" id="apiaryNameInput" placeholder="es. Apiario Claro" />
+                        <label>Latitudine</label>
+                        <input type="number" id="apiaryLatInput" step="0.0001" placeholder="es. 46.2607" />
+                        <label>Longitudine</label>
+                        <input type="number" id="apiaryLonInput" step="0.0001" placeholder="es. 9.0291" />
+                        <p class="hint">Clicca sulla mappa per compilare le coordinate. Lo storico arnie si gestisce dal planner.</p>
+                        <input type="hidden" id="apiaryEditId" value="" />
+                        <div class="apiary-form-btns">
+                            <button class="btn-save" onclick="saveApiary()">Salva</button>
+                            <button class="btn-cancel" onclick="resetApiaryForm()">Annulla</button>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Weather 14-day -->
+        <div class="card top-row-weather">
+            <div class="card-header weather-header">&#9925; Previsioni Meteo 14 giorni</div>
+            <div class="card-body" id="weatherSection"><div class="loading"><div class="spinner"></div></div></div>
         </div>
     </div>
 
@@ -482,12 +501,6 @@
         <div class="card">
             <div class="card-header diary-header">&#128214; Diario dell'Apiario</div>
             <div class="card-body" id="diarySection"></div>
-        </div>
-
-        <!-- Weather 14-day -->
-        <div class="card">
-            <div class="card-header weather-header">&#9925; Previsioni Meteo 14 giorni</div>
-            <div class="card-body" id="weatherSection"><div class="loading"><div class="spinner"></div></div></div>
         </div>
 
         <!-- GTS & Flowering -->

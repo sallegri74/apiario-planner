@@ -2,7 +2,11 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#C47F0A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Apiario">
     <title>Pianificatore Apiario</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cellipse cx='35' cy='30' rx='16' ry='10' fill='%23ffffffcc' transform='rotate(-25 35 30)'/%3E%3Cellipse cx='65' cy='30' rx='16' ry='10' fill='%23ffffffcc' transform='rotate(25 65 30)'/%3E%3Cellipse cx='50' cy='58' rx='22' ry='26' fill='%23FFD54F'/%3E%3Crect x='28' y='48' width='44' height='6' rx='3' fill='%234E342E'/%3E%3Crect x='30' y='60' width='40' height='6' rx='3' fill='%234E342E'/%3E%3Crect x='33' y='72' width='34' height='5' rx='2.5' fill='%234E342E'/%3E%3Ccircle cx='50' cy='32' r='14' fill='%23FFD54F'/%3E%3Ccircle cx='44' cy='29' r='4.5' fill='%234E342E'/%3E%3Ccircle cx='56' cy='29' r='4.5' fill='%234E342E'/%3E%3Ccircle cx='45.5' cy='27.5' r='1.8' fill='white'/%3E%3Ccircle cx='57.5' cy='27.5' r='1.8' fill='white'/%3E%3Cpath d='M43 35 Q50 42 57 35' fill='none' stroke='%234E342E' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M44 20 Q40 8 33 5' fill='none' stroke='%234E342E' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M56 20 Q60 8 67 5' fill='none' stroke='%234E342E' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='33' cy='5' r='3.5' fill='%23FF8F00'/%3E%3Ccircle cx='67' cy='5' r='3.5' fill='%23FF8F00'/%3E%3Ccircle cx='39' cy='35' r='4' fill='%23FF8A6544'/%3E%3Ccircle cx='61' cy='35' r='4' fill='%23FF8A6544'/%3E%3C/svg%3E" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -19,20 +23,21 @@
             --shadow: 0 2px 8px rgba(0,0,0,0.1); --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
             --radius: 12px;
         }
-        * { margin:0; padding:0; box-sizing:border-box; }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
         body { font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:linear-gradient(135deg,#FFF8E1 0%,#F1F8E9 100%); color:var(--gray-dark); min-height:100vh; }
 
-        .header { background:linear-gradient(135deg,var(--honey-dark) 0%,var(--honey) 50%,var(--green) 100%); color:white; padding:16px 24px; box-shadow:var(--shadow); position:sticky; top:0; z-index:100; }
+        .header { background:linear-gradient(135deg,var(--honey-dark) 0%,var(--honey) 50%,var(--green) 100%); color:white; padding:12px 16px; box-shadow:var(--shadow); position:sticky; top:0; z-index:100; }
         .header-content { max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
         .header h1 { font-size:1.5em; display:flex; align-items:center; gap:8px; }
         .bee-logo { animation: beeFloat 3s ease-in-out infinite; filter:drop-shadow(1px 2px 2px rgba(0,0,0,0.2)); }
         @keyframes beeFloat { 0%,100%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-4px) rotate(2deg); } }
 
-        .main { max-width:1400px; margin:0 auto; padding:20px; }
+        .main { max-width:1400px; margin:0 auto; padding:16px; }
 
         /* Apiary tabs */
-        .apiary-tabs { display:flex; gap:0; margin-bottom:20px; background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); overflow-x:auto; }
-        .apiary-tab { padding:12px 20px; border:none; background:none; cursor:pointer; font-size:0.92em; font-weight:600; color:var(--gray); border-bottom:3px solid transparent; transition:all .2s; display:flex; align-items:center; gap:8px; white-space:nowrap; font-family:inherit; }
+        .apiary-tabs { display:flex; gap:0; margin-bottom:16px; background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+        .apiary-tabs::-webkit-scrollbar { display:none; }
+        .apiary-tab { padding:12px 16px; border:none; background:none; cursor:pointer; font-size:0.92em; font-weight:600; color:var(--gray); border-bottom:3px solid transparent; transition:all .2s; display:flex; align-items:center; gap:6px; white-space:nowrap; font-family:inherit; min-height:48px; }
         .apiary-tab:hover { background:var(--honey-light); }
         .apiary-tab.active { color:var(--honey-dark); border-bottom-color:var(--honey); background:var(--honey-light); }
         .apiary-tab .tab-color { width:12px; height:12px; border-radius:50%; border:2px solid white; box-shadow:0 0 0 1px rgba(0,0,0,.15); }
@@ -92,7 +97,7 @@
         .varroa-ok{background:var(--green);} .varroa-warn{background:var(--orange);} .varroa-no{background:var(--red);}
         .week-label { font-size:.78em; font-weight:600; color:var(--gray); padding:8px 0 3px; }
 
-        .timeline { display:flex; overflow-x:auto; gap:0; padding:14px 0; scrollbar-width:thin; }
+        .timeline { display:flex; overflow-x:auto; gap:0; padding:14px 0; scrollbar-width:thin; -webkit-overflow-scrolling:touch; }
         .timeline-item { min-width:130px; padding:10px; text-align:center; border-right:1px solid #eee; flex-shrink:0; cursor:pointer; position:relative; transition:background .2s; }
         .timeline-item:hover { background:var(--honey-light); }
         .timeline-item.active { background:var(--honey-light); border-bottom:3px solid var(--honey); }
@@ -114,7 +119,8 @@
         .tab-btn.active { color:var(--honey-dark); border-bottom-color:var(--honey); }
         .tab-btn:hover { color:var(--honey-dark); }
 
-        .hourly-table { width:100%; border-collapse:collapse; font-size:.83em; }
+        .hourly-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+        .hourly-table { width:100%; border-collapse:collapse; font-size:.83em; min-width:500px; }
         .hourly-table th { background:var(--gray-light); padding:7px; text-align:left; font-weight:600; position:sticky; top:0; }
         .hourly-table td { padding:5px 7px; border-bottom:1px solid #f0f0f0; }
         .hourly-table tr:hover { background:var(--blue-light); }
@@ -133,13 +139,13 @@
         .footer a { color:var(--honey-dark); text-decoration:none; } .footer a:hover { text-decoration:underline; }
 
         /* GANTT */
-        .gantt-wrapper { overflow-x:auto; scrollbar-width:thin; position:relative; }
-        .gantt { min-width:1100px; position:relative; }
-        .gantt-months { display:grid; grid-template-columns:320px repeat(12,1fr); border-bottom:2px solid #ddd; position:sticky; top:0; background:white; z-index:2; }
+        .gantt-wrapper { overflow-x:auto; scrollbar-width:thin; position:relative; -webkit-overflow-scrolling:touch; }
+        .gantt { min-width:900px; position:relative; }
+        .gantt-months { display:grid; grid-template-columns:220px repeat(12,1fr); border-bottom:2px solid #ddd; position:sticky; top:0; background:white; z-index:2; }
         .gantt-months .gantt-label { padding:7px 10px; font-weight:700; font-size:.83em; color:var(--gray-dark); border-right:1px solid #eee; }
         .gantt-month-cell { text-align:center; padding:5px 2px; font-size:.72em; font-weight:700; color:var(--gray); text-transform:uppercase; border-right:1px solid #f0f0f0; }
         .gantt-month-cell.current-month { background:var(--honey-light); color:var(--honey-dark); font-weight:800; }
-        .gantt-row { display:grid; grid-template-columns:320px repeat(12,1fr); min-height:36px; border-bottom:1px solid #f0f0f0; align-items:center; position:relative; }
+        .gantt-row { display:grid; grid-template-columns:220px repeat(12,1fr); min-height:36px; border-bottom:1px solid #f0f0f0; align-items:center; position:relative; }
         .gantt-row:hover { background:#FAFAFA; }
         .gantt-row .gantt-label { padding:5px 10px; font-size:.8em; font-weight:600; color:var(--gray-dark); border-right:1px solid #eee; display:flex; align-items:center; gap:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .gantt-cell { height:100%; min-height:36px; border-right:1px solid #f5f5f5; position:relative; }
@@ -148,7 +154,7 @@
         .gantt-bar:hover { transform:translateY(-50%) scale(1.05); box-shadow:0 2px 8px rgba(0,0,0,.3); z-index:5; }
         .gantt-bar.cat-varroa{background:linear-gradient(135deg,#C62828,#E53935);} .gantt-bar.cat-raccolte{background:linear-gradient(135deg,#F57F17,#FDD835);color:#5D4037;} .gantt-bar.cat-nutrizione{background:linear-gradient(135deg,#1565C0,#42A5F5);} .gantt-bar.cat-gestione{background:linear-gradient(135deg,#2E7D32,#66BB6A);} .gantt-bar.cat-controlli{background:linear-gradient(135deg,#6A1B9A,#AB47BC);} .gantt-bar.cat-sciamatura{background:linear-gradient(135deg,#E65100,#FF9800);} .gantt-bar.cat-custom{background:linear-gradient(135deg,#37474F,#78909C);}
         .gantt-bar.completed { opacity:.5; text-decoration:line-through; }
-        .gantt-category-row { display:grid; grid-template-columns:320px repeat(12,1fr); background:var(--gray-light); border-bottom:1px solid #ddd; }
+        .gantt-category-row { display:grid; grid-template-columns:220px repeat(12,1fr); background:var(--gray-light); border-bottom:1px solid #ddd; }
         .gantt-category-row .gantt-label { padding:5px 10px; font-size:.78em; font-weight:800; color:var(--gray-dark); text-transform:uppercase; letter-spacing:.5px; border-right:1px solid #eee; }
         .gantt-today-marker { position:absolute; top:0; bottom:0; width:2px; background:var(--red); z-index:3; pointer-events:none; }
         .gantt-today-marker::before { content:"OGGI"; position:absolute; top:-16px; left:-14px; font-size:.58em; font-weight:800; color:var(--red); background:var(--red-light); padding:1px 4px; border-radius:3px; }
@@ -227,7 +233,7 @@
         .hive-delta.zero { color:var(--gray); }
 
         /* Hive evolution row in Gantt */
-        .gantt-hive-row { display:grid; grid-template-columns:320px repeat(12,1fr); min-height:52px; border-bottom:2px solid #eed; background:var(--honey-light); align-items:end; }
+        .gantt-hive-row { display:grid; grid-template-columns:220px repeat(12,1fr); min-height:52px; border-bottom:2px solid #eed; background:var(--honey-light); align-items:end; }
         .gantt-hive-row .gantt-label { padding:5px 10px; font-size:.78em; font-weight:700; color:var(--honey-dark); border-right:1px solid #eee; display:flex; align-items:center; gap:5px; }
         .gantt-hive-cell { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; padding:3px 2px 4px; border-right:1px solid rgba(0,0,0,.05); position:relative; }
         .gantt-hive-cell.current-month { background:rgba(245,166,35,.15); }
@@ -363,8 +369,10 @@
         .type-nutrizione { background:#FB8C00; } .type-raccolta { background:#FFD54F; color:#5D4037; }
         .type-sciamatura { background:#AB47BC; } .type-altro { background:#78909C; }
 
+        /* ===== RESPONSIVE BREAKPOINTS ===== */
         @media(max-width:900px){
             .top-row { flex-direction:column; }
+            .top-row-weather .forecast-grid { grid-template-columns:repeat(7,1fr); }
         }
         @media(max-width:800px){
             .registry-form { grid-template-columns:1fr 1fr; }
@@ -373,15 +381,77 @@
             .diary-details-grid { grid-template-columns:1fr 1fr; }
         }
         @media(max-width:600px){
-            .header h1{font-size:1.2em;} .forecast-grid{grid-template-columns:repeat(3,1fr);} .timeline-item{min-width:110px;}
+            /* Prevent iOS auto-zoom on input focus */
+            input,select,textarea { font-size:16px !important; }
+
+            .main { padding:8px; }
+            .header { padding:10px 12px; }
+            .header h1 { font-size:1.1em; }
+            .bee-logo { width:36px; height:36px; }
+
+            .current-period { padding:12px 14px; margin-bottom:12px; }
+            .current-period h2 { font-size:1em; }
+            .dashboard { gap:12px; margin-bottom:12px; }
+            .card-header { padding:10px 12px; font-size:.9em; }
+            .card-body { padding:10px 12px; }
+
+            .forecast-grid { grid-template-columns:repeat(4,1fr); gap:4px; }
+            .top-row-weather .forecast-grid { grid-template-columns:repeat(4,1fr); }
+            .forecast-day { padding:6px 2px; }
+            .forecast-day .weather-icon { font-size:1.1em; }
+            .forecast-day .day-name { font-size:.65em; }
+            .forecast-day .temp { font-size:.75em; }
+
+            .timeline-item { min-width:100px; padding:8px 6px; }
+
+            #apiaryMap { height:220px; }
+            .apiary-form { width:100%; }
+            .apiary-item { padding:8px; font-size:.82em; }
+            .apiary-item .apiary-coords { display:none; }
+
+            .gantt { min-width:750px; }
+
+            .planner-toolbar { gap:5px; flex-direction:column; }
+            .planner-toolbar input,.planner-toolbar select { width:100%; min-height:44px; }
+            .planner-btn { min-height:44px; padding:8px 10px; width:100%; }
+
             .registry-form { grid-template-columns:1fr; }
+            .registry-form input,.registry-form select { min-height:44px; }
+            .registry-btn-add { min-height:48px; }
             .hive-grid { grid-template-columns:1fr; }
             .hive-report-stats { grid-template-columns:repeat(2,1fr); }
+
             .diary-form { grid-template-columns:1fr; }
+            .diary-form input,.diary-form select { min-height:44px; }
+            .diary-btn-add { min-height:48px; width:100%; }
             .diary-details-grid { grid-template-columns:1fr; }
-            .diary-entry-header { flex-wrap:wrap; gap:5px; }
+            .diary-entry-header { flex-wrap:wrap; gap:5px; padding:10px; }
             .diary-entry-preview { order:10; width:100%; flex-basis:100%; white-space:normal; }
             .diary-entry-detail { grid-template-columns:1fr 1fr; }
+            .diary-del-btn { min-height:44px; }
+
+            .tab-bar { gap:0; }
+            .tab-btn { padding:8px 10px; font-size:.82em; min-height:44px; }
+
+            .links-grid { grid-template-columns:1fr; }
+            .link-card { padding:14px; }
+
+            .varroa-summary { gap:6px; }
+            .varroa-stat { padding:6px 10px; font-size:.8em; }
+
+            .gts-big { font-size:1.6em; }
+            .bloom-label { font-size:.5em; max-width:40px; }
+            .bloom-icon { font-size:1em; }
+
+            .hive-history-add { flex-direction:column; align-items:stretch; }
+            .hive-history-add input,.hive-history-add select { min-height:40px; }
+            .hive-history-add button { min-height:44px; }
+        }
+        @media(max-width:400px){
+            .forecast-grid { grid-template-columns:repeat(3,1fr); }
+            .top-row-weather .forecast-grid { grid-template-columns:repeat(3,1fr); }
+            .header h1 { font-size:1em; gap:6px; }
+            .bee-logo { width:30px; height:30px; }
         }
     </style>
 </head>
@@ -1024,7 +1094,7 @@ function renderHourly(dayIdx){
     document.querySelectorAll('#hourlyTabs .tab-btn').forEach((b,i)=>b.classList.toggle('active',i===dayIdx));
     const sH=dayIdx*24,eH=sH+24,cm=new Date().getMonth()+1;
     const rel=TREATMENTS.filter(t=>(t.season==="summer"&&cm>=6&&cm<=9)||(t.season==="winter"&&(cm>=10||cm<=2)));
-    let h='<table class="hourly-table"><thead><tr><th>Ora</th><th>Meteo</th><th>T\u00B0C</th><th>Um.</th><th>Pioggia</th>';
+    let h='<div class="hourly-table-wrap"><table class="hourly-table"><thead><tr><th>Ora</th><th>Meteo</th><th>T\u00B0C</th><th>Um.</th><th>Pioggia</th>';
     rel.forEach(t=>{h+=`<th>${t.name.split('(')[0].trim()}</th>`;});h+='</tr></thead><tbody>';
     for(let i=sH;i<eH&&i<wd.hourly.time.length;i++){
         const hr=new Date(wd.hourly.time[i]).getHours(),tmp=wd.hourly.temperature_2m[i],hu=wd.hourly.relative_humidity_2m[i],wc=wd.hourly.weathercode[i],pr=wd.hourly.precipitation[i];
@@ -1032,7 +1102,7 @@ function renderHourly(dayIdx){
         rel.forEach(t=>{let st,cl;if(tmp>=t.tempIdealMin&&tmp<=t.tempIdealMax&&pr===0){st="\u2705 Ideale";cl="var(--green)";}else if(tmp>=t.tempMin&&tmp<=t.tempMax&&pr<2){st="\u26A0\uFE0F OK";cl="var(--orange)";}else{st="\u274C No";cl="var(--red)";}h+=`<td style="color:${cl};font-weight:600;font-size:.83em">${st}</td>`;});
         h+='</tr>';
     }
-    h+='</tbody></table>';document.getElementById('hourlySection').innerHTML=h;
+    h+='</tbody></table></div>';document.getElementById('hourlySection').innerHTML=h;
 }
 
 function renderTimeline(){

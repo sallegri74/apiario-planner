@@ -513,7 +513,9 @@
                         <input type="number" id="apiaryLatInput" step="0.0001" placeholder="es. 46.2607" />
                         <label>Longitudine</label>
                         <input type="number" id="apiaryLonInput" step="0.0001" placeholder="es. 9.0291" />
-                        <p class="hint">Clicca sulla mappa per compilare le coordinate. Lo storico arnie si gestisce dal planner.</p>
+                        <label>CAP</label>
+                        <input type="text" id="apiaryCapInput" placeholder="es. 6702" maxlength="6" />
+                        <p class="hint">Clicca sulla mappa per compilare le coordinate. Il CAP serve per GTS e Varroawetter.</p>
                         <input type="hidden" id="apiaryEditId" value="" />
                         <div class="apiary-form-btns">
                             <button class="btn-save" onclick="saveApiary()">Salva</button>
@@ -641,8 +643,8 @@ const APIARY_COLORS = ["#E53935","#1E88E5","#43A047","#FB8C00","#8E24AA","#00ACC
 
 function getDefaultApiaries() {
     return [
-        { id: "a1", name: "Apiario Claro", lat: 46.2607, lon: 9.0291, color: APIARY_COLORS[0], hivesHistory: [] },
-        { id: "a2", name: "Apiario Toma", lat: 46.2830, lon: 9.0185, color: APIARY_COLORS[1], hivesHistory: [] }
+        { id: "a1", name: "Apiario Claro", lat: 46.2607, lon: 9.0291, cap: "6702", color: APIARY_COLORS[0], hivesHistory: [] },
+        { id: "a2", name: "Apiario Toma", lat: 46.2830, lon: 9.0185, cap: "6654", color: APIARY_COLORS[1], hivesHistory: [] }
     ];
 }
 function loadApiaries() {
@@ -936,7 +938,7 @@ function renderApiaryList() {
         h+=`<div class="apiary-item" style="${act?'background:var(--green-light);border-color:var(--green)':''}">
             <div class="apiary-color" style="background:${a.color}"></div>
             <span class="apiary-name" style="cursor:pointer" onclick="switchApiary('${a.id}')">${a.name}</span>
-            <span class="apiary-coords">${a.lat.toFixed(4)}, ${a.lon.toFixed(4)}</span>
+            <span class="apiary-coords">${a.cap?'CAP '+a.cap+' \u2022 ':''}${a.lat.toFixed(4)}, ${a.lon.toFixed(4)}</span>
             <span style="font-size:.78em;font-weight:600;color:var(--honey-dark)" title="Arnie attive">\uD83D\uDCE6 ${getCurrentHives(a)}</span>
             <span style="font-size:.78em;font-weight:600;color:var(--blue)" title="Nuclei">\uD83E\uDEB9 ${getCurrentNucs(a)}</span>
             <button class="apiary-btn" onclick="editApiary('${a.id}')" title="Modifica">\u270F\uFE0F</button>
@@ -951,18 +953,19 @@ function saveApiary() {
     const name=document.getElementById('apiaryNameInput').value.trim();
     const lat=parseFloat(document.getElementById('apiaryLatInput').value);
     const lon=parseFloat(document.getElementById('apiaryLonInput').value);
+    const cap=document.getElementById('apiaryCapInput').value.trim();
     const editId=document.getElementById('apiaryEditId').value;
     if(!name){alert('Inserisci il nome');return;} if(isNaN(lat)||isNaN(lon)){alert('Coordinate non valide');return;}
-    if(editId){const a=apiaries.find(x=>x.id===editId);if(a){a.name=name;a.lat=lat;a.lon=lon;}}
-    else{apiaries.push({id:'a'+Date.now(),name,lat,lon,hivesHistory:[],color:APIARY_COLORS[apiaries.length%APIARY_COLORS.length]});}
+    if(editId){const a=apiaries.find(x=>x.id===editId);if(a){a.name=name;a.lat=lat;a.lon=lon;a.cap=cap;delete gtsCache[editId];delete weatherCache[editId];}}
+    else{apiaries.push({id:'a'+Date.now(),name,lat,lon,cap,hivesHistory:[],color:APIARY_COLORS[apiaries.length%APIARY_COLORS.length]});}
     saveApiariesData(apiaries);renderApiaryMarkers();renderApiaryList();renderApiaryTabs();resetApiaryForm();
     if(tempMarker){apiaryMap.removeLayer(tempMarker);tempMarker=null;}
     if(!activeApiaryId&&apiaries.length>0){switchApiary(apiaries[0].id);}
 }
-function editApiary(id){const a=apiaries.find(x=>x.id===id);if(!a)return;document.getElementById('apiaryFormTitle').textContent='Modifica apiario';document.getElementById('apiaryNameInput').value=a.name;document.getElementById('apiaryLatInput').value=a.lat;document.getElementById('apiaryLonInput').value=a.lon;document.getElementById('apiaryEditId').value=a.id;}
+function editApiary(id){const a=apiaries.find(x=>x.id===id);if(!a)return;document.getElementById('apiaryFormTitle').textContent='Modifica apiario';document.getElementById('apiaryNameInput').value=a.name;document.getElementById('apiaryLatInput').value=a.lat;document.getElementById('apiaryLonInput').value=a.lon;document.getElementById('apiaryCapInput').value=a.cap||'';document.getElementById('apiaryEditId').value=a.id;}
 function deleteApiary(id){apiaries=apiaries.filter(x=>x.id!==id);saveApiariesData(apiaries);if(activeApiaryId===id){activeApiaryId=apiaries.length>0?apiaries[0].id:null;}renderApiaryMarkers();renderApiaryList();renderApiaryTabs();resetApiaryForm();if(activeApiaryId)switchApiary(activeApiaryId);}
 function zoomToApiary(id){const a=apiaries.find(x=>x.id===id);if(!a)return;apiaryMap.setView([a.lat,a.lon],16);const i=apiaries.indexOf(a);if(apiaryMarkers[i])apiaryMarkers[i].openPopup();}
-function resetApiaryForm(){document.getElementById('apiaryFormTitle').textContent='Aggiungi apiario';['apiaryNameInput','apiaryLatInput','apiaryLonInput'].forEach(id=>document.getElementById(id).value='');document.getElementById('apiaryEditId').value='';if(tempMarker){apiaryMap.removeLayer(tempMarker);tempMarker=null;}}
+function resetApiaryForm(){document.getElementById('apiaryFormTitle').textContent='Aggiungi apiario';['apiaryNameInput','apiaryLatInput','apiaryLonInput','apiaryCapInput'].forEach(id=>document.getElementById(id).value='');document.getElementById('apiaryEditId').value='';if(tempMarker){apiaryMap.removeLayer(tempMarker);tempMarker=null;}}
 
 // ============================================================
 // APIARY TABS & SWITCHING
@@ -1155,8 +1158,9 @@ async function fetchGTSForApiary(apiaryId) {
     const year = new Date().getFullYear();
     const startDate = `${year}-01-01`;
     const today = new Date().toISOString().slice(0, 10);
-    // Use Tmax+Tmin/2 (standard GTS method, matches Varroawetter) with MeteoSwiss model
-    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${ap.lat}&longitude=${ap.lon}&start_date=${startDate}&end_date=${today}&daily=temperature_2m_max,temperature_2m_min&timezone=Europe/Zurich&models=best_match`;
+    // Use MeteoSwiss ICON CH2 model (2km resolution, same source as Varroawetter Schweiz)
+    // via historical-forecast API for highest accuracy on Swiss locations
+    const url = `https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=${ap.lat}&longitude=${ap.lon}&start_date=${startDate}&end_date=${today}&daily=temperature_2m_max,temperature_2m_min&timezone=Europe/Zurich&models=meteoswiss_icon_ch2`;
     try {
         const res = await fetch(url);
         const data = await res.json();
@@ -1167,6 +1171,7 @@ async function fetchGTSForApiary(apiaryId) {
             const date = data.daily.time[i];
             const tMax = data.daily.temperature_2m_max[i];
             const tMin = data.daily.temperature_2m_min[i];
+            if (tMax == null || tMin == null) continue;
             const tMean = (tMax + tMin) / 2;
             const month = new Date(date + "T00:00:00").getMonth() + 1;
             let factor = 1.0;
@@ -1176,7 +1181,7 @@ async function fetchGTSForApiary(apiaryId) {
             gts += contrib;
             daily.push({ date, tMax, tMin, tMean: Math.round(tMean * 10) / 10, factor, contrib: Math.round(contrib * 10) / 10, cumGts: Math.round(gts * 10) / 10 });
         }
-        gtsCache[apiaryId] = { gts: Math.round(gts * 10) / 10, daily };
+        gtsCache[apiaryId] = { gts: Math.round(gts * 10) / 10, daily, model: 'MeteoSwiss ICON CH2', elevation: data.elevation, gridLat: data.latitude, gridLon: data.longitude };
         return gtsCache[apiaryId];
     } catch (e) { console.error("GTS fetch error:", e); return null; }
 }
@@ -1207,11 +1212,11 @@ function renderGTS() {
     else if (gts < 1800) { statusText = 'Tracht estiva (Castagno/Tiglio)'; statusClass = 'background:var(--honey-light);color:var(--honey-dark)'; }
     else { statusText = 'Fine fioriture principali'; statusClass = 'background:var(--gray-light);color:var(--gray)'; }
 
-    let h = `<div style="font-weight:700;font-size:.88em;margin-bottom:10px">\uD83D\uDCCD ${ap ? ap.name : ''}</div>`;
+    let h = `<div style="font-weight:700;font-size:.88em;margin-bottom:10px">\uD83D\uDCCD ${ap ? ap.name : ''}${ap && ap.cap ? ' <span style="font-weight:400;color:var(--gray)">(CAP ' + ap.cap + ')</span>' : ''}</div>`;
 
     // GTS value box
     h += `<div class="gts-value-box">`;
-    h += `<div><div class="gts-big">${gts}</div><div class="gts-unit">Gradi-giorno (GTS)</div></div>`;
+    h += `<div><div class="gts-big">${gts}</div><div class="gts-unit">Gradi-giorno (GTS)</div><div style="font-size:.68em;color:var(--gray)">Modello: ${gd.model||'Open-Meteo'} | Alt. ${gd.elevation||'?'}m</div></div>`;
     h += `<div class="gts-status" style="${statusClass}">${statusText}</div>`;
     if (currentBloom) h += `<div style="font-size:.85em">Fase attuale: <strong>${currentBloom.icon} ${currentBloom.name}</strong></div>`;
     if (nextBloom) h += `<div style="font-size:.82em;color:var(--gray)">Prossima: ${nextBloom.icon} ${nextBloom.name} (GTS ${nextBloom.gts}, mancano ~${Math.round(nextBloom.gts - gts)})</div>`;
@@ -1259,11 +1264,12 @@ function renderGTS() {
     h += `</div>`;
     h += `</div>`;
 
-    // Link to Varroawetter
+    // Link to Varroawetter with CAP
+    const varroaUrl = ap && ap.cap ? `https://lakelandengineering.ch/Varroawetter/index.php?plz=${ap.cap}&sprache=0` : 'https://lakelandengineering.ch/Varroawetter/index.php';
     h += `<div style="margin-top:12px;padding-top:8px;border-top:1px solid #eee;font-size:.78em;color:var(--gray)">`;
-    h += `Formula GTS: somma cumulativa delle temperature medie giornaliere >0\u00B0C dal 1\u00B0 gennaio (fattore 0.5 gen, 0.75 feb, 1.0 mar+). `;
-    h += `Dati: <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> | `;
-    h += `Ref: <a href="https://lakelandengineering.ch/Varroawetter/index.php" target="_blank">Varroawetter Schweiz</a>`;
+    h += `Formula GTS: somma cumulativa (Tmax+Tmin)/2 >0\u00B0C dal 1\u00B0 gen (x0.5 gen, x0.75 feb, x1.0 mar+). `;
+    h += `Dati: <a href="https://open-meteo.com/" target="_blank" style="color:var(--blue)">Open-Meteo</a> (modello MeteoSwiss ICON CH2, ris. 2km) | `;
+    h += `Confronta: <a href="${varroaUrl}" target="_blank" style="color:var(--green-dark);font-weight:600">\uD83D\uDC1D Varroawetter Schweiz${ap && ap.cap ? ' (CAP ' + ap.cap + ')' : ''}</a>`;
     h += `</div>`;
 
     sec.innerHTML = h;

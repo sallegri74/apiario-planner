@@ -1132,21 +1132,23 @@ function renderLinks(){
 // ============================================================
 // GTS (Grünlandtemperatursumme) & FLOWERING
 // ============================================================
-// GTS-soglie fioriture (piena fioritura / Massentracht)
-// Fonti: KIV Dortmund, cbrell.de, beelogger.de, WetterOnline, gabot.de
-// Robinia/Castagno/Tiglio: stima per Ticino (250m, clima insubrico) da apilocali.ch, MeteoSvizzera
+// GTS-soglie fioriture con distinzione tra inizio fioritura e piena fioritura
+// Fonti: KIV Dortmund, cbrell.de, beelogger.de, DWD, pulheimwetter.de, gabot.de
+// Robinia/Castagno/Tiglio: stima per Ticino (250m, clima insubrico)
 const GTS_BLOOMS = [
-    { gts:50,   name:"Bucaneve",          icon:"\u2744\uFE0F",  nameDE:"Schneeglöckchen", src:"KIV" },   // 35-70
-    { gts:90,   name:"Nocciolo",          icon:"\uD83C\uDF3F",  nameDE:"Hasel", src:"KIV" },              // 65-120
-    { gts:110,  name:"Croco",             icon:"\uD83C\uDF3C",  nameDE:"Krokus", src:"KIV" },             // 65-120
-    { gts:200,  name:"Salice / Forsizia", icon:"\uD83C\uDF31",  nameDE:"Salweide / Forsythie", src:"KIV" }, // 175-260, inizio vegetazione
-    { gts:360,  name:"Betulla (prefior.)",icon:"\uD83C\uDF33",  nameDE:"Birke Vorblüte", src:"KIV" },     // 335-380
-    { gts:530,  name:"Ciliegio",          icon:"\uD83C\uDF38",  nameDE:"Kirsche Vollblüte", src:"KIV" },  // 530
-    { gts:550,  name:"Colza",             icon:"\uD83D\uDFE1",  nameDE:"Raps Vollblüte", src:"KIV" },     // 550
-    { gts:700,  name:"Melo / Tarassaco",  icon:"\uD83C\uDF3A",  nameDE:"Apfel / Löwenzahn", src:"KIV" },  // 700
-    { gts:950,  name:"Robinia",           icon:"\uD83C\uDF3B",  nameDE:"Robinie", src:"TI" },             // ~mag, stima Ticino
-    { gts:1500, name:"Castagno",          icon:"\uD83C\uDF30",  nameDE:"Kastanie", src:"TI" },            // ~metà giu, tracht principale TI
-    { gts:1650, name:"Tiglio",            icon:"\uD83C\uDF43",  nameDE:"Linde", src:"TI" }                // ~giu-lug, concomitante castagno
+    { gts:50,   name:"Bucaneve",              icon:"\u2744\uFE0F",  nameDE:"Schneeglöckchen", src:"KIV", phase:"fioritura" },     // 35-70
+    { gts:90,   name:"Nocciolo",              icon:"\uD83C\uDF3F",  nameDE:"Hasel", src:"KIV", phase:"fioritura" },                // 65-120
+    { gts:110,  name:"Croco",                 icon:"\uD83C\uDF3C",  nameDE:"Krokus", src:"KIV", phase:"fioritura" },               // 65-120
+    { gts:200,  name:"Salice / Forsizia",     icon:"\uD83C\uDF31",  nameDE:"Salweide / Forsythie", src:"KIV", phase:"fioritura" }, // 175-260, inizio vegetazione
+    { gts:290,  name:"Narciso / Sambuco",     icon:"\uD83C\uDF3B",  nameDE:"Osterglocken / Holunder", src:"KIV", phase:"germoglio" }, // 275-300
+    { gts:360,  name:"Betulla (prefior.)",    icon:"\uD83C\uDF33",  nameDE:"Birke Vorblüte", src:"KIV", phase:"pre-fioritura" },  // 335-380
+    { gts:410,  name:"Ciliegio (inizio)",     icon:"\uD83C\uDF38",  nameDE:"Kirsche Vorblüte", src:"KIV", phase:"pre-fioritura" },// 365-460
+    { gts:530,  name:"Ciliegio (piena)",      icon:"\uD83C\uDF38",  nameDE:"Kirsche Vollblüte", src:"KIV", phase:"piena fioritura" }, // 530
+    { gts:550,  name:"Colza",                 icon:"\uD83D\uDFE1",  nameDE:"Raps Vollblüte", src:"KIV", phase:"piena fioritura" },// 550
+    { gts:700,  name:"Melo / Tarassaco",      icon:"\uD83C\uDF3A",  nameDE:"Apfel / Löwenzahn", src:"KIV", phase:"piena fioritura" }, // 700
+    { gts:950,  name:"Robinia",               icon:"\uD83C\uDF3B",  nameDE:"Robinie", src:"TI", phase:"fioritura" },              // ~mag, stima Ticino
+    { gts:1500, name:"Castagno",              icon:"\uD83C\uDF30",  nameDE:"Kastanie", src:"TI", phase:"fioritura" },             // ~metà giu
+    { gts:1650, name:"Tiglio",                icon:"\uD83C\uDF43",  nameDE:"Linde", src:"TI", phase:"fioritura" }                 // ~giu-lug
 ];
 const GTS_MAX = 1800;
 
@@ -1205,8 +1207,9 @@ function renderGTS() {
     // Status text
     let statusText = '', statusClass = '';
     if (gts < 200) { statusText = 'Pre-vegetazione'; statusClass = 'background:var(--blue-light);color:var(--blue)'; }
-    else if (gts < 530) { statusText = 'Sviluppo primaverile'; statusClass = 'background:var(--green-light);color:var(--green-dark)'; }
-    else if (gts < 700) { statusText = 'Fioritura primaverile'; statusClass = 'background:var(--honey-light);color:var(--honey-dark)'; }
+    else if (gts < 360) { statusText = 'Inizio primavera'; statusClass = 'background:var(--green-light);color:var(--green-dark)'; }
+    else if (gts < 530) { statusText = 'Primavera - pre-fioritura fruttiferi'; statusClass = 'background:var(--honey-light);color:var(--honey-dark)'; }
+    else if (gts < 700) { statusText = 'Piena fioritura primaverile'; statusClass = 'background:var(--orange-light);color:#E65100'; }
     else if (gts < 950) { statusText = 'Tarda primavera'; statusClass = 'background:var(--orange-light);color:#E65100'; }
     else if (gts < 1500) { statusText = 'Inizio estate / Robinia'; statusClass = 'background:var(--green-light);color:var(--green-dark)'; }
     else if (gts < 1800) { statusText = 'Tracht estiva (Castagno/Tiglio)'; statusClass = 'background:var(--honey-light);color:var(--honey-dark)'; }
@@ -1226,7 +1229,7 @@ function renderGTS() {
     h += `<div class="gts-progress-wrap">`;
     h += `<div class="gts-progress-fill" style="width:${pct}%"></div>`;
     // Threshold markers
-    [200, 530, 700, 950, 1500].forEach(v => {
+    [200, 410, 530, 700, 950, 1500].forEach(v => {
         const p = (v / GTS_MAX) * 100;
         h += `<div class="gts-progress-marker" style="left:${p}%" data-label="${v}"></div>`;
     });
@@ -1245,7 +1248,7 @@ function renderGTS() {
         const bp = (b.gts / GTS_MAX) * 100;
         const isPast = gts >= b.gts;
         const isActive = currentBloom && b.gts === currentBloom.gts;
-        h += `<div class="bloom-item ${isPast && !isActive ? 'bloom-past' : ''} ${isActive ? 'bloom-active' : ''}" style="left:${bp}%" title="${b.name} (${b.nameDE}) - GTS ${b.gts}">`;
+        h += `<div class="bloom-item ${isPast && !isActive ? 'bloom-past' : ''} ${isActive ? 'bloom-active' : ''}" style="left:${bp}%" title="${b.name} (${b.nameDE}) - GTS ${b.gts} - ${b.phase||'fioritura'}">`;
         h += `<div class="bloom-icon">${b.icon}</div>`;
         h += `<div class="bloom-label">${b.name}</div>`;
         h += `<div class="bloom-gts">${b.gts}</div>`;
@@ -1260,7 +1263,7 @@ function renderGTS() {
         const srcTag = b.src==='TI' ? '<span title="Stima per Ticino" style="color:var(--orange);font-size:.8em">~</span>' : '';
         h += `<div class="bloom-legend-item" style="${isPast ? '' : 'opacity:.5'}">${b.icon} <span>${b.name}</span> <span style="color:var(--gray);font-size:.9em">(${b.gts}${srcTag})</span></div>`;
     });
-    h += `<div class="bloom-legend-item" style="margin-left:auto;font-size:.68em;color:var(--gray)">Fonti: KIV Dortmund, gabot.de | <span style="color:var(--orange)">~</span> = stima Ticino</div>`;
+    h += `<div class="bloom-legend-item" style="margin-left:auto;font-size:.68em;color:var(--gray)">Fonti: KIV Dortmund, DWD, cbrell.de | <span style="color:var(--orange)">~</span> = stima Ticino</div>`;
     h += `</div>`;
     h += `</div>`;
 

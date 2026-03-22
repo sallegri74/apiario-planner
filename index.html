@@ -694,6 +694,17 @@
     </div>
 </div>
 
+<div class="card" style="margin:0 auto 16px;max-width:1300px">
+    <div class="card-header" style="background:linear-gradient(135deg,#ECEFF1,#CFD8DC);color:#455A64">🔄 Sincronizza dati tra dispositivi</div>
+    <div class="card-body">
+        <div style="font-size:.88em;color:var(--gray);margin-bottom:10px">I dati (apiari, arnie, diario) sono salvati localmente nel browser. Per trasferirli tra desktop e cellulare, esporta e importa il file JSON.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="exportAllData()" style="min-height:44px;padding:8px 16px;border-radius:8px;border:none;background:#1976D2;color:white;font-weight:600;font-size:.95em;cursor:pointer">📤 Esporta dati</button>
+            <label style="min-height:44px;padding:8px 16px;border-radius:8px;border:none;background:#43A047;color:white;font-weight:600;font-size:.95em;cursor:pointer;display:inline-flex;align-items:center">📥 Importa dati<input type="file" accept=".json" onchange="importAllData(this)" style="display:none"></label>
+        </div>
+    </div>
+</div>
+
 <div class="footer">
     Previsioni: <a href="https://open-meteo.com/" target="_blank">Open-Meteo (MeteoSwiss)</a> |
     Guida apicola: <a href="https://www.apicoltura.ch/apicoltura/concetto-aziendale-e-prontuari/" target="_blank">apicoltura.ch</a> |
@@ -1805,6 +1816,70 @@ function checkQRDeepLink(){
         if(data.startsWith('APIARIO:'))handleQRResult(data);
         history.replaceState(null,'',location.pathname);
     }
+}
+
+// === Export / Import Data ===
+function exportAllData(){
+    const data={version:1,exported:new Date().toISOString(),apiaries:apiaries};
+    // Collect hive registries and diaries for each apiary
+    data.hiveRegistries={};
+    data.diaries={};
+    apiaries.forEach(a=>{
+        const reg=loadHiveRegistry(a.id);
+        if(reg.length) data.hiveRegistries[a.id]=reg;
+        const diary=loadDiary(a.id);
+        if(diary.length) data.diaries[a.id]=diary;
+    });
+    const json=JSON.stringify(data,null,2);
+    const blob=new Blob([json],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='apiario-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importAllData(input){
+    const file=input.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(e){
+        try{
+            const data=JSON.parse(e.target.result);
+            if(!data.apiaries||!Array.isArray(data.apiaries)){alert('File non valido: manca la lista apiari');return;}
+            if(!confirm(`Importare i dati?\n\n• ${data.apiaries.length} apiari\n• ${Object.values(data.hiveRegistries||{}).reduce((s,r)=>s+r.length,0)} arnie\n• ${Object.values(data.diaries||{}).reduce((s,d)=>s+d.length,0)} voci diario\n\nI dati attuali verranno sostituiti.`))return;
+
+            // Restore apiaries
+            apiaries=data.apiaries;
+            saveApiariesData(apiaries);
+
+            // Restore hive registries
+            if(data.hiveRegistries){
+                // Clear old registries
+                apiaries.forEach(a=>localStorage.removeItem(getHiveRegistryKey(a.id)));
+                Object.entries(data.hiveRegistries).forEach(([aid,reg])=>{
+                    saveHiveRegistry(aid,reg);
+                });
+            }
+
+            // Restore diaries
+            if(data.diaries){
+                apiaries.forEach(a=>localStorage.removeItem(getDiaryKey(a.id)));
+                Object.entries(data.diaries).forEach(([aid,diary])=>{
+                    saveDiary(aid,diary);
+                });
+            }
+
+            // Reload
+            activeApiaryId=apiaries.length?apiaries[0].id:null;
+            location.reload();
+        }catch(err){
+            alert('Errore nel file: '+err.message);
+        }
+    };
+    reader.readAsText(file);
+    input.value='';
 }
 
 function buildHiveReport(hive){

@@ -2630,6 +2630,114 @@ function deleteDiaryEntry(idx) {
     renderDiary();
 }
 
+function editDiaryEntry(idx){
+    const diary=getActiveDiary();
+    const e=diary[idx];
+    if(!e)return;
+
+    const existing=document.getElementById('quickEntryOverlay');
+    if(existing)existing.remove();
+
+    const typeKeys=Object.keys(DIARY_TYPES);
+    let typeBtns='';
+    typeKeys.forEach(k=>{
+        const t=DIARY_TYPES[k];
+        typeBtns+=`<button class="${k===e.type?'active':''}" data-type="${k}" onclick="qeSelectType(this)">${t.icon} ${t.label}</button>`;
+    });
+
+    // Hive selector
+    const regHives=loadHiveRegistry(activeApiaryId).filter(h=>h.status==='attiva');
+    let hiveSelect='';
+    if(regHives.length>0){
+        hiveSelect=`<select id="qeEditHive" style="width:100%;min-height:44px;font-size:1em;padding:8px;border:1px solid #ddd;border-radius:8px;margin-bottom:8px;box-sizing:border-box">`;
+        hiveSelect+=`<option value="__tutte__"${e.hive==='Tutte'?' selected':''}>Tutte</option>`;
+        regHives.forEach(hv=>{hiveSelect+=`<option value="${hv.name}"${e.hive===hv.name?' selected':''}>${hv.type==='nucleo'?'📦':'🐝'} ${hv.name}</option>`;});
+        hiveSelect+=`</select>`;
+    } else {
+        hiveSelect=`<input type="text" id="qeEditHive" value="${e.hive}" style="width:100%;min-height:44px;font-size:1em;padding:8px;border:1px solid #ddd;border-radius:8px;margin-bottom:8px;box-sizing:border-box">`;
+    }
+
+    // Detail fields
+    const queenOpts=['non verificata','vista','non vista','celle reali'];
+    const temperOpts=['','calma','nervosa','aggressiva'];
+    const strengthOpts=['','forte','media','debole'];
+    const broodOpts=['','ottima','buona','irregolare','assente'];
+    const foodOpts=['','abbondanti','sufficienti','scarse'];
+    const mkSel=(id,opts,val)=>{let s=`<select id="${id}" style="width:100%;min-height:40px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:.95em">`;opts.forEach(o=>{s+=`<option value="${o}"${val===o?' selected':''}>${o||'--'}</option>`;});return s+'</select>';};
+
+    const overlay=document.createElement('div');
+    overlay.className='quick-entry-overlay';
+    overlay.id='quickEntryOverlay';
+    overlay.innerHTML=`
+        <div class="quick-entry">
+            <div class="quick-entry-header">
+                <h2>✏️ Modifica visita</h2>
+                <button class="quick-entry-close" onclick="closeQuickEntry()">✕</button>
+            </div>
+            <div class="quick-entry-body">
+                <div style="display:flex;gap:8px;margin-bottom:8px">
+                    <div style="flex:1"><label style="font-size:.82em;font-weight:600">Data</label><input type="date" id="qeEditDate" value="${e.date}" style="width:100%;min-height:44px;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:1em;box-sizing:border-box"></div>
+                </div>
+                <label style="font-size:.82em;font-weight:600">Arnia</label>
+                ${hiveSelect}
+                <div style="font-size:.85em;font-weight:600;color:var(--gray-dark);margin-bottom:4px">Tipo visita:</div>
+                <div class="quick-entry-type" id="qeTypeBar">${typeBtns}</div>
+                <div class="quick-entry-mic">
+                    <button class="qe-mic" id="qeMicBtn" onclick="qeToggleVoice()">🎤</button>
+                    <div style="flex:1;min-width:0">
+                        <div style="font-weight:700;font-size:.95em">🧤 Detta le note a voce</div>
+                        <div style="font-size:.82em;color:var(--gray)" id="qeVoiceStatus">Premi il microfono per dettare</div>
+                    </div>
+                </div>
+                <textarea class="quick-entry-textarea" id="qeNotes">${e.notes||''}</textarea>
+                <div class="quick-entry-quick">
+                    <button onclick="qeAppend('Regina vista')">👑 Regina vista</button>
+                    <button onclick="qeAppend('Regina non vista')">❓ Non vista</button>
+                    <button onclick="qeAppend('Celle reali presenti')">⚠️ Celle reali</button>
+                    <button onclick="qeAppend('Covata regolare')">✅ Covata OK</button>
+                    <button onclick="qeAppend('Scorte scarse')">🍯 Scorte scarse</button>
+                    <button onclick="qeAppend('Scorte abbondanti')">🍯 Scorte OK</button>
+                    <button onclick="qeAppend('Colonia forte')">💪 Forte</button>
+                    <button onclick="qeAppend('Colonia debole')">⚡ Debole</button>
+                </div>
+                <div style="font-size:.85em;font-weight:600;color:var(--gray-dark);margin:8px 0 4px">Dettagli:</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                    <div><label style="font-size:.78em">Regina</label>${mkSel('qeEditQueen',queenOpts,e.queen||'non verificata')}</div>
+                    <div><label style="font-size:.78em">Temperamento</label>${mkSel('qeEditTemper',temperOpts,e.temper||'')}</div>
+                    <div><label style="font-size:.78em">Forza</label>${mkSel('qeEditStrength',strengthOpts,e.strength||'')}</div>
+                    <div><label style="font-size:.78em">Covata</label>${mkSel('qeEditBrood',broodOpts,e.brood||'')}</div>
+                    <div><label style="font-size:.78em">Scorte</label>${mkSel('qeEditFood',foodOpts,e.food||'')}</div>
+                    <div><label style="font-size:.78em">Varroa</label><input type="text" id="qeEditVarroa" value="${e.varroa||''}" placeholder="es. 3/100" style="width:100%;min-height:40px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:.95em;box-sizing:border-box"></div>
+                </div>
+                <button class="quick-entry-save" onclick="saveEditDiary(${idx})">💾 Salva modifiche</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+}
+
+function saveEditDiary(idx){
+    const diary=getActiveDiary();
+    const e=diary[idx];
+    if(!e)return;
+    const hiveEl=document.getElementById('qeEditHive');
+    const hive=hiveEl?(hiveEl.tagName==='SELECT'?(hiveEl.value==='__tutte__'?'Tutte':hiveEl.value):hiveEl.value.trim()):e.hive;
+    e.date=document.getElementById('qeEditDate').value||e.date;
+    e.hive=hive;
+    e.type=qeGetSelectedType();
+    e.notes=document.getElementById('qeNotes').value.trim();
+    e.queen=document.getElementById('qeEditQueen').value;
+    e.temper=document.getElementById('qeEditTemper').value;
+    e.strength=document.getElementById('qeEditStrength').value;
+    e.brood=document.getElementById('qeEditBrood').value;
+    e.food=document.getElementById('qeEditFood').value;
+    e.varroa=document.getElementById('qeEditVarroa').value.trim();
+    diary.sort((a,b)=>b.date.localeCompare(a.date));
+    saveDiary(activeApiaryId,diary);
+    closeQuickEntry();
+    renderDiary();
+    renderHiveRegistry();
+}
+
 function toggleDiaryEntry(id) {
     diaryOpenEntries[id] = !diaryOpenEntries[id];
     const body = document.getElementById('diary-body-' + id);
@@ -2812,6 +2920,7 @@ function renderDiary() {
             if (e.notes) h += `<div class="diary-entry-notes">${e.notes}</div>`;
 
             h += `<div class="diary-entry-actions">`;
+            h += `<button class="diary-del-btn" style="border-color:var(--honey);color:var(--honey-dark)" onclick="event.stopPropagation();editDiaryEntry(${realIdx})">✏️ Modifica</button>`;
             h += `<button class="diary-del-btn" onclick="event.stopPropagation();deleteDiaryEntry(${realIdx})">\u2716 Elimina</button>`;
             h += `</div>`;
             h += `</div></div>`;

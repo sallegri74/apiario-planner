@@ -298,6 +298,10 @@
         .hive-status-unita { background:#FFF3E0; color:#E65100; }
         .hive-card-info { font-size:.78em; color:var(--gray); display:flex; gap:8px; flex-wrap:wrap; }
         .hive-card-note { font-size:.78em; color:var(--gray); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .hive-card-photo { width:100%; max-height:140px; object-fit:cover; border-radius:6px; margin-top:6px; cursor:pointer; border:1px solid #eee; }
+        .hive-photo-input { display:none; }
+        .hive-photo-btn { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; font-size:.78em; border:1px dashed #ccc; border-radius:6px; background:var(--gray-light); color:var(--gray); cursor:pointer; margin-top:4px; transition:border-color .2s; }
+        .hive-photo-btn:hover { border-color:var(--honey); color:var(--honey-dark); }
         .hive-card-actions { position:absolute; top:8px; right:8px; display:flex; gap:4px; }
         .hive-card-actions select { font-size:.72em; padding:2px 4px; border:1px solid #ddd; border-radius:4px; background:white; cursor:pointer; }
         .hive-card-actions button { background:none; border:none; font-size:.85em; cursor:pointer; padding:2px 4px; opacity:.5; }
@@ -364,6 +368,26 @@
         .diary-del-btn { background:none; border:1px solid var(--red); color:var(--red); padding:4px 12px; border-radius:6px; font-size:.78em; cursor:pointer; font-family:inherit; min-height:36px; }
         .diary-del-btn:hover { background:var(--red-light); }
         .diary-empty { text-align:center; padding:30px 10px; color:var(--gray); font-size:.88em; }
+
+        /* Apiary Voice Mode */
+        .voice-bar { display:flex; gap:8px; align-items:center; padding:10px 14px; background:linear-gradient(135deg,#E8F5E9,#FFF8E1); border-radius:10px; margin-bottom:12px; border:2px solid var(--green); flex-wrap:wrap; }
+        .voice-btn { min-height:56px; min-width:56px; border:none; border-radius:12px; font-size:1.5em; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .15s,box-shadow .15s; font-family:inherit; }
+        .voice-btn:active { transform:scale(.95); }
+        .voice-btn-mic { background:var(--green); color:white; box-shadow:0 2px 8px rgba(76,175,80,.4); }
+        .voice-btn-mic.recording { background:var(--red); animation:voicePulse 1s ease-in-out infinite; box-shadow:0 2px 12px rgba(229,57,53,.5); }
+        @keyframes voicePulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+        .voice-btn-mic:hover { box-shadow:0 4px 16px rgba(76,175,80,.5); }
+        .voice-status { font-size:.85em; color:var(--gray-dark); flex:1; min-width:120px; }
+        .voice-status.recording { color:var(--red); font-weight:700; }
+        .voice-transcript { width:100%; padding:10px; border:2px solid var(--green); border-radius:8px; font-size:.9em; min-height:60px; font-family:inherit; resize:vertical; }
+        .voice-transcript:focus { outline:none; border-color:var(--honey); box-shadow:0 0 0 3px rgba(245,166,35,.2); }
+        .voice-quick-btns { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+        .voice-quick-btn { min-height:48px; padding:6px 14px; border:1px solid #ddd; border-radius:8px; background:var(--white); cursor:pointer; font-size:.85em; font-weight:600; font-family:inherit; display:flex; align-items:center; gap:4px; transition:all .15s; }
+        .voice-quick-btn:hover { border-color:var(--honey); background:var(--honey-light); }
+        .voice-quick-btn:active { transform:scale(.97); }
+        .voice-save-btn { min-height:56px; padding:10px 20px; border:none; border-radius:10px; background:var(--honey); color:white; font-size:1em; font-weight:700; cursor:pointer; font-family:inherit; flex:1; }
+        .voice-save-btn:hover { background:var(--honey-dark); }
+        .voice-save-btn:active { transform:scale(.97); }
 
         .type-ispezione { background:#1976D2; } .type-trattamento { background:#E53935; }
         .type-nutrizione { background:#FB8C00; } .type-raccolta { background:#FFD54F; color:#5D4037; }
@@ -1338,6 +1362,39 @@ function selectHive(hiveId){
     renderHiveRegistry();
 }
 
+function triggerHivePhoto(hiveId){
+    const inp=document.getElementById('photoInput-'+hiveId);
+    if(inp) inp.click();
+}
+function handleHivePhoto(hiveId,input){
+    const file=input.files[0];
+    if(!file) return;
+    // Compress and store as base64
+    const reader=new FileReader();
+    reader.onload=function(e){
+        const img=new Image();
+        img.onload=function(){
+            const canvas=document.createElement('canvas');
+            const MAX=600;
+            let w=img.width,h=img.height;
+            if(w>h){if(w>MAX){h*=MAX/w;w=MAX;}}else{if(h>MAX){w*=MAX/h;h=MAX;}}
+            canvas.width=w;canvas.height=h;
+            canvas.getContext('2d').drawImage(img,0,0,w,h);
+            const dataUrl=canvas.toDataURL('image/jpeg',0.7);
+            const reg=loadHiveRegistry(activeApiaryId);
+            const hv=reg.find(x=>x.id===hiveId);
+            if(hv){hv.photo=dataUrl;saveHiveRegistry(activeApiaryId,reg);renderHiveRegistry();}
+        };
+        img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+function removeHivePhoto(hiveId){
+    const reg=loadHiveRegistry(activeApiaryId);
+    const hv=reg.find(x=>x.id===hiveId);
+    if(hv){delete hv.photo;saveHiveRegistry(activeApiaryId,reg);renderHiveRegistry();}
+}
+
 function buildHiveReport(hive){
     const diary=loadDiary(activeApiaryId);
     const entries=diary.filter(e=>e.hive===hive.name).sort((a,b)=>b.date.localeCompare(a.date));
@@ -1461,6 +1518,16 @@ function renderHiveRegistry(){
             if(visits>0) h+=`<span>📋 ${visits} visit${visits===1?"a":"e"}</span>`;
             h+=`</div>`;
             if(hv.notes) h+=`<div class="hive-card-note">${hv.notes}</div>`;
+            // Photo
+            if(hv.photo){
+                h+=`<img src="${hv.photo}" class="hive-card-photo" onclick="event.stopPropagation();window.open(this.src)" title="Clicca per ingrandire"/>`;
+                h+=`<div style="display:flex;gap:4px;margin-top:3px">`;
+                h+=`<label class="hive-photo-btn" onclick="event.stopPropagation()">📷 Cambia<input type="file" accept="image/*" capture="environment" class="hive-photo-input" id="photoInput-${hv.id}" onchange="handleHivePhoto('${hv.id}',this)"></label>`;
+                h+=`<button class="hive-photo-btn" onclick="event.stopPropagation();removeHivePhoto('${hv.id}')" style="color:var(--red);border-color:var(--red)">🗑️ Rimuovi</button>`;
+                h+=`</div>`;
+            } else {
+                h+=`<label class="hive-photo-btn" onclick="event.stopPropagation()">📷 Aggiungi foto<input type="file" accept="image/*" capture="environment" class="hive-photo-input" id="photoInput-${hv.id}" onchange="handleHivePhoto('${hv.id}',this)"></label>`;
+            }
             h+=`</div>`;
         });
         h+=`</div>`;
@@ -1506,6 +1573,99 @@ function getDiaryHiveNames(apiaryId) {
 
 let diaryFilter = '';
 let diaryOpenEntries = {};
+let voiceRecognition = null;
+let voiceIsRecording = false;
+
+function initVoice(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR) return null;
+    const rec = new SR();
+    rec.lang = 'it-IT';
+    rec.continuous = true;
+    rec.interimResults = true;
+    return rec;
+}
+
+function toggleVoice(){
+    const btn = document.getElementById('voiceMicBtn');
+    const status = document.getElementById('voiceStatus');
+    const textarea = document.getElementById('voiceTranscript');
+
+    if(voiceIsRecording){
+        // Stop
+        if(voiceRecognition) voiceRecognition.stop();
+        voiceIsRecording = false;
+        btn.classList.remove('recording');
+        btn.textContent = '🎤';
+        status.textContent = 'Premi il microfono per dettare';
+        status.classList.remove('recording');
+        return;
+    }
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){
+        alert('Il riconoscimento vocale non è supportato da questo browser. Usa Chrome o Edge.');
+        return;
+    }
+
+    voiceRecognition = new SR();
+    voiceRecognition.lang = 'it-IT';
+    voiceRecognition.continuous = true;
+    voiceRecognition.interimResults = true;
+
+    let finalTranscript = textarea.value;
+
+    voiceRecognition.onresult = function(e){
+        let interim = '';
+        for(let i=e.resultIndex;i<e.results.length;i++){
+            if(e.results[i].isFinal){
+                finalTranscript += (finalTranscript?'. ':'')+e.results[i][0].transcript.trim();
+            } else {
+                interim += e.results[i][0].transcript;
+            }
+        }
+        textarea.value = finalTranscript + (interim ? ' ['+interim+'...]':'');
+    };
+    voiceRecognition.onerror = function(e){
+        console.error('Voice error:',e.error);
+        if(e.error==='not-allowed') status.textContent = 'Microfono non autorizzato. Controlla i permessi.';
+        else status.textContent = 'Errore: '+e.error+'. Riprova.';
+        voiceIsRecording=false; btn.classList.remove('recording'); btn.textContent='🎤';
+        status.classList.remove('recording');
+    };
+    voiceRecognition.onend = function(){
+        // Auto-restart if still in recording mode
+        if(voiceIsRecording){
+            try{voiceRecognition.start();}catch(e){}
+        }
+    };
+
+    voiceRecognition.start();
+    voiceIsRecording = true;
+    btn.classList.add('recording');
+    btn.textContent = '⏹';
+    status.textContent = '🔴 Registrazione in corso... Parla!';
+    status.classList.add('recording');
+}
+
+function voiceAppendQuick(text){
+    const ta=document.getElementById('voiceTranscript');
+    ta.value += (ta.value?'. ':'')+text;
+    ta.focus();
+}
+
+function voiceSaveEntry(){
+    const hive=document.getElementById('voiceHive').value;
+    const type=document.getElementById('voiceType').value;
+    const notes=document.getElementById('voiceTranscript').value.trim();
+    if(!hive){alert('Seleziona un\'arnia');return;}
+    if(!notes){alert('Inserisci o detta delle note');return;}
+    const today=new Date().toISOString().split('T')[0];
+    const entry={id:'d'+Date.now(),date:today,hive:hive==='__tutte__'?'Tutte':hive,type,queen:'non verificata',temper:'',strength:'',brood:'',food:'',varroa:'',notes};
+    const diary=getActiveDiary();diary.push(entry);diary.sort((a,b)=>b.date.localeCompare(a.date));saveDiary(activeApiaryId,diary);
+    document.getElementById('voiceTranscript').value='';
+    renderDiary();
+}
 
 function addDiaryEntry() {
     const date = document.getElementById('diaryDate').value;
@@ -1575,6 +1735,49 @@ function renderDiary() {
 
     let h = `<div style="font-weight:700;font-size:.88em;margin-bottom:10px">\uD83D\uDCCD ${ap.name}</div>`;
 
+    // Voice mode - "Modalità Apiario"
+    const regHivesV = loadHiveRegistry(activeApiaryId);
+    const activeRegHivesV = regHivesV.filter(h2=>h2.status==="attiva");
+    h += `<div class="voice-bar">`;
+    h += `<button class="voice-btn voice-btn-mic" id="voiceMicBtn" onclick="toggleVoice()" title="Premi per dettare">\uD83C\uDFA4</button>`;
+    h += `<div style="flex:1;min-width:0">`;
+    h += `<div style="font-weight:700;font-size:.92em;margin-bottom:4px">🧤 Modalità Apiario — detta le note a voce</div>`;
+    h += `<div class="voice-status" id="voiceStatus">Premi il microfono per dettare</div>`;
+    h += `</div>`;
+    h += `</div>`;
+    // Voice selects + transcript
+    h += `<div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">`;
+    if(activeRegHivesV.length > 0){
+        h += `<select id="voiceHive" style="flex:1;min-width:120px;min-height:48px;font-size:1em;padding:8px;border:1px solid #ddd;border-radius:8px">`;
+        h += `<option value="">-- Arnia --</option><option value="__tutte__">Tutte</option>`;
+        activeRegHivesV.forEach(hv => { h += `<option value="${hv.name}">${hv.type==="nucleo"?"📦":"🐝"} ${hv.name}</option>`; });
+        h += `</select>`;
+    } else {
+        h += `<input type="text" id="voiceHive" placeholder="Nome arnia..." style="flex:1;min-width:120px;min-height:48px;font-size:1em;padding:8px;border:1px solid #ddd;border-radius:8px">`;
+    }
+    h += `<select id="voiceType" style="min-width:120px;min-height:48px;font-size:1em;padding:8px;border:1px solid #ddd;border-radius:8px">`;
+    Object.keys(DIARY_TYPES).forEach(k => { h += `<option value="${k}">${DIARY_TYPES[k].icon} ${DIARY_TYPES[k].label}</option>`; });
+    h += `</select>`;
+    h += `</div>`;
+    h += `<textarea class="voice-transcript" id="voiceTranscript" placeholder="Le note dettate appariranno qui. Puoi anche digitare o usare i pulsanti rapidi..."></textarea>`;
+    // Quick buttons
+    h += `<div class="voice-quick-btns">`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Regina vista')">👑 Regina vista</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Regina non vista')">❓ Regina non vista</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Celle reali presenti')">⚠️ Celle reali</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Covata regolare')">✅ Covata OK</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Scorte scarse')">🍯 Scorte scarse</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia forte')">💪 Forte</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia debole')">⚡ Debole</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Sciamatura in corso')">🐝 Sciamatura</button>`;
+    h += `</div>`;
+    h += `<div style="display:flex;gap:8px;margin-top:8px;margin-bottom:16px">`;
+    h += `<button class="voice-save-btn" onclick="voiceSaveEntry()">💾 Salva nel diario</button>`;
+    h += `</div>`;
+
+    h += `<div style="border-top:2px solid #eee;padding-top:12px;margin-top:4px">`;
+    h += `<div style="font-weight:700;font-size:.88em;margin-bottom:8px">📋 Inserimento dettagliato</div>`;
+
     // Form
     h += `<div class="diary-form">`;
     h += `<div><label>Data</label><input type="date" id="diaryDate" value="${todayStr}" /></div>`;
@@ -1612,6 +1815,7 @@ function renderDiary() {
     h += `</div>`;
     h += `<div style="margin-top:6px"><label>Note</label><textarea id="diaryNotes" placeholder="Osservazioni, azioni eseguite..."></textarea></div>`;
     h += `</div>`;
+    h += `</div>`; // close "Inserimento dettagliato" wrapper
 
     // Filter - combine registry names + diary names
     const allNames = new Set([...regHives.map(h2=>h2.name), ...hiveNames]);

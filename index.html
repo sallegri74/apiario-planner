@@ -2283,7 +2283,7 @@ function buildHiveReport(hive){
     visitedApiaryIds.add(activeApiaryId);
     visitedApiaryIds.forEach(aid=>{
         const d=loadDiary(aid);
-        d.filter(e=>e.hive===hive.name).forEach(e=>entries.push(e));
+        d.forEach((e,idx)=>{if(e.hive===hive.name) entries.push({...e,_srcApiary:aid,_srcIdx:idx});});
     });
     entries.sort((a,b)=>b.date.localeCompare(a.date));
     const now=new Date();
@@ -2359,10 +2359,11 @@ function buildHiveReport(hive){
             if(e.food) details.push("Scorte: "+e.food);
             if(e.varroa) details.push("Varroa: "+e.varroa);
             if(e.notes) details.push(e.notes);
-            h+=`<div class="hive-report-entry">`;
+            h+=`<div class="hive-report-entry" style="cursor:pointer" onclick="editDiaryEntryFrom('${e._srcApiary}',${e._srcIdx})" title="Clicca per modificare">`;
             h+=`<span class="hive-report-entry-date">${formatDateIT(e.date)}</span>`;
             h+=`<span class="hive-report-entry-type ${dt.cls}">${dt.icon} ${dt.label}</span>`;
             h+=`<span class="hive-report-entry-details">${details.join(" · ")||"—"}</span>`;
+            h+=`<span style="font-size:.82em;opacity:.5;margin-left:4px">✏️</span>`;
             h+=`</div>`;
         });
         h+=`</div>`;
@@ -2736,6 +2737,39 @@ function saveEditDiary(idx){
     closeQuickEntry();
     renderDiary();
     renderHiveRegistry();
+}
+
+function editDiaryEntryFrom(apiaryId, idx){
+    // Temporarily switch to source apiary's diary for editing
+    const origApiary=activeApiaryId;
+    activeApiaryId=apiaryId;
+    editDiaryEntry(idx);
+    // Override save to restore original apiary and re-render
+    const origSave=window.saveEditDiary;
+    window.saveEditDiary=function(i){
+        const diary=getActiveDiary();
+        const e=diary[i];
+        if(!e){activeApiaryId=origApiary;return;}
+        const hiveEl=document.getElementById('qeEditHive');
+        const hive=hiveEl?(hiveEl.tagName==='SELECT'?(hiveEl.value==='__tutte__'?'Tutte':hiveEl.value):hiveEl.value.trim()):e.hive;
+        e.date=document.getElementById('qeEditDate').value||e.date;
+        e.hive=hive;
+        e.type=qeGetSelectedType();
+        e.notes=document.getElementById('qeNotes').value.trim();
+        e.queen=document.getElementById('qeEditQueen').value;
+        e.temper=document.getElementById('qeEditTemper').value;
+        e.strength=document.getElementById('qeEditStrength').value;
+        e.brood=document.getElementById('qeEditBrood').value;
+        e.food=document.getElementById('qeEditFood').value;
+        e.varroa=document.getElementById('qeEditVarroa').value.trim();
+        diary.sort((a,b)=>b.date.localeCompare(a.date));
+        saveDiary(apiaryId,diary);
+        closeQuickEntry();
+        activeApiaryId=origApiary;
+        window.saveEditDiary=origSave;
+        renderHiveRegistry();
+        renderDiary();
+    };
 }
 
 function toggleDiaryEntry(id) {

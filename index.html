@@ -362,6 +362,29 @@
         .move-cancel-btn { background:#eee; color:var(--gray-dark); }
         .move-cancel-btn:hover { background:#ddd; }
 
+        /* Quick Entry Modal */
+        .quick-entry-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.85); z-index:10000; display:flex; flex-direction:column; animation:fadeIn .2s ease; overflow-y:auto; }
+        .quick-entry { background:white; width:100%; max-width:500px; margin:auto; border-radius:16px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,.4); }
+        .quick-entry-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:linear-gradient(135deg,#FFF8E1,#FFF3E0); border-bottom:2px solid var(--honey); }
+        .quick-entry-header h2 { margin:0; font-size:1.2em; color:var(--honey-dark); }
+        .quick-entry-close { background:none; border:none; font-size:1.4em; cursor:pointer; padding:4px 8px; color:var(--gray); min-width:44px; min-height:44px; }
+        .quick-entry-body { padding:16px 20px; }
+        .quick-entry-mic { display:flex; gap:10px; align-items:center; margin-bottom:12px; }
+        .quick-entry-mic button { min-height:60px; min-width:60px; border-radius:14px; font-size:1.8em; border:none; cursor:pointer; }
+        .quick-entry-mic .qe-mic { background:var(--green); color:white; }
+        .quick-entry-mic .qe-mic.recording { background:var(--red); animation:voicePulse 1s ease-in-out infinite; }
+        .quick-entry-textarea { width:100%; min-height:100px; border:2px solid #ddd; border-radius:10px; padding:12px; font-size:1em; font-family:inherit; resize:vertical; box-sizing:border-box; }
+        .quick-entry-textarea:focus { border-color:var(--honey); outline:none; }
+        .quick-entry-quick { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+        .quick-entry-quick button { min-height:44px; padding:6px 12px; border-radius:8px; border:1px solid #ddd; background:#f8f8f8; font-size:.88em; cursor:pointer; }
+        .quick-entry-quick button:active { background:var(--honey-light,#FFF8E1); border-color:var(--honey); }
+        .quick-entry-type { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+        .quick-entry-type button { min-height:44px; padding:6px 14px; border-radius:8px; border:2px solid #ddd; background:white; font-size:.88em; cursor:pointer; font-weight:600; }
+        .quick-entry-type button.active { border-color:var(--honey); background:#FFF8E1; }
+        .quick-entry-save { width:100%; min-height:56px; border:none; border-radius:12px; background:var(--green); color:white; font-size:1.1em; font-weight:700; cursor:pointer; margin-top:10px; }
+        .quick-entry-save:hover { opacity:.9; }
+        .quick-entry-save:disabled { background:var(--gray); cursor:not-allowed; }
+
         /* Hive Report */
         .hive-report { margin-top:14px; border:2px solid var(--honey); border-radius:12px; overflow:hidden; animation:fadeIn .3s ease; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
@@ -1759,7 +1782,7 @@ function handleQRResult(data){
     const container=document.getElementById('qrScannerContainer');
     if(container){
         const hint=container.querySelector('.qr-scanner-hint');
-        if(hint)hint.innerHTML=`<div class="qr-scanner-result">✅ ${hv.name} — ${ap.name}</div>`;
+        if(hint)hint.innerHTML=`<div class="qr-scanner-result">✅ ${hv.name}</div>`;
     }
 
     setTimeout(()=>{
@@ -1769,34 +1792,152 @@ function handleQRResult(data){
             activeApiaryId=apiaryId;
             switchApiary(apiaryId);
         }
-        // Auto-select hive in diary voice mode and detailed form
-        setTimeout(()=>{
-            // Set voice hive selector
-            const voiceHive=document.getElementById('voiceHive');
-            if(voiceHive){
-                if(voiceHive.tagName==='SELECT'){
-                    for(let i=0;i<voiceHive.options.length;i++){
-                        if(voiceHive.options[i].value===hv.name){voiceHive.selectedIndex=i;break;}
-                    }
-                } else {voiceHive.value=hv.name;}
-            }
-            // Set detailed form hive selector
-            const diaryHive=document.getElementById('diaryHive');
-            if(diaryHive){
-                if(diaryHive.tagName==='SELECT'){
-                    for(let i=0;i<diaryHive.options.length;i++){
-                        if(diaryHive.options[i].value===hv.name){diaryHive.selectedIndex=i;break;}
-                    }
-                } else {diaryHive.value=hv.name;}
-            }
-            // Update scan status
-            const status=document.getElementById('qrScanStatus');
-            if(status)status.innerHTML=`✅ <strong>${hv.name}</strong> selezionata — procedi con le note`;
-            // Scroll diary into view
-            const diarySec=document.getElementById('diarySection');
-            if(diarySec)diarySec.scrollIntoView({behavior:'smooth',block:'start'});
-        },200);
-    },800);
+        // Open quick entry modal
+        openQuickEntry(hv.name, apiaryId);
+    },600);
+}
+
+// === Quick Entry Modal (post-QR scan) ===
+let qeRecognition=null;
+let qeRecording=false;
+
+function openQuickEntry(hiveName, apiaryId){
+    // Close any existing
+    const existing=document.getElementById('quickEntryOverlay');
+    if(existing)existing.remove();
+
+    const typeKeys=Object.keys(DIARY_TYPES);
+    let typeBtns='';
+    typeKeys.forEach((k,i)=>{
+        const t=DIARY_TYPES[k];
+        typeBtns+=`<button class="${i===0?'active':''}" data-type="${k}" onclick="qeSelectType(this)">${t.icon} ${t.label}</button>`;
+    });
+
+    const overlay=document.createElement('div');
+    overlay.className='quick-entry-overlay';
+    overlay.id='quickEntryOverlay';
+    overlay.innerHTML=`
+        <div class="quick-entry">
+            <div class="quick-entry-header">
+                <h2>🐝 ${hiveName}</h2>
+                <button class="quick-entry-close" onclick="closeQuickEntry()">✕</button>
+            </div>
+            <div class="quick-entry-body">
+                <div class="quick-entry-mic">
+                    <button class="qe-mic" id="qeMicBtn" onclick="qeToggleVoice()">🎤</button>
+                    <div style="flex:1;min-width:0">
+                        <div style="font-weight:700;font-size:.95em">🧤 Detta le note a voce</div>
+                        <div style="font-size:.82em;color:var(--gray)" id="qeVoiceStatus">Premi il microfono per dettare</div>
+                    </div>
+                </div>
+                <textarea class="quick-entry-textarea" id="qeNotes" placeholder="Scrivi o detta le note per ${hiveName}..."></textarea>
+                <div class="quick-entry-quick">
+                    <button onclick="qeAppend('Regina vista')">👑 Regina vista</button>
+                    <button onclick="qeAppend('Regina non vista')">❓ Non vista</button>
+                    <button onclick="qeAppend('Celle reali presenti')">⚠️ Celle reali</button>
+                    <button onclick="qeAppend('Covata regolare')">✅ Covata OK</button>
+                    <button onclick="qeAppend('Scorte scarse')">🍯 Scorte scarse</button>
+                    <button onclick="qeAppend('Scorte abbondanti')">🍯 Scorte OK</button>
+                    <button onclick="qeAppend('Colonia forte')">💪 Forte</button>
+                    <button onclick="qeAppend('Colonia debole')">⚡ Debole</button>
+                    <button onclick="qeAppend('Sciamatura in corso')">🐝 Sciamatura</button>
+                    <button onclick="qeAppend('Trattamento effettuato')">💊 Trattamento</button>
+                </div>
+                <div style="font-size:.85em;font-weight:600;color:var(--gray-dark);margin-bottom:4px">Tipo visita:</div>
+                <div class="quick-entry-type" id="qeTypeBar">${typeBtns}</div>
+                <button class="quick-entry-save" onclick="qeSave('${hiveName.replace(/'/g,"\\'")}','${apiaryId}')">💾 Salva nel diario</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    // Focus textarea
+    setTimeout(()=>document.getElementById('qeNotes').focus(),100);
+}
+
+function closeQuickEntry(){
+    qeStopVoice();
+    const el=document.getElementById('quickEntryOverlay');
+    if(el)el.remove();
+}
+
+function qeAppend(text){
+    const ta=document.getElementById('qeNotes');
+    if(!ta)return;
+    ta.value=ta.value?(ta.value.trimEnd()+'. '+text):text;
+    ta.focus();
+}
+
+function qeSelectType(btn){
+    document.querySelectorAll('#qeTypeBar button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function qeGetSelectedType(){
+    const active=document.querySelector('#qeTypeBar button.active');
+    return active?active.dataset.type:'ispezione';
+}
+
+function qeToggleVoice(){
+    if(qeRecording){qeStopVoice();return;}
+    const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SpeechRec){alert('Il tuo browser non supporta il riconoscimento vocale');return;}
+
+    qeRecognition=new SpeechRec();
+    qeRecognition.lang='it-IT';
+    qeRecognition.continuous=true;
+    qeRecognition.interimResults=true;
+
+    let finalText='';
+    const ta=document.getElementById('qeNotes');
+    const baseText=ta?ta.value:'';
+
+    qeRecognition.onresult=e=>{
+        let interim='';
+        for(let i=e.resultIndex;i<e.results.length;i++){
+            if(e.results[i].isFinal) finalText+=e.results[i][0].transcript+' ';
+            else interim+=e.results[i][0].transcript;
+        }
+        if(ta) ta.value=baseText+(baseText?' ':'')+finalText+interim;
+    };
+    qeRecognition.onend=()=>{
+        if(qeRecording) qeRecognition.start(); // auto-restart
+    };
+    qeRecognition.onerror=e=>{
+        if(e.error!=='no-speech'&&e.error!=='aborted'){
+            const st=document.getElementById('qeVoiceStatus');
+            if(st)st.textContent='Errore: '+e.error;
+        }
+    };
+
+    qeRecognition.start();
+    qeRecording=true;
+    const btn=document.getElementById('qeMicBtn');
+    if(btn)btn.classList.add('recording');
+    const st=document.getElementById('qeVoiceStatus');
+    if(st)st.textContent='🔴 Registrazione in corso...';
+}
+
+function qeStopVoice(){
+    if(qeRecognition){try{qeRecognition.abort();}catch(e){} qeRecognition=null;}
+    qeRecording=false;
+    const btn=document.getElementById('qeMicBtn');
+    if(btn)btn.classList.remove('recording');
+    const st=document.getElementById('qeVoiceStatus');
+    if(st)st.textContent='Premi il microfono per dettare';
+}
+
+function qeSave(hiveName,apiaryId){
+    const notes=document.getElementById('qeNotes').value.trim();
+    if(!notes){alert('Inserisci delle note');return;}
+    const type=qeGetSelectedType();
+    const today=new Date().toISOString().split('T')[0];
+    const entry={id:'d'+Date.now(),date:today,hive:hiveName,type,queen:'non verificata',temper:'',strength:'',brood:'',food:'',varroa:'',notes};
+    const diary=loadDiary(apiaryId);
+    diary.push(entry);
+    diary.sort((a,b)=>b.date.localeCompare(a.date));
+    saveDiary(apiaryId,diary);
+    closeQuickEntry();
+    renderDiary();
+    renderHiveRegistry();
 }
 
 function stopQRScanner(){

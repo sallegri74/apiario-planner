@@ -1576,7 +1576,6 @@ function showHiveQR(hiveId){
     overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
     overlay.innerHTML=`
         <div class="qr-modal">
-            <h3>${ap?ap.name:''}</h3>
             <div class="qr-hive-name">${hv.type==='nucleo'?'📦':'🐝'} ${hv.name}</div>
             <div class="qr-image" id="qrImageContainer">${imgTag}</div>
             <div style="font-size:.75em;color:var(--gray);margin-top:4px">Stampa e applica sull'arnia</div>
@@ -1592,7 +1591,6 @@ function printHiveQR(hiveId){
     const reg=loadHiveRegistry(activeApiaryId);
     const hv=reg.find(x=>x.id===hiveId);
     if(!hv)return;
-    const ap=apiaries.find(a=>a.id===activeApiaryId);
     const qrData=getHiveQRData(activeApiaryId,hiveId);
 
     const qr=qrcode(0,'M');
@@ -1601,27 +1599,56 @@ function printHiveQR(hiveId){
     const imgSrc=qr.createDataURL(8,0);
 
     const win=window.open('','_blank','width=400,height=500');
-    win.document.write(`<!DOCTYPE html><html><head><title>QR ${hv.name}</title>
+    win.document.write(buildQRPrintPage([{name:hv.name,type:hv.type,imgSrc}]));
+    win.document.close();
+}
+
+function buildQRPrintPage(labels){
+    let cards='';
+    labels.forEach(l=>{
+        cards+=`<div class="label">
+            <div class="hive-name">${l.name}</div>
+            <div class="hive-type">${l.type==='nucleo'?'📦 Nucleo':'🐝 Arnia'}</div>
+            <div><img src="${l.imgSrc}" /></div>
+        </div>`;
+    });
+    return `<!DOCTYPE html><html><head><title>QR Etichette Arnie</title>
         <style>
-            body{font-family:Arial,sans-serif;text-align:center;padding:20px;margin:0}
-            .label{border:2px dashed #ccc;border-radius:12px;padding:20px;display:inline-block;margin:10px}
-            .label img{width:200px;height:200px}
-            .hive-name{font-size:24px;font-weight:bold;margin:8px 0 4px}
-            .apiary-name{font-size:14px;color:#666;margin-bottom:8px}
-            .hive-type{font-size:13px;color:#888}
-            @media print{body{padding:0}.label{border:2px dashed #999} .no-print{display:none}}
+            *{box-sizing:border-box;margin:0;padding:0}
+            body{font-family:Arial,sans-serif;padding:10px}
+            .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:210mm}
+            .label{border:2px dashed #999;border-radius:10px;padding:12px 8px;text-align:center;page-break-inside:avoid}
+            .label img{width:140px;height:140px;margin-top:6px}
+            .hive-name{font-size:18px;font-weight:bold;margin-bottom:2px}
+            .hive-type{font-size:12px;color:#666}
+            .no-print{text-align:center;margin:16px 0}
+            @page{size:A4;margin:10mm}
+            @media print{.no-print{display:none}}
         </style>
     </head><body>
-        <div class="label">
-            <div class="apiary-name">${ap?ap.name:''}</div>
-            <div class="hive-name">${hv.name}</div>
-            <div class="hive-type">${hv.type==='nucleo'?'Nucleo':'Arnia'}</div>
-            <div><img src="${imgSrc}" /></div>
-        </div>
-        <div class="no-print" style="margin-top:16px">
+        <div class="no-print">
             <button onclick="window.print()" style="padding:10px 24px;font-size:16px;cursor:pointer;border-radius:8px;border:none;background:#C47F0A;color:white;font-weight:600">🖨️ Stampa</button>
+            <span style="margin-left:12px;font-size:14px;color:#666">${labels.length} etichett${labels.length===1?'a':'e'} — 6 per pagina A4</span>
         </div>
-    </body></html>`);
+        <div class="grid">${cards}</div>
+    </body></html>`;
+}
+
+function printAllHiveQR(){
+    const reg=loadHiveRegistry(activeApiaryId);
+    const activeReg=reg.filter(h=>h.status==='attiva');
+    if(activeReg.length===0){alert('Nessuna arnia attiva da stampare');return;}
+
+    const labels=activeReg.map(hv=>{
+        const qrData=getHiveQRData(activeApiaryId,hv.id);
+        const qr=qrcode(0,'M');
+        qr.addData(qrData);
+        qr.make();
+        return {name:hv.name,type:hv.type,imgSrc:qr.createDataURL(6,0)};
+    });
+
+    const win=window.open('','_blank','width=800,height=600');
+    win.document.write(buildQRPrintPage(labels));
     win.document.close();
 }
 
@@ -1864,6 +1891,7 @@ function renderHiveRegistry(){
     h+=`<div class="registry-count">🐝 Arnie attive: <span class="num">${activeHives}</span></div>`;
     h+=`<div class="registry-count">📦 Nuclei attivi: <span class="num">${activeNucs}</span></div>`;
     h+=`<div class="registry-count" style="color:var(--gray)">Totale registrate: <span class="num" style="color:var(--gray-dark)">${reg.length}</span></div>`;
+    if(reg.filter(x=>x.status==='attiva').length>0) h+=`<button class="qr-btn" onclick="printAllHiveQR()" style="margin-left:auto">🖨️ Stampa QR tutte le arnie</button>`;
     h+=`</div>`;
 
     // Add form

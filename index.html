@@ -337,6 +337,31 @@
         .qr-scanner-result { background:var(--green); color:white; padding:12px 20px; border-radius:10px; font-size:1.1em; font-weight:600; margin-top:12px; animation:fadeIn .3s ease; }
         @media print { .qr-print-page { padding:20px; text-align:center; } .qr-print-page img { max-width:250px; } }
 
+        /* Hive Move & Location History */
+        .hive-move-btn { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; font-size:.78em; border:1px dashed #1976D2; border-radius:6px; background:#E3F2FD; color:#1565C0; cursor:pointer; margin-top:4px; transition:border-color .2s; }
+        .hive-move-btn:hover { border-color:#0D47A1; background:#BBDEFB; }
+        .hive-locations { font-size:.78em; color:var(--gray); margin-top:6px; }
+        .hive-locations-current { display:inline-flex; align-items:center; gap:3px; padding:2px 8px; background:#E8F5E9; border-radius:4px; color:var(--green-dark); font-weight:600; }
+        .hive-report-locations { margin-top:12px; }
+        .hive-report-locations h4 { font-size:.88em; font-weight:700; color:var(--gray-dark); margin:0 0 8px; }
+        .hive-loc-timeline { border-left:3px solid var(--honey); margin-left:8px; padding-left:12px; }
+        .hive-loc-entry { position:relative; padding:6px 0; }
+        .hive-loc-entry::before { content:''; position:absolute; left:-17.5px; top:10px; width:10px; height:10px; border-radius:50%; background:var(--honey); border:2px solid white; }
+        .hive-loc-entry.current::before { background:var(--green); }
+        .hive-loc-entry .loc-apiary { font-weight:700; color:var(--gray-dark); }
+        .hive-loc-entry .loc-period { font-size:.85em; color:var(--gray); }
+        .hive-loc-entry .loc-duration { font-size:.82em; color:var(--honey-dark); font-weight:600; }
+        .move-modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); z-index:10000; display:flex; align-items:center; justify-content:center; animation:fadeIn .2s ease; }
+        .move-modal { background:white; border-radius:16px; padding:24px; max-width:380px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,.3); }
+        .move-modal h3 { margin:0 0 12px; font-size:1.05em; color:var(--gray-dark); }
+        .move-modal select, .move-modal input { width:100%; min-height:44px; font-size:1em; padding:8px 12px; border:1px solid #ddd; border-radius:8px; margin-bottom:10px; box-sizing:border-box; }
+        .move-modal .move-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+        .move-modal .move-actions button { min-height:44px; padding:8px 20px; border-radius:10px; font-size:.95em; font-weight:600; cursor:pointer; border:none; }
+        .move-confirm-btn { background:#1976D2; color:white; }
+        .move-confirm-btn:hover { background:#1565C0; }
+        .move-cancel-btn { background:#eee; color:var(--gray-dark); }
+        .move-cancel-btn:hover { background:#ddd; }
+
         /* Hive Report */
         .hive-report { margin-top:14px; border:2px solid var(--honey); border-radius:12px; overflow:hidden; animation:fadeIn .3s ease; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
@@ -1360,7 +1385,9 @@ function addHiveToRegistry(){
     const created=document.getElementById("regHiveDate").value||new Date().toISOString().split("T")[0];
     const notes=document.getElementById("regHiveNotes").value.trim();
     const reg=loadHiveRegistry(activeApiaryId);
-    reg.push({id:"h"+Date.now(),name,type,status,created,notes});
+    const ap=apiaries.find(a=>a.id===activeApiaryId);
+    const hive={id:"h"+Date.now(),name,type,status,created,notes,locations:[{apiaryId:activeApiaryId,apiaryName:ap?ap.name:'',from:created,to:null}]};
+    reg.push(hive);
     reg.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
     saveHiveRegistry(activeApiaryId,reg);
     document.getElementById("regHiveName").value="";
@@ -1421,6 +1448,104 @@ function removeHivePhoto(hiveId){
     const reg=loadHiveRegistry(activeApiaryId);
     const hv=reg.find(x=>x.id===hiveId);
     if(hv){delete hv.photo;saveHiveRegistry(activeApiaryId,reg);renderHiveRegistry();}
+}
+
+// === Hive Move & Location History ===
+function ensureHiveLocations(hv, apiaryId){
+    // Migrate old hives without locations array
+    if(!hv.locations || !hv.locations.length){
+        const ap=apiaries.find(a=>a.id===apiaryId);
+        hv.locations=[{apiaryId:apiaryId, apiaryName:ap?ap.name:'', from:hv.created||'2026-01-01', to:null}];
+    }
+}
+
+function showMoveHiveDialog(hiveId){
+    const reg=loadHiveRegistry(activeApiaryId);
+    const hv=reg.find(x=>x.id===hiveId);
+    if(!hv)return;
+    const otherApiaries=apiaries.filter(a=>a.id!==activeApiaryId);
+    if(otherApiaries.length===0){alert('Non ci sono altri apiari disponibili. Aggiungi un altro apiario prima.');return;}
+
+    const today=new Date().toISOString().split('T')[0];
+    const overlay=document.createElement('div');
+    overlay.className='move-modal-overlay';
+    overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+
+    let opts='';
+    otherApiaries.forEach(a=>{opts+=`<option value="${a.id}">${a.name}</option>`;});
+
+    overlay.innerHTML=`
+        <div class="move-modal">
+            <h3>🚚 Sposta "${hv.name}"</h3>
+            <label style="font-size:.88em;font-weight:600;color:var(--gray-dark)">Apiario di destinazione</label>
+            <select id="moveTargetApiary">${opts}</select>
+            <label style="font-size:.88em;font-weight:600;color:var(--gray-dark)">Data spostamento</label>
+            <input type="date" id="moveDateInput" value="${today}" />
+            <div class="move-actions">
+                <button class="move-cancel-btn" onclick="this.closest('.move-modal-overlay').remove()">Annulla</button>
+                <button class="move-confirm-btn" onclick="confirmMoveHive('${hiveId}')">🚚 Sposta</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+}
+
+function confirmMoveHive(hiveId){
+    const targetApiaryId=document.getElementById('moveTargetApiary').value;
+    const moveDate=document.getElementById('moveDateInput').value;
+    if(!targetApiaryId||!moveDate){alert('Compila tutti i campi');return;}
+
+    const targetAp=apiaries.find(a=>a.id===targetApiaryId);
+    if(!targetAp)return;
+
+    // Get hive from source registry
+    let srcReg=loadHiveRegistry(activeApiaryId);
+    const hvIdx=srcReg.findIndex(x=>x.id===hiveId);
+    if(hvIdx===-1)return;
+    const hv=srcReg[hvIdx];
+
+    // Ensure locations
+    ensureHiveLocations(hv, activeApiaryId);
+
+    // Close current location
+    const currentLoc=hv.locations.find(l=>l.to===null);
+    if(currentLoc) currentLoc.to=moveDate;
+
+    // Add new location
+    hv.locations.push({apiaryId:targetApiaryId, apiaryName:targetAp.name, from:moveDate, to:null});
+
+    // Remove from source registry
+    srcReg.splice(hvIdx,1);
+    saveHiveRegistry(activeApiaryId, srcReg);
+
+    // Add to target registry
+    const tgtReg=loadHiveRegistry(targetApiaryId);
+    tgtReg.push(hv);
+    tgtReg.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+    saveHiveRegistry(targetApiaryId, tgtReg);
+
+    // Close modal
+    document.querySelector('.move-modal-overlay').remove();
+
+    // Update selected hive
+    if(selectedHiveId===hiveId) selectedHiveId=null;
+
+    // Re-render
+    renderHiveRegistry();
+    renderDiary();
+    alert(`"${hv.name}" spostata in ${targetAp.name}`);
+}
+
+function formatLocationDuration(from, to){
+    const f=new Date(from);
+    const t=to?new Date(to):new Date();
+    const days=Math.floor((t-f)/86400000);
+    if(days<1) return '< 1 giorno';
+    if(days<30) return days+' giorn'+(days===1?'o':'i');
+    const months=Math.floor(days/30);
+    if(months<12) return months+' mes'+(months===1?'e':'i');
+    const years=Math.floor(months/12);
+    const remMonths=months%12;
+    return years+' ann'+(years===1?'o':'i')+(remMonths?' e '+remMonths+' mes'+(remMonths===1?'e':'i'):'');
 }
 
 // === QR Code Generation & Scanning ===
@@ -1629,8 +1754,16 @@ function checkQRDeepLink(){
 }
 
 function buildHiveReport(hive){
-    const diary=loadDiary(activeApiaryId);
-    const entries=diary.filter(e=>e.hive===hive.name).sort((a,b)=>b.date.localeCompare(a.date));
+    // Collect diary entries from all apiaries where this hive has been
+    ensureHiveLocations(hive, activeApiaryId);
+    let entries=[];
+    const visitedApiaryIds=new Set(hive.locations.map(l=>l.apiaryId));
+    visitedApiaryIds.add(activeApiaryId);
+    visitedApiaryIds.forEach(aid=>{
+        const d=loadDiary(aid);
+        d.filter(e=>e.hive===hive.name).forEach(e=>entries.push(e));
+    });
+    entries.sort((a,b)=>b.date.localeCompare(a.date));
     const now=new Date();
     const yearStart=now.getFullYear()+"-01-01";
 
@@ -1665,6 +1798,28 @@ function buildHiveReport(hive){
         h+=`<div class="hive-stat"><div class="hive-stat-value" style="font-size:.85em">${details.join(" ")||"—"}</div><div class="hive-stat-label">Ultima ispezione (${formatDateIT(lastInspection.date)})</div></div>`;
     }
     h+=`</div>`;
+
+    // Location history
+    ensureHiveLocations(hive, activeApiaryId);
+    if(hive.locations && hive.locations.length>0){
+        h+=`<div class="hive-report-locations">`;
+        h+=`<h4>📍 Storico stazionamenti</h4>`;
+        h+=`<div class="hive-loc-timeline">`;
+        // Show newest first
+        const locs=[...hive.locations].reverse();
+        locs.forEach(loc=>{
+            const isCurrent=loc.to===null;
+            const fromStr=formatDateIT(loc.from);
+            const toStr=isCurrent?'oggi':formatDateIT(loc.to);
+            const duration=formatLocationDuration(loc.from, loc.to);
+            h+=`<div class="hive-loc-entry${isCurrent?' current':''}">`;
+            h+=`<span class="loc-apiary">${loc.apiaryName||'Apiario sconosciuto'}</span>`;
+            h+=`<div class="loc-period">${fromStr} → ${toStr}</div>`;
+            h+=`<div class="loc-duration">${duration}${isCurrent?' (in corso)':''}</div>`;
+            h+=`</div>`;
+        });
+        h+=`</div></div>`;
+    }
 
     // Timeline
     h+=`<div style="font-weight:700;font-size:.88em;margin-bottom:8px;color:var(--gray-dark)">Cronologia visite</div>`;
@@ -1761,8 +1916,18 @@ function renderHiveRegistry(){
             } else {
                 h+=`<label class="hive-photo-btn" onclick="event.stopPropagation()">📷 Aggiungi foto<input type="file" accept="image/*" capture="environment" class="hive-photo-input" id="photoInput-${hv.id}" onchange="handleHivePhoto('${hv.id}',this)"></label>`;
             }
-            // QR Code button
+            // QR Code + Move buttons
+            h+=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">`;
             h+=`<button class="qr-btn" onclick="event.stopPropagation();showHiveQR('${hv.id}')">📱 QR Code</button>`;
+            if(apiaries.length>1 && hv.status==='attiva') h+=`<button class="hive-move-btn" onclick="event.stopPropagation();showMoveHiveDialog('${hv.id}')">🚚 Sposta</button>`;
+            h+=`</div>`;
+            // Location info
+            ensureHiveLocations(hv, activeApiaryId);
+            if(hv.locations.length>1){
+                const currentLoc=hv.locations.find(l=>l.to===null);
+                const prevCount=hv.locations.filter(l=>l.to!==null).length;
+                h+=`<div class="hive-locations">📍 ${prevCount} spostament${prevCount===1?'o':'i'} precedent${prevCount===1?'e':'i'}</div>`;
+            }
             h+=`</div>`;
         });
         h+=`</div>`;

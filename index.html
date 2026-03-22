@@ -3278,6 +3278,58 @@ function toggleHiveHistory(){
 // ============================================================
 // INIT
 // ============================================================
+function checkDiaryAlerts(){
+    const today=new Date().toISOString().split('T')[0];
+    const alerts=[];
+    apiaries.forEach(ap=>{
+        const data=loadPlannerForApiary(ap.id);
+        data.forEach(a=>{
+            if(a.cat==='diario'&&!a.done){
+                const isOverdue=a.end<today;
+                const isDueToday=a.start<=today&&a.end>=today;
+                if(isOverdue||isDueToday){
+                    alerts.push({activity:a,apiary:ap,overdue:isOverdue});
+                }
+            }
+        });
+    });
+    if(!alerts.length)return;
+    const ov=document.createElement('div');
+    ov.id='diaryAlertBanner';
+    ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:60px 16px 16px';
+    let h=`<div style="background:white;border-radius:16px;padding:20px;max-width:500px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.25);max-height:80vh;overflow-y:auto">`;
+    h+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">`;
+    h+=`<span style="font-size:1.8em">⚠️</span>`;
+    h+=`<div><div style="font-weight:700;font-size:1.1em;color:#C62828">Attività dal diario da completare</div>`;
+    h+=`<div style="font-size:.82em;color:var(--gray)">${alerts.length} attività in scadenza o scadute</div></div>`;
+    h+=`</div>`;
+    alerts.forEach(({activity:a,apiary:ap,overdue})=>{
+        const badge=overdue?'<span style="background:#FFCDD2;color:#C62828;padding:2px 8px;border-radius:6px;font-size:.78em;font-weight:600">Scaduta</span>':'<span style="background:#FFF9C4;color:#F57F17;padding:2px 8px;border-radius:6px;font-size:.78em;font-weight:600">Oggi</span>';
+        h+=`<div style="padding:10px 12px;margin-bottom:8px;border:1px solid #eee;border-radius:10px;background:${overdue?'#FFF5F5':'#FFFDE7'}">`;
+        h+=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">`;
+        h+=`<span style="font-weight:600;font-size:.92em">${a.name}</span>${badge}`;
+        h+=`</div>`;
+        h+=`<div style="font-size:.82em;color:var(--gray)">📍 ${ap.name} • 📅 ${formatDateIT(a.start)} - ${formatDateIT(a.end)}</div>`;
+        h+=`<button onclick="markAlertDone('${ap.id}','${a.id}')" style="margin-top:6px;padding:5px 14px;border:none;border-radius:8px;background:var(--green);color:white;font-weight:600;font-size:.82em;cursor:pointer">✅ Completata</button>`;
+        h+=`</div>`;
+    });
+    h+=`<button onclick="document.getElementById('diaryAlertBanner').remove()" style="width:100%;margin-top:10px;padding:12px;border:none;border-radius:10px;background:#eee;font-weight:600;font-size:1em;cursor:pointer">Chiudi</button>`;
+    h+=`</div>`;
+    ov.innerHTML=h;
+    ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+    document.body.appendChild(ov);
+}
+
+function markAlertDone(apiaryId,actId){
+    const data=loadPlannerForApiary(apiaryId);
+    const a=data.find(x=>x.id===actId);
+    if(a){a.done=true;a.doneDate=new Date().toISOString().split('T')[0];savePlannerForApiary(apiaryId,data);}
+    // Remove this item from banner
+    const banner=document.getElementById('diaryAlertBanner');
+    if(banner){banner.remove();checkDiaryAlerts();}
+    renderGantt();
+}
+
 async function init(){
     initMap();
     renderApiaryTabs();
@@ -3298,6 +3350,7 @@ async function init(){
     checkQRDeepLink();
     renderSyncUI();
     cloudAutoLoad();
+    setTimeout(checkDiaryAlerts,1500);
 }
 init();
 </script>

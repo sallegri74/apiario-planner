@@ -893,7 +893,17 @@ function getDefaultActivities() {
 }
 
 function loadPlannerForApiary(apiaryId) {
-    try { const s = localStorage.getItem(getPlannerKey(apiaryId)); if (s) return JSON.parse(s); } catch(e) {}
+    try {
+        const s = localStorage.getItem(getPlannerKey(apiaryId));
+        if (s) {
+            const data = JSON.parse(s);
+            // Migrate: move fdf* activities to 'diario' category
+            let migrated = false;
+            data.forEach(a => { if (a.id && a.id.startsWith('fdf') && a.cat !== 'diario') { a.cat = 'diario'; a.fromDiary = true; migrated = true; } });
+            if (migrated) try { localStorage.setItem(getPlannerKey(apiaryId), JSON.stringify(data)); } catch(e2) {}
+            return data;
+        }
+    } catch(e) {}
     return getDefaultActivities();
 }
 function savePlannerForApiary(apiaryId, data) {

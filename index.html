@@ -11,6 +11,8 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cellipse cx='35' cy='30' rx='16' ry='10' fill='%23ffffffcc' transform='rotate(-25 35 30)'/%3E%3Cellipse cx='65' cy='30' rx='16' ry='10' fill='%23ffffffcc' transform='rotate(25 65 30)'/%3E%3Cellipse cx='50' cy='58' rx='22' ry='26' fill='%23FFD54F'/%3E%3Crect x='28' y='48' width='44' height='6' rx='3' fill='%234E342E'/%3E%3Crect x='30' y='60' width='40' height='6' rx='3' fill='%234E342E'/%3E%3Crect x='33' y='72' width='34' height='5' rx='2.5' fill='%234E342E'/%3E%3Ccircle cx='50' cy='32' r='14' fill='%23FFD54F'/%3E%3Ccircle cx='44' cy='29' r='4.5' fill='%234E342E'/%3E%3Ccircle cx='56' cy='29' r='4.5' fill='%234E342E'/%3E%3Ccircle cx='45.5' cy='27.5' r='1.8' fill='white'/%3E%3Ccircle cx='57.5' cy='27.5' r='1.8' fill='white'/%3E%3Cpath d='M43 35 Q50 42 57 35' fill='none' stroke='%234E342E' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M44 20 Q40 8 33 5' fill='none' stroke='%234E342E' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M56 20 Q60 8 67 5' fill='none' stroke='%234E342E' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='33' cy='5' r='3.5' fill='%23FF8F00'/%3E%3Ccircle cx='67' cy='5' r='3.5' fill='%23FF8F00'/%3E%3Ccircle cx='39' cy='35' r='4' fill='%23FF8A6544'/%3E%3Ccircle cx='61' cy='35' r='4' fill='%23FF8A6544'/%3E%3C/svg%3E" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         :root {
             --honey: #F5A623; --honey-light: #FFF3D6; --honey-dark: #C47F0A;
@@ -306,6 +308,34 @@
         .hive-card-actions button { background:none; border:none; font-size:.85em; cursor:pointer; padding:2px 4px; opacity:.5; }
         .hive-card-actions button:hover { opacity:1; }
         .hive-empty { text-align:center; padding:24px; color:var(--gray); font-size:.88em; }
+
+        /* QR Code */
+        .qr-btn { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; font-size:.78em; border:1px dashed #aaa; border-radius:6px; background:#f5f5f5; color:var(--gray-dark); cursor:pointer; margin-top:4px; transition:border-color .2s; }
+        .qr-btn:hover { border-color:var(--honey); color:var(--honey-dark); }
+        .qr-modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); z-index:10000; display:flex; align-items:center; justify-content:center; animation:fadeIn .2s ease; }
+        .qr-modal { background:white; border-radius:16px; padding:24px; max-width:400px; width:90%; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,.3); }
+        .qr-modal h3 { margin:0 0 4px; font-size:1.1em; color:var(--gray-dark); }
+        .qr-modal .qr-hive-name { font-size:1.3em; font-weight:700; color:var(--honey-dark); margin-bottom:12px; }
+        .qr-modal .qr-image { margin:12px auto; }
+        .qr-modal .qr-image img, .qr-modal .qr-image canvas { max-width:200px; }
+        .qr-modal .qr-actions { display:flex; gap:8px; justify-content:center; margin-top:16px; }
+        .qr-modal .qr-actions button { min-height:44px; padding:8px 20px; border-radius:10px; font-size:.95em; font-weight:600; cursor:pointer; border:none; }
+        .qr-modal .qr-print-btn { background:var(--honey); color:white; }
+        .qr-modal .qr-print-btn:hover { background:var(--honey-dark); }
+        .qr-modal .qr-close-btn { background:#eee; color:var(--gray-dark); }
+        .qr-modal .qr-close-btn:hover { background:#ddd; }
+        .qr-scan-bar { display:flex; gap:8px; align-items:center; padding:10px 14px; background:linear-gradient(135deg,#E3F2FD,#FFF8E1); border-radius:10px; margin-bottom:12px; border:2px solid var(--blue,#1976D2); }
+        .qr-scan-btn { min-height:56px; min-width:56px; border-radius:12px; font-size:1.5em; border:none; background:var(--blue,#1976D2); color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .qr-scan-btn:hover { opacity:.85; }
+        .qr-scan-btn.scanning { background:var(--red); animation:voicePulse 1s ease-in-out infinite; }
+        .qr-scanner-container { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.9); z-index:10001; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+        .qr-scanner-video { max-width:100%; max-height:70vh; border-radius:12px; border:3px solid var(--honey); }
+        .qr-scanner-target { position:absolute; width:250px; height:250px; border:3px solid var(--honey); border-radius:16px; box-shadow:0 0 0 9999px rgba(0,0,0,.5); }
+        .qr-scanner-hint { color:white; font-size:1.1em; font-weight:600; margin-top:16px; text-align:center; }
+        .qr-scanner-close { position:absolute; top:16px; right:16px; background:rgba(255,255,255,.2); border:none; color:white; font-size:1.5em; width:48px; height:48px; border-radius:50%; cursor:pointer; }
+        .qr-scanner-close:hover { background:rgba(255,255,255,.4); }
+        .qr-scanner-result { background:var(--green); color:white; padding:12px 20px; border-radius:10px; font-size:1.1em; font-weight:600; margin-top:12px; animation:fadeIn .3s ease; }
+        @media print { .qr-print-page { padding:20px; text-align:center; } .qr-print-page img { max-width:250px; } }
 
         /* Hive Report */
         .hive-report { margin-top:14px; border:2px solid var(--honey); border-radius:12px; overflow:hidden; animation:fadeIn .3s ease; }
@@ -1393,6 +1423,211 @@ function removeHivePhoto(hiveId){
     if(hv){delete hv.photo;saveHiveRegistry(activeApiaryId,reg);renderHiveRegistry();}
 }
 
+// === QR Code Generation & Scanning ===
+let qrScannerStream=null;
+let qrScannerAnimId=null;
+
+function getHiveQRData(apiaryId,hiveId){
+    return `APIARIO:${apiaryId}:${hiveId}`;
+}
+
+function showHiveQR(hiveId){
+    const reg=loadHiveRegistry(activeApiaryId);
+    const hv=reg.find(x=>x.id===hiveId);
+    if(!hv)return;
+    const ap=apiaries.find(a=>a.id===activeApiaryId);
+    const qrData=getHiveQRData(activeApiaryId,hiveId);
+
+    // Generate QR using qrcode-generator
+    const qr=qrcode(0,'M');
+    qr.addData(qrData);
+    qr.make();
+    const size=6;
+    const imgTag=qr.createImgTag(size,0);
+
+    // Create modal
+    const overlay=document.createElement('div');
+    overlay.className='qr-modal-overlay';
+    overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+    overlay.innerHTML=`
+        <div class="qr-modal">
+            <h3>${ap?ap.name:''}</h3>
+            <div class="qr-hive-name">${hv.type==='nucleo'?'📦':'🐝'} ${hv.name}</div>
+            <div class="qr-image" id="qrImageContainer">${imgTag}</div>
+            <div style="font-size:.75em;color:var(--gray);margin-top:4px">Stampa e applica sull'arnia</div>
+            <div class="qr-actions">
+                <button class="qr-print-btn" onclick="printHiveQR('${hiveId}')">🖨️ Stampa etichetta</button>
+                <button class="qr-close-btn" onclick="this.closest('.qr-modal-overlay').remove()">Chiudi</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+}
+
+function printHiveQR(hiveId){
+    const reg=loadHiveRegistry(activeApiaryId);
+    const hv=reg.find(x=>x.id===hiveId);
+    if(!hv)return;
+    const ap=apiaries.find(a=>a.id===activeApiaryId);
+    const qrData=getHiveQRData(activeApiaryId,hiveId);
+
+    const qr=qrcode(0,'M');
+    qr.addData(qrData);
+    qr.make();
+    const imgSrc=qr.createDataURL(8,0);
+
+    const win=window.open('','_blank','width=400,height=500');
+    win.document.write(`<!DOCTYPE html><html><head><title>QR ${hv.name}</title>
+        <style>
+            body{font-family:Arial,sans-serif;text-align:center;padding:20px;margin:0}
+            .label{border:2px dashed #ccc;border-radius:12px;padding:20px;display:inline-block;margin:10px}
+            .label img{width:200px;height:200px}
+            .hive-name{font-size:24px;font-weight:bold;margin:8px 0 4px}
+            .apiary-name{font-size:14px;color:#666;margin-bottom:8px}
+            .hive-type{font-size:13px;color:#888}
+            @media print{body{padding:0}.label{border:2px dashed #999} .no-print{display:none}}
+        </style>
+    </head><body>
+        <div class="label">
+            <div class="apiary-name">${ap?ap.name:''}</div>
+            <div class="hive-name">${hv.name}</div>
+            <div class="hive-type">${hv.type==='nucleo'?'Nucleo':'Arnia'}</div>
+            <div><img src="${imgSrc}" /></div>
+        </div>
+        <div class="no-print" style="margin-top:16px">
+            <button onclick="window.print()" style="padding:10px 24px;font-size:16px;cursor:pointer;border-radius:8px;border:none;background:#C47F0A;color:white;font-weight:600">🖨️ Stampa</button>
+        </div>
+    </body></html>`);
+    win.document.close();
+}
+
+function startQRScanner(){
+    if(qrScannerStream){stopQRScanner();return;}
+    // Create scanner UI
+    const container=document.createElement('div');
+    container.className='qr-scanner-container';
+    container.id='qrScannerContainer';
+    container.innerHTML=`
+        <button class="qr-scanner-close" onclick="stopQRScanner()">✕</button>
+        <video class="qr-scanner-video" id="qrScannerVideo" autoplay playsinline></video>
+        <div class="qr-scanner-hint">📱 Inquadra il QR code sull'arnia</div>
+        <canvas id="qrScannerCanvas" style="display:none"></canvas>`;
+    document.body.appendChild(container);
+
+    const video=document.getElementById('qrScannerVideo');
+    const canvas=document.getElementById('qrScannerCanvas');
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}})
+    .then(stream=>{
+        qrScannerStream=stream;
+        video.srcObject=stream;
+        video.play();
+        const btn=document.getElementById('qrScanBtn');
+        if(btn)btn.classList.add('scanning');
+        scanQRFrame(video,canvas,ctx);
+    })
+    .catch(err=>{
+        container.remove();
+        alert('Impossibile accedere alla fotocamera: '+err.message);
+    });
+}
+
+function scanQRFrame(video,canvas,ctx){
+    if(!qrScannerStream)return;
+    if(video.readyState===video.HAVE_ENOUGH_DATA){
+        canvas.width=video.videoWidth;
+        canvas.height=video.videoHeight;
+        ctx.drawImage(video,0,0,canvas.width,canvas.height);
+        const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+        const code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'dontInvert'});
+        if(code && code.data.startsWith('APIARIO:')){
+            handleQRResult(code.data);
+            return;
+        }
+    }
+    qrScannerAnimId=requestAnimationFrame(()=>scanQRFrame(video,canvas,ctx));
+}
+
+function handleQRResult(data){
+    // Parse: APIARIO:{apiaryId}:{hiveId}
+    const parts=data.split(':');
+    if(parts.length<3)return;
+    const apiaryId=parts[1];
+    const hiveId=parts[2];
+
+    // Find apiary and hive
+    const ap=apiaries.find(a=>a.id===apiaryId);
+    if(!ap){stopQRScanner();alert('Apiario non trovato');return;}
+    const reg=loadHiveRegistry(apiaryId);
+    const hv=reg.find(x=>x.id===hiveId);
+    if(!hv){stopQRScanner();alert('Arnia non trovata nel registro');return;}
+
+    // Show success briefly
+    const container=document.getElementById('qrScannerContainer');
+    if(container){
+        const hint=container.querySelector('.qr-scanner-hint');
+        if(hint)hint.innerHTML=`<div class="qr-scanner-result">✅ ${hv.name} — ${ap.name}</div>`;
+    }
+
+    setTimeout(()=>{
+        stopQRScanner();
+        // Switch to correct apiary if needed
+        if(activeApiaryId!==apiaryId){
+            activeApiaryId=apiaryId;
+            switchApiary(apiaryId);
+        }
+        // Auto-select hive in diary voice mode and detailed form
+        setTimeout(()=>{
+            // Set voice hive selector
+            const voiceHive=document.getElementById('voiceHive');
+            if(voiceHive){
+                if(voiceHive.tagName==='SELECT'){
+                    for(let i=0;i<voiceHive.options.length;i++){
+                        if(voiceHive.options[i].value===hv.name){voiceHive.selectedIndex=i;break;}
+                    }
+                } else {voiceHive.value=hv.name;}
+            }
+            // Set detailed form hive selector
+            const diaryHive=document.getElementById('diaryHive');
+            if(diaryHive){
+                if(diaryHive.tagName==='SELECT'){
+                    for(let i=0;i<diaryHive.options.length;i++){
+                        if(diaryHive.options[i].value===hv.name){diaryHive.selectedIndex=i;break;}
+                    }
+                } else {diaryHive.value=hv.name;}
+            }
+            // Update scan status
+            const status=document.getElementById('qrScanStatus');
+            if(status)status.innerHTML=`✅ <strong>${hv.name}</strong> selezionata — procedi con le note`;
+            // Scroll diary into view
+            const diarySec=document.getElementById('diarySection');
+            if(diarySec)diarySec.scrollIntoView({behavior:'smooth',block:'start'});
+        },200);
+    },800);
+}
+
+function stopQRScanner(){
+    if(qrScannerStream){
+        qrScannerStream.getTracks().forEach(t=>t.stop());
+        qrScannerStream=null;
+    }
+    if(qrScannerAnimId){cancelAnimationFrame(qrScannerAnimId);qrScannerAnimId=null;}
+    const container=document.getElementById('qrScannerContainer');
+    if(container)container.remove();
+    const btn=document.getElementById('qrScanBtn');
+    if(btn)btn.classList.remove('scanning');
+}
+
+// Check URL hash for QR deep link
+function checkQRDeepLink(){
+    const hash=location.hash;
+    if(hash.startsWith('#scan=')){
+        const data=decodeURIComponent(hash.substring(6));
+        if(data.startsWith('APIARIO:'))handleQRResult(data);
+        history.replaceState(null,'',location.pathname);
+    }
+}
+
 function buildHiveReport(hive){
     const diary=loadDiary(activeApiaryId);
     const entries=diary.filter(e=>e.hive===hive.name).sort((a,b)=>b.date.localeCompare(a.date));
@@ -1526,6 +1761,8 @@ function renderHiveRegistry(){
             } else {
                 h+=`<label class="hive-photo-btn" onclick="event.stopPropagation()">📷 Aggiungi foto<input type="file" accept="image/*" capture="environment" class="hive-photo-input" id="photoInput-${hv.id}" onchange="handleHivePhoto('${hv.id}',this)"></label>`;
             }
+            // QR Code button
+            h+=`<button class="qr-btn" onclick="event.stopPropagation();showHiveQR('${hv.id}')">📱 QR Code</button>`;
             h+=`</div>`;
         });
         h+=`</div>`;
@@ -1733,9 +1970,20 @@ function renderDiary() {
 
     let h = `<div style="font-weight:700;font-size:.88em;margin-bottom:10px">\uD83D\uDCCD ${ap.name}</div>`;
 
-    // Voice mode - "Modalità Apiario"
+    // QR Scan bar
     const regHivesV = loadHiveRegistry(activeApiaryId);
     const activeRegHivesV = regHivesV.filter(h2=>h2.status==="attiva");
+    if(activeRegHivesV.length > 0){
+        h += `<div class="qr-scan-bar">`;
+        h += `<button class="qr-scan-btn" id="qrScanBtn" onclick="startQRScanner()" title="Scansiona QR arnia">📷</button>`;
+        h += `<div style="flex:1;min-width:0">`;
+        h += `<div style="font-weight:700;font-size:.92em;margin-bottom:2px">📱 Scansiona QR — identifica l'arnia</div>`;
+        h += `<div style="font-size:.82em;color:var(--gray)" id="qrScanStatus">Inquadra il QR code sull'arnia per selezionarla automaticamente</div>`;
+        h += `</div>`;
+        h += `</div>`;
+    }
+
+    // Voice mode - "Modalità Apiario"
     h += `<div class="voice-bar">`;
     h += `<button class="voice-btn voice-btn-mic" id="voiceMicBtn" onclick="toggleVoice()" title="Premi per dettare">\uD83C\uDFA4</button>`;
     h += `<div style="flex:1;min-width:0">`;
@@ -2068,6 +2316,7 @@ async function init(){
         renderHiveRegistry();
         renderDiary();
     }
+    checkQRDeepLink();
 }
 init();
 </script>

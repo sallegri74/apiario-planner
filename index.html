@@ -121,6 +121,14 @@
         .tab-btn.active { color:var(--honey-dark); border-bottom-color:var(--honey); }
         .tab-btn:hover { color:var(--honey-dark); }
 
+        .dashboard-tabs { display:flex; gap:0; background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; margin-bottom:16px; position:sticky; top:52px; z-index:90; }
+        .dashboard-tabs::-webkit-scrollbar { display:none; }
+        .dash-tab { flex:1; padding:10px 8px; border:none; background:none; cursor:pointer; font-size:.85em; font-weight:600; color:var(--gray); border-bottom:3px solid transparent; transition:all .2s; font-family:inherit; white-space:nowrap; min-height:44px; text-align:center; }
+        .dash-tab:hover { background:var(--honey-light); }
+        .dash-tab.active { color:var(--honey-dark); border-bottom-color:var(--honey); background:var(--honey-light); }
+        .dash-panel { display:none; }
+        .dash-panel.active { display:block; }
+
         .hourly-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
         .hourly-table { width:100%; border-collapse:collapse; font-size:.83em; min-width:500px; }
         .hourly-table th { background:var(--gray-light); padding:7px; text-align:left; font-weight:600; position:sticky; top:0; }
@@ -486,6 +494,7 @@
             input,select,textarea { font-size:16px !important; }
 
             .main { padding:8px; }
+            .dash-tab { font-size:.78em; padding:8px 4px; }
             .header { padding:10px 12px; }
             .header h1 { font-size:1.1em; }
             .bee-logo { width:36px; height:36px; }
@@ -603,119 +612,129 @@
     <!-- Apiary selector tabs -->
     <div class="apiary-tabs" id="apiaryTabs"></div>
 
+    <!-- Dashboard tabs -->
+    <div class="dashboard-tabs" id="dashboardTabs">
+        <button class="dash-tab active" data-tab="diario" onclick="switchDashTab('diario')">📖 Diario</button>
+        <button class="dash-tab" data-tab="arnie" onclick="switchDashTab('arnie')">📝 Arnie</button>
+        <button class="dash-tab" data-tab="planner" onclick="switchDashTab('planner')">📅 Planner</button>
+        <button class="dash-tab" data-tab="meteo" onclick="switchDashTab('meteo')">⛅ Meteo</button>
+        <button class="dash-tab" data-tab="mappa" onclick="switchDashTab('mappa')">🗺 Mappa</button>
+    </div>
+
     <!-- Dashboard (content changes per apiary) -->
     <div class="dashboard" id="dashboard">
 
-        <!-- 1. Diario dell'Apiario -->
-        <div class="card">
-            <div class="card-header diary-header">&#128214; Diario dell'Apiario</div>
-            <div class="card-body" id="diarySection"></div>
+        <!-- TAB: Diario -->
+        <div class="dash-panel active" data-panel="diario">
+            <div class="card">
+                <div class="card-header diary-header">&#128214; Diario dell'Apiario</div>
+                <div class="card-body" id="diarySection"></div>
+            </div>
         </div>
 
-        <!-- 2. Registro Arnie -->
-        <div class="card">
-            <div class="card-header registry-header">&#128221; Registro Arnie</div>
-            <div class="card-body" id="hiveRegistrySection"></div>
+        <!-- TAB: Arnie -->
+        <div class="dash-panel" data-panel="arnie">
+            <div class="card">
+                <div class="card-header registry-header">&#128221; Registro Arnie</div>
+                <div class="card-body" id="hiveRegistrySection"></div>
+            </div>
         </div>
 
-        <!-- 3. I miei Apiari (mappa) -->
-        <div class="card">
-            <div class="card-header map-header">&#128506; I miei Apiari</div>
-            <div class="card-body">
-                <div id="apiaryMap"></div>
-                <div class="apiary-panel">
-                    <div class="apiary-list">
-                        <h4>Apiari registrati</h4>
-                        <div id="apiaryListContainer"></div>
+        <!-- TAB: Planner -->
+        <div class="dash-panel" data-panel="planner">
+            <div class="card">
+                <div class="card-header planner-header">&#128197; Planner Annuale - Linea del Tempo</div>
+                <div class="card-body">
+                    <div class="planner-toolbar">
+                        <input type="text" id="plannerName" placeholder="Nome attivita..." style="flex:1;min-width:140px" />
+                        <select id="plannerCategory">
+                            <option value="varroa">Varroa</option><option value="raccolte">Raccolte</option>
+                            <option value="nutrizione">Nutrizione</option><option value="gestione">Gestione colonie</option>
+                            <option value="controlli">Controlli</option><option value="sciamatura">Sciamatura</option>
+                            <option value="custom">Altro</option>
+                        </select>
+                        <input type="date" id="plannerStart" /><input type="date" id="plannerEnd" />
+                        <button class="planner-btn planner-btn-add" onclick="addPlannerActivity()">+ Aggiungi</button>
+                        <button class="planner-btn planner-btn-clear" onclick="clearCustomActivities()">Svuota custom</button>
                     </div>
-                    <div class="apiary-form" id="apiaryForm">
-                        <h4 id="apiaryFormTitle">Aggiungi apiario</h4>
-                        <label>Nome</label>
-                        <input type="text" id="apiaryNameInput" placeholder="es. Apiario Claro" />
-                        <label>N° Apiario</label>
-                        <input type="text" id="apiaryNumberInput" placeholder="es. TI-1234" />
-                        <label>Latitudine</label>
-                        <input type="number" id="apiaryLatInput" step="0.0001" placeholder="es. 46.2607" />
-                        <label>Longitudine</label>
-                        <input type="number" id="apiaryLonInput" step="0.0001" placeholder="es. 9.0291" />
-                        <label>CAP</label>
-                        <input type="text" id="apiaryCapInput" placeholder="es. 6702" maxlength="6" />
-                        <p class="hint">Clicca sulla mappa per compilare le coordinate. Il CAP serve per GTS e Varroawetter.</p>
-                        <input type="hidden" id="apiaryEditId" value="" />
-                        <div class="apiary-form-btns">
-                            <button class="btn-save" onclick="saveApiary()">Salva</button>
-                            <button class="btn-cancel" onclick="resetApiaryForm()">Annulla</button>
+                    <div class="gantt-wrapper"><div class="gantt" id="ganttChart"></div></div>
+                    <div class="gantt-legend" id="ganttLegend"></div>
+                </div>
+            </div>
+            <div class="current-period" id="currentPeriod">
+                <div class="loading"><div class="spinner"></div><p style="margin-top:10px">Caricamento...</p></div>
+            </div>
+            <div class="card">
+                <div class="card-header calendar-header">&#128197; Calendario Stagionale - Concetto Aziendale</div>
+                <div class="card-body"><div class="timeline" id="timeline"></div></div>
+            </div>
+            <div class="detail-panel" id="detailPanel"></div>
+        </div>
+
+        <!-- TAB: Meteo -->
+        <div class="dash-panel" data-panel="meteo">
+            <div class="card">
+                <div class="card-header gts-header">&#127793; Grünlandtemperatursumme &amp; Fioriture</div>
+                <div class="card-body" id="gtsSection"><div class="loading"><div class="spinner"></div></div></div>
+            </div>
+            <div class="top-row">
+                <div class="card top-row-half">
+                    <div class="card-header weather-header">&#9925; Previsioni Meteo 14 giorni</div>
+                    <div class="card-body" id="weatherSection"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+                <div class="card top-row-half" id="hourlyCard">
+                    <div class="card-header varroa-header">&#128337; Dettaglio orario - Idoneità trattamenti</div>
+                    <div class="card-body">
+                        <div class="tab-bar" id="hourlyTabs"></div>
+                        <div id="hourlySection"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header varroa-header">&#128027; Varroawetter - Finestre di trattamento</div>
+                <div class="card-body" id="varroaSection"><div class="loading"><div class="spinner"></div></div></div>
+            </div>
+        </div>
+
+        <!-- TAB: Mappa & Altro -->
+        <div class="dash-panel" data-panel="mappa">
+            <div class="card">
+                <div class="card-header map-header">&#128506; I miei Apiari</div>
+                <div class="card-body">
+                    <div id="apiaryMap"></div>
+                    <div class="apiary-panel">
+                        <div class="apiary-list">
+                            <h4>Apiari registrati</h4>
+                            <div id="apiaryListContainer"></div>
+                        </div>
+                        <div class="apiary-form" id="apiaryForm">
+                            <h4 id="apiaryFormTitle">Aggiungi apiario</h4>
+                            <label>Nome</label>
+                            <input type="text" id="apiaryNameInput" placeholder="es. Apiario Claro" />
+                            <label>N° Apiario</label>
+                            <input type="text" id="apiaryNumberInput" placeholder="es. TI-1234" />
+                            <label>Latitudine</label>
+                            <input type="number" id="apiaryLatInput" step="0.0001" placeholder="es. 46.2607" />
+                            <label>Longitudine</label>
+                            <input type="number" id="apiaryLonInput" step="0.0001" placeholder="es. 9.0291" />
+                            <label>CAP</label>
+                            <input type="text" id="apiaryCapInput" placeholder="es. 6702" maxlength="6" />
+                            <p class="hint">Clicca sulla mappa per compilare le coordinate. Il CAP serve per GTS e Varroawetter.</p>
+                            <input type="hidden" id="apiaryEditId" value="" />
+                            <div class="apiary-form-btns">
+                                <button class="btn-save" onclick="saveApiary()">Salva</button>
+                                <button class="btn-cancel" onclick="resetApiaryForm()">Annulla</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- 4. GTS & Flowering -->
-        <div class="card">
-            <div class="card-header gts-header">&#127793; Grünlandtemperatursumme &amp; Fioriture</div>
-            <div class="card-body" id="gtsSection"><div class="loading"><div class="spinner"></div></div></div>
-        </div>
-
-        <!-- 5. Planner Annuale -->
-        <div class="card">
-            <div class="card-header planner-header">&#128197; Planner Annuale - Linea del Tempo</div>
-            <div class="card-body">
-                <div class="planner-toolbar">
-                    <input type="text" id="plannerName" placeholder="Nome attivita..." style="flex:1;min-width:140px" />
-                    <select id="plannerCategory">
-                        <option value="varroa">Varroa</option><option value="raccolte">Raccolte</option>
-                        <option value="nutrizione">Nutrizione</option><option value="gestione">Gestione colonie</option>
-                        <option value="controlli">Controlli</option><option value="sciamatura">Sciamatura</option>
-                        <option value="custom">Altro</option>
-                    </select>
-                    <input type="date" id="plannerStart" /><input type="date" id="plannerEnd" />
-                    <button class="planner-btn planner-btn-add" onclick="addPlannerActivity()">+ Aggiungi</button>
-                    <button class="planner-btn planner-btn-clear" onclick="clearCustomActivities()">Svuota custom</button>
-                </div>
-                <div class="gantt-wrapper"><div class="gantt" id="ganttChart"></div></div>
-                <div class="gantt-legend" id="ganttLegend"></div>
+            <div class="card">
+                <div class="card-header links-header">&#128218; Prontuari e Risorse - apicoltura.ch</div>
+                <div class="card-body"><div class="links-grid" id="linksGrid"></div></div>
             </div>
         </div>
 
-        <!-- Current period (attività stagionali) -->
-        <div class="current-period" id="currentPeriod">
-            <div class="loading"><div class="spinner"></div><p style="margin-top:10px">Caricamento...</p></div>
-        </div>
-
-        <!-- 6. Meteo + Dettaglio orario (side by side) -->
-        <div class="top-row">
-            <div class="card top-row-half">
-                <div class="card-header weather-header">&#9925; Previsioni Meteo 14 giorni</div>
-                <div class="card-body" id="weatherSection"><div class="loading"><div class="spinner"></div></div></div>
-            </div>
-            <div class="card top-row-half" id="hourlyCard">
-                <div class="card-header varroa-header">&#128337; Dettaglio orario - Idoneità trattamenti</div>
-                <div class="card-body">
-                    <div class="tab-bar" id="hourlyTabs"></div>
-                    <div id="hourlySection"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 7. Varroa -->
-        <div class="card">
-            <div class="card-header varroa-header">&#128027; Varroawetter - Finestre di trattamento</div>
-            <div class="card-body" id="varroaSection"><div class="loading"><div class="spinner"></div></div></div>
-        </div>
-
-        <!-- 8. Seasonal Calendar -->
-        <div class="card">
-            <div class="card-header calendar-header">&#128197; Calendario Stagionale - Concetto Aziendale</div>
-            <div class="card-body"><div class="timeline" id="timeline"></div></div>
-        </div>
-        <div class="detail-panel" id="detailPanel"></div>
-
-        <!-- 9. Links -->
-        <div class="card">
-            <div class="card-header links-header">&#128218; Prontuari e Risorse - apicoltura.ch</div>
-            <div class="card-body"><div class="links-grid" id="linksGrid"></div></div>
-        </div>
     </div>
 </div>
 
@@ -827,6 +846,15 @@ function saveApiariesData(data) {
 let apiaries = loadApiaries();
 let apiaryMap = null, apiaryMarkers = [], tempMarker = null;
 let activeApiaryId = apiaries.length > 0 ? apiaries[0].id : null;
+let activeDashTab = 'diario';
+
+function switchDashTab(tab){
+    activeDashTab=tab;
+    document.querySelectorAll('.dash-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+    document.querySelectorAll('.dash-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===tab));
+    if(tab==='mappa'&&typeof apiaryMap!=='undefined'&&apiaryMap){setTimeout(()=>{apiaryMap.invalidateSize();if(apiaryMarkers.length>1)apiaryMap.fitBounds(L.featureGroup(apiaryMarkers).getBounds().pad(0.3));else if(apiaryMarkers.length===1)apiaryMap.setView([apiaries[0].lat,apiaries[0].lon],14);},250);}
+    if(tab==='planner'){renderGantt();}
+}
 
 // Per-apiary weather cache
 let weatherCache = {}; // { apiaryId: { daily, hourly } }

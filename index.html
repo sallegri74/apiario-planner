@@ -3100,45 +3100,7 @@ function renderGantt(){
     const grp={};catOrd.forEach(c=>grp[c]=[]);activities.forEach(a=>{if(!grp[a.cat])grp[a.cat]=[];grp[a.cat].push(a);});
     const hivesCount=ap?getCurrentHives(ap):0;
     const nucsCount=ap?getCurrentNucs(ap):0;
-    const hist=ap&&ap.hivesHistory?ap.hivesHistory:[];
-    const todayStr=new Date().toISOString().slice(0,10);
     let h=`<div style="font-size:.82em;font-weight:600;color:var(--honey-dark);margin-bottom:6px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">\uD83D\uDCCD ${ap?ap.name:''}<span style="background:var(--honey-light);padding:3px 10px;border-radius:8px;font-size:.92em">\uD83D\uDCE6 Arnie: <strong>${hivesCount}</strong></span><span style="background:var(--blue-light);padding:3px 10px;border-radius:8px;font-size:.92em">\uD83E\uDEB9 Nuclei: <strong>${nucsCount}</strong></span></div>`;
-    // Hive history panel
-    h+=`<div class="hive-history-panel">`;
-    h+=`<button class="hive-history-toggle" onclick="toggleHiveHistory()"><span class="arrow" id="hiveHistArrow">\u25B6</span> Storico arnie e nuclei (${hist.length} registrazioni)</button>`;
-    h+=`<div class="hive-history-body" id="hiveHistBody">`;
-    // Add form
-    h+=`<div class="hive-history-add">`;
-    h+=`<input type="date" id="hiveHistDate" value="${todayStr}" style="width:130px" />`;
-    h+=`<input type="number" id="hiveHistCount" min="0" step="1" placeholder="N. arnie" style="width:80px" />`;
-    h+=`<input type="number" id="hiveHistNucs" min="0" step="1" placeholder="N. nuclei" style="width:80px" />`;
-    h+=`<input type="text" id="hiveHistNote" placeholder="Nota (opzionale)" style="flex:1;min-width:100px" />`;
-    h+=`<button onclick="addHiveHistoryEntry('${ap?ap.id:''}',document.getElementById('hiveHistDate').value,document.getElementById('hiveHistCount').value,document.getElementById('hiveHistNucs').value,document.getElementById('hiveHistNote').value)">+ Registra</button>`;
-    h+=`</div>`;
-    // Table
-    if(hist.length){
-        h+=`<table class="hive-history-table"><thead><tr><th>Data</th><th>Arnie</th><th>\u0394</th><th>Nuclei</th><th>\u0394</th><th>Nota</th><th></th></tr></thead><tbody>`;
-        hist.forEach((entry,i)=>{
-            const prev=i<hist.length-1?hist[i+1]:null;
-            let deltaH='',deltaN='';
-            if(prev!==null){
-                const dh=entry.count-(prev.count||0);
-                if(dh>0) deltaH=`<span class="hive-delta pos">+${dh}</span>`;
-                else if(dh<0) deltaH=`<span class="hive-delta neg">${dh}</span>`;
-                else deltaH=`<span class="hive-delta zero">=</span>`;
-                const dn=(entry.nucs||0)-(prev.nucs||0);
-                if(dn>0) deltaN=`<span class="hive-delta pos">+${dn}</span>`;
-                else if(dn<0) deltaN=`<span class="hive-delta neg">${dn}</span>`;
-                else deltaN=`<span class="hive-delta zero">=</span>`;
-            }
-            h+=`<tr><td>${formatDateIT(entry.date)}</td><td><strong>${entry.count}</strong></td><td>${deltaH}</td><td><strong>${entry.nucs||0}</strong></td><td>${deltaN}</td><td style="color:var(--gray);font-size:.9em">${entry.note||''}</td>`;
-            h+=`<td><button class="hive-del" onclick="deleteHiveHistoryEntry('${ap?ap.id:''}',${i})" title="Elimina">\u2716</button></td></tr>`;
-        });
-        h+=`</tbody></table>`;
-    } else {
-        h+=`<p style="color:var(--gray);font-size:.82em;text-align:center;padding:8px">Nessuna registrazione. Aggiungi il primo conteggio di arnie e nuclei.</p>`;
-    }
-    h+=`</div></div>`;
     h+='<div class="gantt-months"><div class="gantt-label">Attivita</div>';
     for(let m=0;m<12;m++)h+=`<div class="gantt-month-cell ${m===curM?'current-month':''}">${MN[m]}</div>`;h+='</div>';
     // Hive & nucs evolution rows

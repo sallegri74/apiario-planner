@@ -632,6 +632,8 @@
                         <h4 id="apiaryFormTitle">Aggiungi apiario</h4>
                         <label>Nome</label>
                         <input type="text" id="apiaryNameInput" placeholder="es. Apiario Claro" />
+                        <label>N° Apiario</label>
+                        <input type="text" id="apiaryNumberInput" placeholder="es. TI-1234" />
                         <label>Latitudine</label>
                         <input type="number" id="apiaryLatInput" step="0.0001" placeholder="es. 46.2607" />
                         <label>Longitudine</label>
@@ -1028,6 +1030,7 @@ function initMap() {
     });
     renderApiaryMarkers();
     renderApiaryList();
+    setTimeout(()=>apiaryMap.invalidateSize(),200);
 }
 
 function renderApiaryMarkers() {
@@ -1042,7 +1045,7 @@ function renderApiaryMarkers() {
                 iconSize:[44,52],iconAnchor:[22,38],popupAnchor:[0,-40]
             })
         }).addTo(apiaryMap);
-        marker.bindPopup(`<div style="font-family:inherit"><strong>${a.name}</strong><br><span style="font-size:.85em;color:#666">Lat: ${a.lat.toFixed(4)} | Lon: ${a.lon.toFixed(4)}</span><br><button onclick="switchApiary('${a.id}')" style="margin-top:6px;padding:4px 12px;background:var(--honey);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:.85em">Seleziona</button></div>`);
+        marker.bindPopup(`<div style="font-family:inherit"><strong>${a.name}</strong>${a.number?'<br><span style="font-size:.85em;color:#444">N° '+a.number+'</span>':''}<br><span style="font-size:.85em;color:#666">Lat: ${a.lat.toFixed(4)} | Lon: ${a.lon.toFixed(4)}</span><br><button onclick="switchApiary('${a.id}')" style="margin-top:6px;padding:4px 12px;background:var(--honey);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:.85em">Seleziona</button></div>`);
         marker.on('click',()=>{ switchApiary(a.id); });
         apiaryMarkers.push(marker);
     });
@@ -1059,7 +1062,7 @@ function renderApiaryList() {
         h+=`<div class="apiary-item" style="${act?'background:var(--green-light);border-color:var(--green)':''}">
             <div class="apiary-color" style="background:${a.color}"></div>
             <span class="apiary-name" style="cursor:pointer" onclick="switchApiary('${a.id}')">${a.name}</span>
-            <span class="apiary-coords">${a.cap?'CAP '+a.cap+' \u2022 ':''}${a.lat.toFixed(4)}, ${a.lon.toFixed(4)}</span>
+            <span class="apiary-coords">${a.number?'N° '+a.number+' \u2022 ':''}${a.cap?'CAP '+a.cap+' \u2022 ':''}${a.lat.toFixed(4)}, ${a.lon.toFixed(4)}</span>
             <span style="font-size:.78em;font-weight:600;color:var(--honey-dark)" title="Arnie attive">\uD83D\uDCE6 ${getCurrentHives(a)}</span>
             <span style="font-size:.78em;font-weight:600;color:var(--blue)" title="Nuclei">\uD83E\uDEB9 ${getCurrentNucs(a)}</span>
             <button class="apiary-btn" onclick="editApiary('${a.id}')" title="Modifica">\u270F\uFE0F</button>
@@ -1075,18 +1078,19 @@ function saveApiary() {
     const lat=parseFloat(document.getElementById('apiaryLatInput').value);
     const lon=parseFloat(document.getElementById('apiaryLonInput').value);
     const cap=document.getElementById('apiaryCapInput').value.trim();
+    const number=document.getElementById('apiaryNumberInput').value.trim();
     const editId=document.getElementById('apiaryEditId').value;
     if(!name){alert('Inserisci il nome');return;} if(isNaN(lat)||isNaN(lon)){alert('Coordinate non valide');return;}
-    if(editId){const a=apiaries.find(x=>x.id===editId);if(a){a.name=name;a.lat=lat;a.lon=lon;a.cap=cap;delete gtsCache[editId];delete weatherCache[editId];}}
-    else{apiaries.push({id:'a'+Date.now(),name,lat,lon,cap,hivesHistory:[],color:APIARY_COLORS[apiaries.length%APIARY_COLORS.length]});}
+    if(editId){const a=apiaries.find(x=>x.id===editId);if(a){a.name=name;a.lat=lat;a.lon=lon;a.cap=cap;a.number=number;delete gtsCache[editId];delete weatherCache[editId];}}
+    else{apiaries.push({id:'a'+Date.now(),name,lat,lon,cap,number,hivesHistory:[],color:APIARY_COLORS[apiaries.length%APIARY_COLORS.length]});}
     saveApiariesData(apiaries);renderApiaryMarkers();renderApiaryList();renderApiaryTabs();resetApiaryForm();
     if(tempMarker){apiaryMap.removeLayer(tempMarker);tempMarker=null;}
     if(!activeApiaryId&&apiaries.length>0){switchApiary(apiaries[0].id);}
 }
-function editApiary(id){const a=apiaries.find(x=>x.id===id);if(!a)return;document.getElementById('apiaryFormTitle').textContent='Modifica apiario';document.getElementById('apiaryNameInput').value=a.name;document.getElementById('apiaryLatInput').value=a.lat;document.getElementById('apiaryLonInput').value=a.lon;document.getElementById('apiaryCapInput').value=a.cap||'';document.getElementById('apiaryEditId').value=a.id;}
+function editApiary(id){const a=apiaries.find(x=>x.id===id);if(!a)return;document.getElementById('apiaryFormTitle').textContent='Modifica apiario';document.getElementById('apiaryNameInput').value=a.name;document.getElementById('apiaryNumberInput').value=a.number||'';document.getElementById('apiaryLatInput').value=a.lat;document.getElementById('apiaryLonInput').value=a.lon;document.getElementById('apiaryCapInput').value=a.cap||'';document.getElementById('apiaryEditId').value=a.id;}
 function deleteApiary(id){apiaries=apiaries.filter(x=>x.id!==id);saveApiariesData(apiaries);if(activeApiaryId===id){activeApiaryId=apiaries.length>0?apiaries[0].id:null;}renderApiaryMarkers();renderApiaryList();renderApiaryTabs();resetApiaryForm();if(activeApiaryId)switchApiary(activeApiaryId);}
 function zoomToApiary(id){const a=apiaries.find(x=>x.id===id);if(!a)return;apiaryMap.setView([a.lat,a.lon],16);const i=apiaries.indexOf(a);if(apiaryMarkers[i])apiaryMarkers[i].openPopup();}
-function resetApiaryForm(){document.getElementById('apiaryFormTitle').textContent='Aggiungi apiario';['apiaryNameInput','apiaryLatInput','apiaryLonInput','apiaryCapInput'].forEach(id=>document.getElementById(id).value='');document.getElementById('apiaryEditId').value='';if(tempMarker){apiaryMap.removeLayer(tempMarker);tempMarker=null;}}
+function resetApiaryForm(){document.getElementById('apiaryFormTitle').textContent='Aggiungi apiario';['apiaryNameInput','apiaryNumberInput','apiaryLatInput','apiaryLonInput','apiaryCapInput'].forEach(id=>document.getElementById(id).value='');document.getElementById('apiaryEditId').value='';if(tempMarker){apiaryMap.removeLayer(tempMarker);tempMarker=null;}}
 
 // ============================================================
 // APIARY TABS & SWITCHING

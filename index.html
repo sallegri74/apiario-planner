@@ -1842,6 +1842,7 @@ function openQuickEntry(hiveName, apiaryId){
                     <button onclick="qeAppend('Colonia debole')">⚡ Debole</button>
                     <button onclick="qeAppend('Sciamatura in corso')">🐝 Sciamatura</button>
                     <button onclick="qeAppend('Trattamento effettuato')">💊 Trattamento</button>
+                    <button onclick="qeFavoDaFuco('${hiveName.replace(/'/g,"\\'")}','${apiaryId}')" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>
                 </div>
                 <div style="font-size:.85em;font-weight:600;color:var(--gray-dark);margin-bottom:4px">Tipo visita:</div>
                 <div class="quick-entry-type" id="qeTypeBar">${typeBtns}</div>
@@ -1923,6 +1924,51 @@ function qeStopVoice(){
     if(btn)btn.classList.remove('recording');
     const st=document.getElementById('qeVoiceStatus');
     if(st)st.textContent='Premi il microfono per dettare';
+}
+
+function scheduleFavoDaFuco(hiveName, apiaryId){
+    const today=new Date();
+    const checkDate=new Date(today.getTime()+21*86400000); // +3 settimane
+    const startStr=checkDate.toISOString().split('T')[0];
+    const endDate=new Date(checkDate.getTime()+3*86400000); // 3 giorni di finestra
+    const endStr=endDate.toISOString().split('T')[0];
+
+    const origApiary=activeApiaryId;
+    activeApiaryId=apiaryId;
+    const data=getActivePlanner();
+    data.push({
+        id:'fdf'+Date.now(),
+        name:'Controllare favo da fuco '+hiveName+' - eventualmente tagliare',
+        cat:'varroa',
+        start:startStr,
+        end:endStr,
+        done:false,
+        doneDate:null,
+        system:false
+    });
+    saveActivePlanner(data);
+    activeApiaryId=origApiary;
+    renderGantt();
+}
+
+function qeFavoDaFuco(hiveName, apiaryId){
+    qeAppend('Favo da fuco inserito');
+    scheduleFavoDaFuco(hiveName, apiaryId);
+    const st=document.getElementById('qeVoiceStatus');
+    if(st)st.innerHTML='✅ Promemoria favo da fuco aggiunto al planner (tra 3 settimane)';
+}
+
+function voiceFavoDaFuco(){
+    voiceAppendQuick('Favo da fuco inserito');
+    const hiveEl=document.getElementById('voiceHive');
+    const hiveName=hiveEl?(hiveEl.tagName==='SELECT'?hiveEl.value:hiveEl.value.trim()):'';
+    if(hiveName && hiveName!=='__tutte__'){
+        scheduleFavoDaFuco(hiveName, activeApiaryId);
+        const st=document.getElementById('voiceStatus');
+        if(st)st.innerHTML='✅ Promemoria favo da fuco per '+hiveName+' aggiunto al planner';
+    } else {
+        scheduleFavoDaFuco('', activeApiaryId);
+    }
 }
 
 function qeSave(hiveName,apiaryId){
@@ -2700,6 +2746,7 @@ function editDiaryEntry(idx){
                     <button onclick="qeAppend('Scorte abbondanti')">🍯 Scorte OK</button>
                     <button onclick="qeAppend('Colonia forte')">💪 Forte</button>
                     <button onclick="qeAppend('Colonia debole')">⚡ Debole</button>
+                    <button onclick="qeFavoDaFuco('${e.hive.replace(/'/g,"\\'")}','${activeApiaryId}')" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>
                 </div>
                 <div style="font-size:.85em;font-weight:600;color:var(--gray-dark);margin:8px 0 4px">Dettagli:</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -2847,6 +2894,7 @@ function renderDiary() {
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia forte')">💪 Forte</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia debole')">⚡ Debole</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Sciamatura in corso')">🐝 Sciamatura</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceFavoDaFuco()" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>`;
     h += `</div>`;
     h += `<div style="display:flex;gap:8px;margin-top:8px;margin-bottom:16px">`;
     h += `<button class="voice-save-btn" onclick="voiceSaveEntry()">💾 Salva nel diario</button>`;

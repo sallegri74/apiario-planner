@@ -3139,10 +3139,48 @@ function renderGantt(){
 function formatDateIT(ds){if(!ds)return'';const d=new Date(ds+"T00:00:00");return`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;}
 
 // Get hive+nucs count at end of each month for a given year
+// Uses hive registry (locations + created date) as primary source, falls back to hivesHistory
 function getHivesPerMonth(apiary, year) {
     const hives = new Array(12).fill(null);
     const nucs = new Array(12).fill(null);
-    if (!apiary || !apiary.hivesHistory || !apiary.hivesHistory.length) return { hives, nucs };
+    if (!apiary) return { hives, nucs };
+    const reg = loadHiveRegistry(apiary.id);
+    if (reg.length > 0) {
+        // Use registry: count hives present in this apiary at end of each month
+        for (let m = 0; m < 12; m++) {
+            const eom = `${year}-${String(m+1).padStart(2,'0')}-${new Date(year,m+1,0).getDate()}`;
+            let hc = 0, nc = 0;
+            reg.forEach(h => {
+                // Check if hive was in this apiary at end of month
+                let present = false;
+                if (h.locations && h.locations.length) {
+                    for (const loc of h.locations) {
+                        if (loc.apiaryId === apiary.id && loc.from <= eom && (!loc.to || loc.to >= eom)) {
+                            present = true; break;
+                        }
+                    }
+                } else {
+                    // No locations: use created date
+                    if (h.created <= eom) present = true;
+                }
+                // Only count non-lost/non-sold/non-merged hives, or if status changed after eom count as active
+                if (present && (h.status === 'attiva' || h.status === 'inattiva' || h.created > eom || h.status === 'attiva')) {
+                    if (h.type === 'nucleo') nc++; else hc++;
+                }
+            });
+            // Only show data from the month the first hive was created
+            const firstCreated = reg.reduce((min, h) => h.created < min ? h.created : min, reg[0].created);
+            const firstMonth = parseInt(firstCreated.slice(5,7)) - 1;
+            const firstYear = parseInt(firstCreated.slice(0,4));
+            if (year > firstYear || (year === firstYear && m >= firstMonth)) {
+                hives[m] = hc;
+                nucs[m] = nc;
+            }
+        }
+        return { hives, nucs };
+    }
+    // Fallback: old hivesHistory system
+    if (!apiary.hivesHistory || !apiary.hivesHistory.length) return { hives, nucs };
     const sorted = [...apiary.hivesHistory].sort((a,b) => a.date.localeCompare(b.date));
     for (let m = 0; m < 12; m++) {
         const endOfMonth = `${year}-${String(m+1).padStart(2,'0')}-${new Date(year,m+1,0).getDate()}`;

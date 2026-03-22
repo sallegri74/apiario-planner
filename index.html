@@ -162,7 +162,7 @@
         .gantt-cell.current-month { background:rgba(245,166,35,.05); }
         .gantt-bar { position:absolute; height:20px; top:50%; transform:translateY(-50%); border-radius:10px; font-size:.68em; font-weight:600; color:white; display:flex; align-items:center; justify-content:center; padding:0 5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:default; z-index:1; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .15s,box-shadow .15s; }
         .gantt-bar:hover { transform:translateY(-50%) scale(1.05); box-shadow:0 2px 8px rgba(0,0,0,.3); z-index:5; }
-        .gantt-bar.cat-varroa{background:linear-gradient(135deg,#C62828,#E53935);} .gantt-bar.cat-raccolte{background:linear-gradient(135deg,#F57F17,#FDD835);color:#5D4037;} .gantt-bar.cat-nutrizione{background:linear-gradient(135deg,#1565C0,#42A5F5);} .gantt-bar.cat-gestione{background:linear-gradient(135deg,#2E7D32,#66BB6A);} .gantt-bar.cat-controlli{background:linear-gradient(135deg,#6A1B9A,#AB47BC);} .gantt-bar.cat-sciamatura{background:linear-gradient(135deg,#E65100,#FF9800);} .gantt-bar.cat-custom{background:linear-gradient(135deg,#37474F,#78909C);}
+        .gantt-bar.cat-diario{background:linear-gradient(135deg,#5D4037,#8D6E63);} .gantt-bar.cat-varroa{background:linear-gradient(135deg,#C62828,#E53935);} .gantt-bar.cat-raccolte{background:linear-gradient(135deg,#F57F17,#FDD835);color:#5D4037;} .gantt-bar.cat-nutrizione{background:linear-gradient(135deg,#1565C0,#42A5F5);} .gantt-bar.cat-gestione{background:linear-gradient(135deg,#2E7D32,#66BB6A);} .gantt-bar.cat-controlli{background:linear-gradient(135deg,#6A1B9A,#AB47BC);} .gantt-bar.cat-sciamatura{background:linear-gradient(135deg,#E65100,#FF9800);} .gantt-bar.cat-custom{background:linear-gradient(135deg,#37474F,#78909C);}
         .gantt-bar.completed { opacity:.5; text-decoration:line-through; }
         .gantt-category-row { display:grid; grid-template-columns:300px repeat(12,1fr); background:var(--gray-light); border-bottom:1px solid #ddd; }
         .gantt-category-row .gantt-label { padding:5px 10px; font-size:.78em; font-weight:800; color:var(--gray-dark); text-transform:uppercase; letter-spacing:.5px; border-right:1px solid #eee; }
@@ -648,7 +648,7 @@
                     <div class="planner-toolbar">
                         <input type="text" id="plannerName" placeholder="Nome attivita..." style="flex:1;min-width:140px" />
                         <select id="plannerCategory">
-                            <option value="varroa">Varroa</option><option value="raccolte">Raccolte</option>
+                            <option value="diario">Dal diario</option><option value="varroa">Varroa</option><option value="raccolte">Raccolte</option>
                             <option value="nutrizione">Nutrizione</option><option value="gestione">Gestione colonie</option>
                             <option value="controlli">Controlli</option><option value="sciamatura">Sciamatura</option>
                             <option value="custom">Altro</option>
@@ -2004,12 +2004,13 @@ function scheduleFavoDaFuco(hiveName, apiaryId){
     data.push({
         id:'fdf'+Date.now(),
         name:'Controllare favo da fuco '+hiveName+' - eventualmente tagliare',
-        cat:'varroa',
+        cat:'diario',
         start:startStr,
         end:endStr,
         done:false,
         doneDate:null,
-        system:false
+        system:false,
+        fromDiary:true
     });
     saveActivePlanner(data);
     activeApiaryId=origApiary;
@@ -3065,7 +3066,7 @@ function renderDiary() {
 // ============================================================
 // GANTT PLANNER (per-apiary)
 // ============================================================
-const PLANNER_CATS={varroa:{label:"Trattamenti Varroa",icon:"\uD83D\uDC1B",color:"#E53935"},raccolte:{label:"Raccolte miele",icon:"\uD83C\uDF6F",color:"#FDD835"},nutrizione:{label:"Nutrizione",icon:"\uD83C\uDF6C",color:"#42A5F5"},gestione:{label:"Gestione colonie",icon:"\uD83D\uDC1D",color:"#66BB6A"},controlli:{label:"Controlli",icon:"\uD83D\uDD0D",color:"#AB47BC"},sciamatura:{label:"Sciamatura",icon:"\uD83C\uDF00",color:"#FF9800"},custom:{label:"Altro",icon:"\uD83D\uDCCC",color:"#78909C"}};
+const PLANNER_CATS={diario:{label:"Attività dal diario",icon:"📖",color:"#8D6E63"},varroa:{label:"Trattamenti Varroa",icon:"\uD83D\uDC1B",color:"#E53935"},raccolte:{label:"Raccolte miele",icon:"\uD83C\uDF6F",color:"#FDD835"},nutrizione:{label:"Nutrizione",icon:"\uD83C\uDF6C",color:"#42A5F5"},gestione:{label:"Gestione colonie",icon:"\uD83D\uDC1D",color:"#66BB6A"},controlli:{label:"Controlli",icon:"\uD83D\uDD0D",color:"#AB47BC"},sciamatura:{label:"Sciamatura",icon:"\uD83C\uDF00",color:"#FF9800"},custom:{label:"Altro",icon:"\uD83D\uDCCC",color:"#78909C"}};
 const MN=["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
 
 function addPlannerActivity(){
@@ -3085,7 +3086,7 @@ function renderGantt(){
     const ap=apiaries.find(a=>a.id===activeApiaryId);
     const dim=[];for(let m=0;m<12;m++)dim.push(new Date(year,m+1,0).getDate());const totD=dim.reduce((a,b)=>a+b,0);
     let todayDOY=0;for(let m=0;m<now.getMonth();m++)todayDOY+=dim[m];todayDOY+=now.getDate();
-    const catOrd=["varroa","raccolte","nutrizione","gestione","controlli","sciamatura","custom"];
+    const catOrd=["diario","varroa","raccolte","nutrizione","gestione","controlli","sciamatura","custom"];
     const grp={};catOrd.forEach(c=>grp[c]=[]);activities.forEach(a=>{if(!grp[a.cat])grp[a.cat]=[];grp[a.cat].push(a);});
     const hivesCount=ap?getCurrentHives(ap):0;
     const nucsCount=ap?getCurrentNucs(ap):0;

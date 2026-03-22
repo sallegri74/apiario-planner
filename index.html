@@ -1960,7 +1960,7 @@ function qeFavoDaFuco(hiveName, apiaryId){
 
 function voiceFavoDaFuco(){
     voiceAppendQuick('Favo da fuco inserito');
-    const hiveEl=document.getElementById('voiceHive');
+    const hiveEl=document.getElementById('diaryHive');
     const hiveName=hiveEl?(hiveEl.tagName==='SELECT'?hiveEl.value:hiveEl.value.trim()):'';
     if(hiveName && hiveName!=='__tutte__'){
         scheduleFavoDaFuco(hiveName, activeApiaryId);
@@ -2626,13 +2626,21 @@ function voiceAppendQuick(text){
 }
 
 function voiceSaveEntry(){
-    const hive=document.getElementById('voiceHive').value;
-    const type=document.getElementById('voiceType').value;
+    const hiveEl=document.getElementById('diaryHive');
+    let hive=hiveEl?(hiveEl.tagName==='SELECT'?hiveEl.value:hiveEl.value.trim()):'';
+    if(hive==='__tutte__') hive='Tutte';
+    const type=document.getElementById('diaryType').value;
     const notes=document.getElementById('voiceTranscript').value.trim();
+    const date=document.getElementById('diaryDate').value||new Date().toISOString().split('T')[0];
     if(!hive){alert('Seleziona un\'arnia');return;}
     if(!notes){alert('Inserisci o detta delle note');return;}
-    const today=new Date().toISOString().split('T')[0];
-    const entry={id:'d'+Date.now(),date:today,hive:hive==='__tutte__'?'Tutte':hive,type,queen:'non verificata',temper:'',strength:'',brood:'',food:'',varroa:'',notes};
+    const queen=(document.getElementById('diaryQueen')||{}).value||'non verificata';
+    const temper=(document.getElementById('diaryTemper')||{}).value||'';
+    const strength=(document.getElementById('diaryStrength')||{}).value||'';
+    const brood=(document.getElementById('diaryCovata')||{}).value||'';
+    const food=(document.getElementById('diaryFood')||{}).value||'';
+    const varroa=(document.getElementById('diaryVarroa')||{value:''}).value.trim();
+    const entry={id:'d'+Date.now(),date,hive,type,queen,temper,strength,brood,food,varroa,notes};
     const diary=getActiveDiary();diary.push(entry);diary.sort((a,b)=>b.date.localeCompare(a.date));saveDiary(activeApiaryId,diary);
     document.getElementById('voiceTranscript').value='';
     renderDiary();
@@ -2846,12 +2854,13 @@ function renderDiary() {
     const hiveNames = getDiaryHiveNames(activeApiaryId);
     const todayStr = new Date().toISOString().slice(0, 10);
 
+    const regHives = loadHiveRegistry(activeApiaryId);
+    const activeRegHives = regHives.filter(h2=>h2.status==="attiva");
+
     let h = `<div style="font-weight:700;font-size:.88em;margin-bottom:10px">\uD83D\uDCCD ${ap.name}</div>`;
 
     // QR Scan bar
-    const regHivesV = loadHiveRegistry(activeApiaryId);
-    const activeRegHivesV = regHivesV.filter(h2=>h2.status==="attiva");
-    if(activeRegHivesV.length > 0){
+    if(activeRegHives.length > 0){
         h += `<div class="qr-scan-bar">`;
         h += `<button class="qr-scan-btn" id="qrScanBtn" onclick="startQRScanner()" title="Scansiona QR arnia">📷</button>`;
         h += `<div style="flex:1;min-width:0">`;
@@ -2861,33 +2870,38 @@ function renderDiary() {
         h += `</div>`;
     }
 
-    // Voice mode - "Modalità Apiario"
-    h += `<div class="voice-bar">`;
-    h += `<button class="voice-btn voice-btn-mic" id="voiceMicBtn" onclick="toggleVoice()" title="Premi per dettare">\uD83C\uDFA4</button>`;
-    h += `<div style="flex:1;min-width:0">`;
-    h += `<div style="font-weight:700;font-size:.92em;margin-bottom:4px">🧤 Modalità Apiario — detta le note a voce</div>`;
-    h += `<div class="voice-status" id="voiceStatus">Premi il microfono per dettare</div>`;
-    h += `</div>`;
-    h += `</div>`;
-    // Voice selects + transcript
-    h += `<div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">`;
-    if(activeRegHivesV.length > 0){
-        h += `<select id="voiceHive" style="flex:1;min-width:120px;min-height:48px;font-size:1em;padding:8px;border:1px solid #ddd;border-radius:8px">`;
-        h += `<option value="">-- Arnia --</option><option value="__tutte__">Tutte</option>`;
-        activeRegHivesV.forEach(hv => { h += `<option value="${hv.name}">${hv.type==="nucleo"?"📦":"🐝"} ${hv.name}</option>`; });
-        h += `</select>`;
+    // === Unified form: date + hive + type on one row ===
+    h += `<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">`;
+    h += `<div style="min-width:130px"><label style="font-size:.82em;font-weight:600">Data</label><input type="date" id="diaryDate" value="${todayStr}" style="width:100%;min-height:44px;font-size:1em;padding:6px 8px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box"></div>`;
+    if(activeRegHives.length > 0){
+        h += `<div style="flex:2;min-width:140px"><label style="font-size:.82em;font-weight:600">Arnia</label><select id="diaryHive" style="width:100%;min-height:44px;font-size:1em;padding:6px 8px;border:1px solid #ddd;border-radius:8px">`;
+        h += `<option value="">-- Seleziona --</option><option value="__tutte__">Tutte</option>`;
+        activeRegHives.forEach(hv => { h += `<option value="${hv.name}">${hv.type==="nucleo"?"📦":"🐝"} ${hv.name}</option>`; });
+        h += `</select></div>`;
     } else {
-        h += `<input type="text" id="voiceHive" placeholder="Nome arnia..." style="flex:1;min-width:120px;min-height:48px;font-size:1em;padding:8px;border:1px solid #ddd;border-radius:8px">`;
+        h += `<div style="flex:2;min-width:140px"><label style="font-size:.82em;font-weight:600">Arnia</label><input type="text" id="diaryHive" list="diaryHiveList" placeholder="es. Arnia 1" style="width:100%;min-height:44px;font-size:1em;padding:6px 8px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box"></div>`;
+        h += `<datalist id="diaryHiveList">`;
+        hiveNames.forEach(n => { h += `<option value="${n}">`; });
+        h += `</datalist>`;
     }
-    h += `<select id="voiceType" style="min-width:120px;min-height:48px;font-size:1em;padding:8px;border:1px solid #ddd;border-radius:8px">`;
+    h += `<div style="min-width:140px"><label style="font-size:.82em;font-weight:600">Tipo visita</label><select id="diaryType" style="width:100%;min-height:44px;font-size:1em;padding:6px 8px;border:1px solid #ddd;border-radius:8px">`;
     Object.keys(DIARY_TYPES).forEach(k => { h += `<option value="${k}">${DIARY_TYPES[k].icon} ${DIARY_TYPES[k].label}</option>`; });
-    h += `</select>`;
+    h += `</select></div>`;
     h += `</div>`;
-    h += `<textarea class="voice-transcript" id="voiceTranscript" placeholder="Le note dettate appariranno qui. Puoi anche digitare o usare i pulsanti rapidi..."></textarea>`;
-    // Quick buttons
+
+    // === Notes: mic + textarea ===
+    h += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px">`;
+    h += `<button class="voice-btn voice-btn-mic" id="voiceMicBtn" onclick="toggleVoice()" title="Premi per dettare" style="min-height:56px;min-width:56px;border-radius:12px;font-size:1.5em;border:none;cursor:pointer;flex-shrink:0">\uD83C\uDFA4</button>`;
+    h += `<div style="flex:1;min-width:0">`;
+    h += `<textarea class="voice-transcript" id="voiceTranscript" placeholder="Scrivi o detta le note..." style="width:100%;min-height:70px;box-sizing:border-box"></textarea>`;
+    h += `<div style="font-size:.78em;color:var(--gray)" id="voiceStatus">Premi 🎤 per dettare a voce</div>`;
+    h += `</div>`;
+    h += `</div>`;
+
+    // === Quick buttons ===
     h += `<div class="voice-quick-btns">`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Regina vista')">👑 Regina vista</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Regina non vista')">❓ Regina non vista</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Regina non vista')">❓ Non vista</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Celle reali presenti')">⚠️ Celle reali</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Covata regolare')">✅ Covata OK</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Scorte scarse')">🍯 Scorte scarse</button>`;
@@ -2896,38 +2910,8 @@ function renderDiary() {
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Sciamatura in corso')">🐝 Sciamatura</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceFavoDaFuco()" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>`;
     h += `</div>`;
-    h += `<div style="display:flex;gap:8px;margin-top:8px;margin-bottom:16px">`;
-    h += `<button class="voice-save-btn" onclick="voiceSaveEntry()">💾 Salva nel diario</button>`;
-    h += `</div>`;
 
-    h += `<div style="border-top:2px solid #eee;padding-top:12px;margin-top:4px">`;
-    h += `<div style="font-weight:700;font-size:.88em;margin-bottom:8px">📋 Inserimento dettagliato</div>`;
-
-    // Form
-    h += `<div class="diary-form">`;
-    h += `<div><label>Data</label><input type="date" id="diaryDate" value="${todayStr}" /></div>`;
-    // Populate from hive registry if available, fallback to free text with datalist
-    const regHives = loadHiveRegistry(activeApiaryId);
-    const activeRegHives = regHives.filter(h2=>h2.status==="attiva");
-    if(activeRegHives.length > 0){
-        h += `<div><label>Arnia / Nucleo</label><select id="diaryHive">`;
-        h += `<option value="">-- Seleziona --</option>`;
-        h += `<option value="__tutte__">Tutte (operazione generale)</option>`;
-        activeRegHives.forEach(hv => { h += `<option value="${hv.name}">${hv.type==="nucleo"?"📦":"🐝"} ${hv.name}</option>`; });
-        h += `</select></div>`;
-    } else {
-        h += `<div><label>Arnia / Nucleo</label><input type="text" id="diaryHive" list="diaryHiveList" placeholder="es. Arnia 1, Nucleo A" /></div>`;
-        h += `<datalist id="diaryHiveList">`;
-        hiveNames.forEach(n => { h += `<option value="${n}">`; });
-        h += `</datalist>`;
-    }
-    h += `<div><label>Tipo visita</label><select id="diaryType">`;
-    Object.keys(DIARY_TYPES).forEach(k => { h += `<option value="${k}">${DIARY_TYPES[k].icon} ${DIARY_TYPES[k].label}</option>`; });
-    h += `</select></div>`;
-    h += `<div><label>&nbsp;</label><button class="diary-btn-add" onclick="addDiaryEntry()">\u2795 Registra</button></div>`;
-    h += `</div>`;
-
-    // Details toggle
+    // === Details toggle (regina, covata, scorte...) ===
     h += `<button class="diary-details-toggle" onclick="toggleDiaryForm()">\u25BC Dettagli visita (regina, covata, scorte...)</button>`;
     h += `<div class="diary-details-area" id="diaryDetailsArea">`;
     h += `<div class="diary-details-grid">`;
@@ -2936,11 +2920,12 @@ function renderDiary() {
     h += `<div><label>Forza colonia</label><select id="diaryStrength"><option value="">--</option><option value="forte">Forte</option><option value="media">Media</option><option value="debole">Debole</option></select></div>`;
     h += `<div><label>Covata</label><select id="diaryCovata"><option value="">--</option><option value="ottima">Ottima</option><option value="buona">Buona</option><option value="irregolare">Irregolare</option><option value="assente">Assente</option></select></div>`;
     h += `<div><label>Scorte</label><select id="diaryFood"><option value="">--</option><option value="abbondanti">Abbondanti</option><option value="sufficienti">Sufficienti</option><option value="scarse">Scarse</option></select></div>`;
-    h += `<div><label>Varroa (conteggio/note)</label><input type="text" id="diaryVarroa" placeholder="es. 3 su 100 api" /></div>`;
+    h += `<div><label>Varroa</label><input type="text" id="diaryVarroa" placeholder="es. 3 su 100 api" /></div>`;
     h += `</div>`;
-    h += `<div style="margin-top:6px"><label>Note</label><textarea id="diaryNotes" placeholder="Osservazioni, azioni eseguite..."></textarea></div>`;
     h += `</div>`;
-    h += `</div>`; // close "Inserimento dettagliato" wrapper
+
+    // === Save button ===
+    h += `<button class="voice-save-btn" onclick="voiceSaveEntry()" style="width:100%;margin-top:10px;margin-bottom:16px">💾 Salva nel diario</button>`;
 
     // Filter - combine registry names + diary names
     const allNames = new Set([...regHives.map(h2=>h2.name), ...hiveNames]);

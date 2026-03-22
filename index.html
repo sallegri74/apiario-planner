@@ -746,12 +746,14 @@ function loadApiaries() {
     return getDefaultApiaries();
 }
 function getCurrentHives(apiary) {
-    if (!apiary || !apiary.hivesHistory || !apiary.hivesHistory.length) return 0;
-    return apiary.hivesHistory[0].count;
+    if (!apiary) return 0;
+    const reg=loadHiveRegistry(apiary.id);
+    return reg.filter(h=>h.status==='attiva'&&h.type==='arnia').length;
 }
 function getCurrentNucs(apiary) {
-    if (!apiary || !apiary.hivesHistory || !apiary.hivesHistory.length) return 0;
-    return apiary.hivesHistory[0].nucs || 0;
+    if (!apiary) return 0;
+    const reg=loadHiveRegistry(apiary.id);
+    return reg.filter(h=>h.status==='attiva'&&h.type==='nucleo').length;
 }
 function addHiveHistoryEntry(apiaryId, date, count, nucs, note) {
     const a = apiaries.find(x => x.id === apiaryId);

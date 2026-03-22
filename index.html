@@ -1948,13 +1948,34 @@ async function saveSyncToken(){
         if(!res.ok){alert('Token non valido o scaduto');return;}
         const user=await res.json();
         localStorage.setItem(SYNC_TOKEN_KEY,token);
-        renderSyncUI();
-        // Auto-push on first connection
-        await cloudPush();
-        alert('Collegato come '+user.login+'! I dati vengono sincronizzati automaticamente.');
+
+        // Search for existing Apiario gist
+        const existingGistId=await findExistingGist(token);
+        if(existingGistId){
+            localStorage.setItem(SYNC_GIST_KEY,existingGistId);
+            renderSyncUI();
+            // Pull data from existing gist
+            await cloudPull(true); // silent=true, auto-confirm
+            alert('Collegato come '+user.login+'!\nDati sincronizzati dal cloud.');
+        } else {
+            renderSyncUI();
+            // No existing gist, push current data
+            await cloudPush();
+            alert('Collegato come '+user.login+'!\nI dati vengono sincronizzati automaticamente.');
+        }
     }catch(e){
         alert('Errore di connessione: '+e.message);
     }
+}
+
+async function findExistingGist(token){
+    try{
+        const res=await fetch('https://api.github.com/gists?per_page=100',{headers:{'Authorization':'Bearer '+token}});
+        if(!res.ok)return null;
+        const gists=await res.json();
+        const found=gists.find(g=>g.files&&g.files['apiario-data.json']);
+        return found?found.id:null;
+    }catch(e){return null;}
 }
 
 function disconnectSync(){
@@ -2035,10 +2056,10 @@ async function cloudPush(){
     }
 }
 
-async function cloudPull(){
+async function cloudPull(silent){
     const token=getSyncToken();
     const gistId=getSyncGistId();
-    if(!token||!gistId){alert('Nessun dato cloud trovato. Salva prima dal dispositivo sorgente.');return;}
+    if(!token||!gistId){if(!silent)alert('Nessun dato cloud trovato. Salva prima dal dispositivo sorgente.');return;}
     const btn=document.getElementById('syncPullBtn');
     if(btn){btn.disabled=true;btn.textContent='⏳ Scaricando...';}
 
@@ -2054,14 +2075,16 @@ async function cloudPull(){
         const data=JSON.parse(file.content);
         if(!data.apiaries) throw new Error('Dati non validi');
 
-        const nHives=Object.values(data.hiveRegistries||{}).reduce((s,r)=>s+r.length,0);
-        const nDiary=Object.values(data.diaries||{}).reduce((s,d)=>s+d.length,0);
-        if(!confirm(`Scaricare i dati dal cloud?\n\n• ${data.apiaries.length} apiari\n• ${nHives} arnie\n• ${nDiary} voci diario\n• Salvati: ${formatDateTimeIT(data.exported)}\n\nI dati locali verranno sostituiti.`))return;
+        if(!silent){
+            const nHives=Object.values(data.hiveRegistries||{}).reduce((s,r)=>s+r.length,0);
+            const nDiary=Object.values(data.diaries||{}).reduce((s,d)=>s+d.length,0);
+            if(!confirm(`Scaricare i dati dal cloud?\n\n• ${data.apiaries.length} apiari\n• ${nHives} arnie\n• ${nDiary} voci diario\n• Salvati: ${formatDateTimeIT(data.exported)}\n\nI dati locali verranno sostituiti.`))return;
+        }
 
         restoreAllData(data);
         localStorage.setItem('apiario-last-sync',new Date().toISOString());
         activeApiaryId=apiaries.length?apiaries[0].id:null;
-        location.reload();
+        if(!silent) location.reload();
     }catch(e){
         alert('Errore: '+e.message);
     }finally{

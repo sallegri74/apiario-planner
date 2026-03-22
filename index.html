@@ -1461,23 +1461,56 @@ function deleteHive(hiveId){
     renderDiary();
 }
 
-function renameHive(hiveId){
+function renameHive(hiveId){ editHive(hiveId); }
+
+function editHive(hiveId){
     const reg=loadHiveRegistry(activeApiaryId);
     const hv=reg.find(x=>x.id===hiveId);
     if(!hv)return;
-    const newName=prompt('Nuovo nome per "'+hv.name+'":', hv.name);
-    if(!newName||!newName.trim()||newName.trim()===hv.name)return;
-    const oldName=hv.name;
-    hv.name=newName.trim();
-    saveHiveRegistry(activeApiaryId, reg);
-    // Update diary entries with old name
-    const diary=loadDiary(activeApiaryId);
-    let updated=0;
-    diary.forEach(e=>{if(e.hive===oldName){e.hive=hv.name;updated++;}});
-    if(updated>0) saveDiary(activeApiaryId, diary);
-    renderHiveRegistry();
-    renderDiary();
-    renderApiaryTabs();
+    // Create modal overlay
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.innerHTML=`<div style="background:white;border-radius:16px;padding:24px;max-width:360px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+        <h3 style="margin:0 0 16px;font-size:1.1em">✏️ Modifica arnia</h3>
+        <label style="font-size:.85em;font-weight:600;display:block;margin-bottom:4px">Nome</label>
+        <input type="text" id="editHiveName" value="${hv.name}" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:1em;box-sizing:border-box;margin-bottom:12px"/>
+        <label style="font-size:.85em;font-weight:600;display:block;margin-bottom:4px">Data creazione</label>
+        <input type="date" id="editHiveDate" value="${hv.created||''}" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:1em;box-sizing:border-box;margin-bottom:12px"/>
+        <label style="font-size:.85em;font-weight:600;display:block;margin-bottom:4px">Note</label>
+        <input type="text" id="editHiveNotes" value="${hv.notes||''}" placeholder="Note (opzionale)" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:1em;box-sizing:border-box;margin-bottom:16px"/>
+        <div style="display:flex;gap:8px">
+            <button id="editHiveSave" style="flex:1;padding:12px;background:var(--honey);color:white;border:none;border-radius:10px;font-weight:700;font-size:1em;cursor:pointer">💾 Salva</button>
+            <button id="editHiveCancel" style="flex:1;padding:12px;background:#eee;color:#333;border:none;border-radius:10px;font-weight:600;font-size:1em;cursor:pointer">Annulla</button>
+        </div>
+    </div>`;
+    document.body.appendChild(ov);
+    ov.querySelector('#editHiveCancel').onclick=()=>ov.remove();
+    ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+    ov.querySelector('#editHiveSave').onclick=()=>{
+        const newName=ov.querySelector('#editHiveName').value.trim();
+        const newDate=ov.querySelector('#editHiveDate').value;
+        const newNotes=ov.querySelector('#editHiveNotes').value.trim();
+        if(!newName){alert("Inserisci un nome");return;}
+        const oldName=hv.name;
+        hv.name=newName;
+        if(newDate) hv.created=newDate;
+        hv.notes=newNotes;
+        // Update first location date if changed
+        if(newDate && hv.locations && hv.locations.length && hv.locations[0].from!==newDate){
+            hv.locations[0].from=newDate;
+        }
+        saveHiveRegistry(activeApiaryId, reg);
+        // Update diary entries if name changed
+        if(oldName!==newName){
+            const diary=loadDiary(activeApiaryId);
+            let updated=0;
+            diary.forEach(e=>{if(e.hive===oldName){e.hive=newName;updated++;}});
+            if(updated>0) saveDiary(activeApiaryId, diary);
+        }
+        ov.remove();
+        renderHiveRegistry(); renderDiary(); renderApiaryTabs(); renderGantt();
+    };
+    ov.querySelector('#editHiveName').focus();
 }
 
 function selectHive(hiveId){

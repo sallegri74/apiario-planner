@@ -1957,6 +1957,8 @@ async function saveSyncToken(){
             // Pull data from existing gist
             await cloudPull(true); // silent=true, auto-confirm
             alert('Collegato come '+user.login+'!\nDati sincronizzati dal cloud.');
+            location.reload();
+            return;
         } else {
             renderSyncUI();
             // No existing gist, push current data

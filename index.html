@@ -569,9 +569,42 @@
             .header h1 { font-size:1em; gap:6px; }
             .bee-logo { width:30px; height:30px; }
         }
+        /* Login screen */
+        #loginOverlay { position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#FFF8E1 0%,#F1F8E9 100%);z-index:99999;display:flex;align-items:center;justify-content:center; }
+        .login-box { background:white;border-radius:20px;padding:32px 28px;max-width:380px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.15);text-align:center; }
+        .login-box h2 { color:var(--honey-dark);margin:12px 0 6px;font-size:1.3em; }
+        .login-box p { color:var(--gray);font-size:.88em;margin-bottom:18px; }
+        .login-box input[type="password"] { width:100%;padding:14px 16px;border:2px solid #ddd;border-radius:12px;font-size:1.05em;text-align:center;letter-spacing:2px;outline:none;transition:border-color .2s; }
+        .login-box input[type="password"]:focus { border-color:var(--honey); }
+        .login-box .login-btn { width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--honey-dark),var(--honey));color:white;font-weight:700;font-size:1.05em;cursor:pointer;margin-top:14px;transition:opacity .2s; }
+        .login-box .login-btn:hover { opacity:.9; }
+        .login-box .login-btn:disabled { opacity:.5;cursor:not-allowed; }
+        .login-error { color:var(--red);font-size:.88em;margin-top:8px;min-height:1.2em; }
+        .login-box .login-secondary { background:none;border:2px solid #ddd;color:var(--gray);margin-top:8px;font-size:.92em; }
+        .login-box .login-secondary:hover { border-color:var(--honey);color:var(--honey-dark); }
     </style>
 </head>
 <body>
+
+<!-- Login / Setup overlay -->
+<div id="loginOverlay">
+    <div class="login-box" id="loginBox">
+        <svg width="64" height="64" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="35" cy="32" rx="18" ry="12" fill="rgba(255,200,0,0.3)" transform="rotate(-25 35 32)"/>
+            <ellipse cx="65" cy="32" rx="18" ry="12" fill="rgba(255,200,0,0.3)" transform="rotate(25 65 32)"/>
+            <ellipse cx="50" cy="58" rx="22" ry="26" fill="#FFD54F"/>
+            <rect x="28" y="48" width="44" height="6" rx="3" fill="#4E342E"/>
+            <rect x="30" y="60" width="40" height="6" rx="3" fill="#4E342E"/>
+            <rect x="33" y="72" width="34" height="5" rx="2.5" fill="#4E342E"/>
+            <circle cx="50" cy="32" r="14" fill="#FFD54F"/>
+            <circle cx="44" cy="29" r="4" fill="#4E342E"/><circle cx="56" cy="29" r="4" fill="#4E342E"/>
+            <circle cx="45.2" cy="27.8" r="1.5" fill="#fff"/><circle cx="57.2" cy="27.8" r="1.5" fill="#fff"/>
+            <path d="M43 35 Q50 42 57 35" fill="none" stroke="#4E342E" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h2>Pianificatore Apiario</h2>
+        <div id="loginContent"></div>
+    </div>
+</div>
 
 <div class="header">
     <div class="header-content">
@@ -749,6 +782,10 @@
                 <label style="min-height:44px;padding:8px 16px;border-radius:8px;border:none;background:#43A047;color:white;font-weight:600;font-size:.95em;cursor:pointer;display:inline-flex;align-items:center">📥 Importa file<input type="file" accept=".json" onchange="importAllData(this)" style="display:none"></label>
             </div>
         </div>
+        <div style="border-top:1px solid #eee;margin-top:12px;padding-top:10px" id="securitySection">
+            <div style="font-size:.82em;color:var(--gray);margin-bottom:8px">🔒 Sicurezza:</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap" id="securityBtns"></div>
+        </div>
     </div>
 </div>
 
@@ -759,6 +796,265 @@
 </div>
 
 <script>
+// ============================================================
+// ENCRYPTION SYSTEM (AES-GCM + PBKDF2)
+// ============================================================
+const ENC_STORE_KEY='apiario-enc-store';
+const ENC_SALT_KEY='apiario-enc-salt';
+let _cryptoKey=null, _appStore={}, _appUnlocked=false, _persistTimer=null;
+
+// Raw localStorage access (unpatched)
+const _rawGet=localStorage.getItem.bind(localStorage);
+const _rawSet=localStorage.setItem.bind(localStorage);
+const _rawRemove=localStorage.removeItem.bind(localStorage);
+
+function _isAppKey(k){return typeof k==='string'&&k.startsWith('apiario-')&&!k.startsWith('apiario-enc-');}
+
+// Monkey-patch localStorage for app keys
+(function(){
+    const origGet=localStorage.getItem, origSet=localStorage.setItem, origRem=localStorage.removeItem;
+    localStorage.getItem=function(k){
+        if(_appUnlocked&&_isAppKey(k)) return _appStore.hasOwnProperty(k)?_appStore[k]:null;
+        return _rawGet(k);
+    };
+    localStorage.setItem=function(k,v){
+        if(_appUnlocked&&_isAppKey(k)){_appStore[k]=String(v);_schedulePersist();return;}
+        _rawSet(k,v);
+    };
+    localStorage.removeItem=function(k){
+        if(_appUnlocked&&_isAppKey(k)){delete _appStore[k];_schedulePersist();return;}
+        _rawRemove(k);
+    };
+})();
+
+function _schedulePersist(){clearTimeout(_persistTimer);_persistTimer=setTimeout(_persistStore,800);}
+
+async function _persistStore(){
+    if(!_cryptoKey)return;
+    try{
+        const encrypted=await _aesEncrypt(_cryptoKey,JSON.stringify(_appStore));
+        _rawSet(ENC_STORE_KEY,encrypted);
+    }catch(e){console.error('Persist error',e);}
+}
+
+async function _deriveKey(password,salt){
+    const enc=new TextEncoder();
+    const km=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveKey']);
+    return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+
+async function _aesEncrypt(key,plaintext){
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const enc=new TextEncoder();
+    const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(plaintext));
+    const buf=new Uint8Array(iv.length+ct.byteLength);
+    buf.set(iv);buf.set(new Uint8Array(ct),iv.length);
+    return btoa(String.fromCharCode(...buf));
+}
+
+async function _aesDecrypt(key,encrypted){
+    const buf=Uint8Array.from(atob(encrypted),c=>c.charCodeAt(0));
+    const iv=buf.slice(0,12), ct=buf.slice(12);
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
+    return new TextDecoder().decode(pt);
+}
+
+function _isEncSetup(){return !!_rawGet(ENC_SALT_KEY);}
+
+function _collectLegacyKeys(){
+    const keys=[];
+    for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i);
+        if(_isAppKey(k)) keys.push(k);
+    }
+    return keys;
+}
+
+// Login/Setup UI
+function _renderLoginUI(){
+    const box=document.getElementById('loginContent');
+    if(_isEncSetup()){
+        // Login
+        box.innerHTML=`<p>Inserisci la password per accedere</p>
+            <input type="password" id="loginPwd" placeholder="Password" autocomplete="current-password" />
+            <div class="login-error" id="loginErr"></div>
+            <button class="login-btn" id="loginBtn" onclick="_doLogin()">Accedi</button>
+            <button class="login-btn login-secondary" onclick="_showResetConfirm()">Password dimenticata?</button>`;
+        setTimeout(()=>{const inp=document.getElementById('loginPwd');if(inp){inp.focus();inp.addEventListener('keydown',e=>{if(e.key==='Enter')_doLogin();});}},100);
+    } else {
+        // Setup
+        const hasLegacy=_collectLegacyKeys().length>0;
+        box.innerHTML=`<p>Imposta una password per proteggere i tuoi dati</p>
+            <input type="password" id="setupPwd1" placeholder="Nuova password" autocomplete="new-password" />
+            <input type="password" id="setupPwd2" placeholder="Conferma password" style="margin-top:8px" />
+            <div class="login-error" id="loginErr"></div>
+            <button class="login-btn" id="loginBtn" onclick="_doSetup()">Imposta password</button>
+            ${hasLegacy?'':'<button class="login-btn login-secondary" onclick="_skipEncryption()">Continua senza password</button>'}`;
+        setTimeout(()=>{const inp=document.getElementById('setupPwd1');if(inp){inp.focus();}},100);
+    }
+}
+
+async function _doSetup(){
+    const p1=document.getElementById('setupPwd1').value;
+    const p2=document.getElementById('setupPwd2').value;
+    const err=document.getElementById('loginErr');
+    if(!p1){err.textContent='Inserisci una password';return;}
+    if(p1.length<4){err.textContent='Almeno 4 caratteri';return;}
+    if(p1!==p2){err.textContent='Le password non coincidono';return;}
+    const btn=document.getElementById('loginBtn');
+    btn.disabled=true;btn.textContent='Configurazione...';
+    try{
+        const salt=crypto.getRandomValues(new Uint8Array(16));
+        _rawSet(ENC_SALT_KEY,btoa(String.fromCharCode(...salt)));
+        _cryptoKey=await _deriveKey(p1,salt);
+        // Migrate legacy data
+        const legacyKeys=_collectLegacyKeys();
+        legacyKeys.forEach(k=>{_appStore[k]=_rawGet(k);});
+        // Save verification token
+        _appStore['_verify']='apiario-ok';
+        await _persistStore();
+        // Remove legacy unencrypted keys
+        legacyKeys.forEach(k=>_rawRemove(k));
+        _appUnlocked=true;
+        _unlockApp();
+    }catch(e){
+        err.textContent='Errore: '+e.message;
+        btn.disabled=false;btn.textContent='Imposta password';
+    }
+}
+
+async function _doLogin(){
+    const pwd=document.getElementById('loginPwd').value;
+    const err=document.getElementById('loginErr');
+    if(!pwd){err.textContent='Inserisci la password';return;}
+    const btn=document.getElementById('loginBtn');
+    btn.disabled=true;btn.textContent='Verifica...';
+    try{
+        const saltB64=_rawGet(ENC_SALT_KEY);
+        const salt=Uint8Array.from(atob(saltB64),c=>c.charCodeAt(0));
+        _cryptoKey=await _deriveKey(pwd,salt);
+        const encStore=_rawGet(ENC_STORE_KEY);
+        if(!encStore) throw new Error('no-data');
+        const json=await _aesDecrypt(_cryptoKey,encStore);
+        _appStore=JSON.parse(json);
+        if(_appStore['_verify']!=='apiario-ok') throw new Error('bad');
+        _appUnlocked=true;
+        _unlockApp();
+    }catch(e){
+        _cryptoKey=null;_appStore={};
+        err.textContent='Password errata';
+        btn.disabled=false;btn.textContent='Accedi';
+    }
+}
+
+function _skipEncryption(){
+    _appUnlocked=false; // keep localStorage normal
+    document.getElementById('loginOverlay').style.display='none';
+    document.querySelector('.header').style.display='';
+    document.querySelector('.main').style.display='';
+    _startApp();
+}
+
+function _showResetConfirm(){
+    const err=document.getElementById('loginErr');
+    err.innerHTML='<strong style="color:#C62828">Attenzione:</strong> resettando la password perderai tutti i dati cifrati locali.<br><button onclick="_doReset()" style="margin-top:8px;padding:8px 16px;border:none;border-radius:8px;background:#C62828;color:white;font-weight:600;cursor:pointer">Conferma reset</button>';
+}
+
+function _doReset(){
+    _rawRemove(ENC_STORE_KEY);
+    _rawRemove(ENC_SALT_KEY);
+    _appStore={};_cryptoKey=null;_appUnlocked=false;
+    _renderLoginUI();
+}
+
+function _unlockApp(){
+    document.getElementById('loginOverlay').style.display='none';
+    document.querySelector('.header').style.display='';
+    document.querySelector('.main').style.display='';
+    _startApp();
+    renderSecurityUI();
+}
+
+function _startApp(){
+    // Re-load data from (now decrypted) store
+    apiaries=loadApiaries();
+    activeApiaryId=apiaries.length>0?apiaries[0].id:null;
+    // Persist defaults if not yet saved
+    if(_appUnlocked&&!_appStore['apiario-planner-apiaries']){
+        saveApiariesData(apiaries);
+    }
+    init();
+}
+
+async function _changePassword(){
+    const oldPwd=prompt('Password attuale:');
+    if(!oldPwd)return;
+    try{
+        const saltB64=_rawGet(ENC_SALT_KEY);
+        const salt=Uint8Array.from(atob(saltB64),c=>c.charCodeAt(0));
+        const testKey=await _deriveKey(oldPwd,salt);
+        const encStore=_rawGet(ENC_STORE_KEY);
+        const json=await _aesDecrypt(testKey,encStore);
+        const store=JSON.parse(json);
+        if(store['_verify']!=='apiario-ok') throw new Error('bad');
+    }catch(e){alert('Password attuale errata');return;}
+    const newPwd=prompt('Nuova password (min 4 caratteri):');
+    if(!newPwd||newPwd.length<4){alert('Password troppo corta');return;}
+    const confirmPwd=prompt('Conferma nuova password:');
+    if(newPwd!==confirmPwd){alert('Le password non coincidono');return;}
+    try{
+        const newSalt=crypto.getRandomValues(new Uint8Array(16));
+        _rawSet(ENC_SALT_KEY,btoa(String.fromCharCode(...newSalt)));
+        _cryptoKey=await _deriveKey(newPwd,newSalt);
+        await _persistStore();
+        alert('Password cambiata con successo');
+    }catch(e){alert('Errore: '+e.message);}
+}
+
+function _removeEncryption(){
+    if(!confirm('Rimuovere la protezione con password?\n\nI dati saranno salvati in chiaro nel browser.'))return;
+    const pwd=prompt('Inserisci la password attuale per confermare:');
+    if(!pwd)return;
+    (async()=>{
+        try{
+            const saltB64=_rawGet(ENC_SALT_KEY);
+            const salt=Uint8Array.from(atob(saltB64),c=>c.charCodeAt(0));
+            const testKey=await _deriveKey(pwd,salt);
+            const encStore=_rawGet(ENC_STORE_KEY);
+            const json=await _aesDecrypt(testKey,encStore);
+            const store=JSON.parse(json);
+            if(store['_verify']!=='apiario-ok') throw new Error('bad');
+            // Restore data as plain localStorage
+            Object.entries(store).forEach(([k,v])=>{if(k!=='_verify')_rawSet(k,v);});
+            _rawRemove(ENC_STORE_KEY);
+            _rawRemove(ENC_SALT_KEY);
+            alert('Protezione rimossa. I dati sono ora in chiaro.');
+            location.reload();
+        }catch(e){alert('Password errata');}
+    })();
+}
+
+function renderSecurityUI(){
+    const el=document.getElementById('securityBtns');
+    if(!el)return;
+    if(_isEncSetup()&&_appUnlocked){
+        el.innerHTML=`
+            <button onclick="_changePassword()" style="min-height:44px;padding:8px 16px;border-radius:8px;border:none;background:#FF9800;color:white;font-weight:600;font-size:.95em;cursor:pointer">🔑 Cambia password</button>
+            <button onclick="_removeEncryption()" style="min-height:44px;padding:8px 16px;border-radius:8px;border:1px solid #ddd;background:white;color:var(--gray);font-size:.85em;cursor:pointer">Rimuovi protezione</button>
+            <span style="font-size:.78em;color:var(--green-dark);display:flex;align-items:center;gap:4px">🔒 Dati cifrati con AES-256</span>`;
+    } else {
+        el.innerHTML=`
+            <span style="font-size:.82em;color:var(--red);display:flex;align-items:center;gap:4px">⚠️ Dati non cifrati</span>`;
+    }
+}
+
+// Hide app until authenticated
+document.addEventListener('DOMContentLoaded',()=>{
+    document.querySelector('.header').style.display='none';
+    document.querySelector('.main').style.display='none';
+    _renderLoginUI();
+});
+
 // ============================================================
 // BEE SVG (inline for markers)
 // ============================================================
@@ -3311,10 +3607,11 @@ async function init(){
     }
     checkQRDeepLink();
     renderSyncUI();
+    renderSecurityUI();
     cloudAutoLoad();
     setTimeout(checkDiaryAlerts,1500);
 }
-init();
+// init() is called by _startApp() after authentication
 </script>
 </body>
 </html>

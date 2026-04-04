@@ -2816,12 +2816,42 @@ async function cloudPull(silent){
         let data;
         // Decrypt if cloud data is encrypted
         if(raw.encrypted&&raw.data){
-            if(!_cloudKey){alert('I dati cloud sono cifrati. Effettua il login con la password per decifrarli.');return;}
-            try{
-                const json=await _aesDecrypt(_cloudKey,raw.data);
-                data=JSON.parse(json);
-            }catch(e){
-                alert('Impossibile decifrare i dati cloud. La password potrebbe essere diversa da quella usata per cifrare.');return;
+            let decrypted=false;
+            // Try cloud key (fixed salt)
+            if(_cloudKey){
+                try{data=JSON.parse(await _aesDecrypt(_cloudKey,raw.data));decrypted=true;}catch(e){}
+            }
+            // Try local key (device salt) as fallback for old encrypted data
+            if(!decrypted&&_cryptoKey){
+                try{data=JSON.parse(await _aesDecrypt(_cryptoKey,raw.data));decrypted=true;}catch(e){}
+            }
+            if(!decrypted){
+                // Try fetching older unencrypted revision from Gist history
+                try{
+                    const histRes=await fetch('https://api.github.com/gists/'+gistId,{headers:{'Authorization':'Bearer '+token}});
+                    if(histRes.ok){
+                        const gistFull=await histRes.json();
+                        if(gistFull.history&&gistFull.history.length>1){
+                            for(let i=1;i<Math.min(gistFull.history.length,10);i++){
+                                try{
+                                    const revRes=await fetch(gistFull.history[i].url,{headers:{'Authorization':'Bearer '+token}});
+                                    if(!revRes.ok)continue;
+                                    const rev=await revRes.json();
+                                    const revFile=rev.files['apiario-data.json'];
+                                    if(!revFile)continue;
+                                    const revData=JSON.parse(revFile.content);
+                                    if(revData.apiaries&&!revData.encrypted){
+                                        data=revData;decrypted=true;
+                                        break;
+                                    }
+                                }catch(e2){continue;}
+                            }
+                        }
+                    }
+                }catch(e){}
+            }
+            if(!decrypted){
+                alert('Impossibile decifrare i dati cloud. Assicurati di usare la stessa password su tutti i dispositivi.');return;
             }
         } else {
             data=raw;
@@ -2877,8 +2907,10 @@ async function cloudAutoLoad(){
         let raw=JSON.parse(file.content);
         let cloudData;
         if(raw.encrypted&&raw.data){
-            if(!_cloudKey)return;
-            try{cloudData=JSON.parse(await _aesDecrypt(_cloudKey,raw.data));}catch(e){return;}
+            let dec=false;
+            if(_cloudKey){try{cloudData=JSON.parse(await _aesDecrypt(_cloudKey,raw.data));dec=true;}catch(e){}}
+            if(!dec&&_cryptoKey){try{cloudData=JSON.parse(await _aesDecrypt(_cryptoKey,raw.data));dec=true;}catch(e){}}
+            if(!dec)return;
         } else {cloudData=raw;}
         if(!cloudData.apiaries)return;
         const cloudTime=new Date(cloudData.exported).getTime();

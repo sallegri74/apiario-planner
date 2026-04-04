@@ -982,9 +982,16 @@ function _unlockApp(){
     renderSecurityUI();
     // Ask to sync on login if cloud is configured
     if(getSyncToken()&&getSyncGistId()){
-        setTimeout(()=>{
+        setTimeout(async()=>{
             if(confirm('Vuoi sincronizzare i dati dal cloud?')){
-                cloudPull();
+                await cloudPull(true); // silent=true to skip reload
+                clearTimeout(_persistTimer);
+                await _persistStore();
+                // Re-init UI with synced data
+                apiaries=loadApiaries();
+                activeApiaryId=apiaries.length>0?apiaries[0].id:null;
+                renderApiaryTabs();renderTimeline();renderCurrentPeriod();renderGantt();
+                renderHiveRegistry();renderDiary();renderSyncUI();renderSecurityUI();
             }
         },800);
     }

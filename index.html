@@ -638,6 +638,7 @@
           <circle cx="39" cy="35" r="3.5" fill="rgba(255,138,101,0.45)"/>
           <circle cx="61" cy="35" r="3.5" fill="rgba(255,138,101,0.45)"/>
         </svg> Pianificatore Apiario</h1>
+        <button onclick="appLogout()" id="logoutBtn" style="background:rgba(255,255,255,.2);border:none;color:white;padding:6px 14px;border-radius:8px;font-size:.85em;font-weight:600;cursor:pointer;display:none">🔓 Esci</button>
     </div>
 </div>
 
@@ -975,8 +976,47 @@ function _unlockApp(){
     document.getElementById('loginOverlay').style.display='none';
     document.querySelector('.header').style.display='';
     document.querySelector('.main').style.display='';
+    const logoutBtn=document.getElementById('logoutBtn');
+    if(logoutBtn) logoutBtn.style.display='';
     _startApp();
     renderSecurityUI();
+    // Ask to sync on login if cloud is configured
+    if(getSyncToken()&&getSyncGistId()){
+        setTimeout(()=>{
+            if(confirm('Vuoi sincronizzare i dati dal cloud?')){
+                cloudPull();
+            }
+        },800);
+    }
+}
+
+async function appLogout(){
+    // Ask to sync before logout
+    if(getSyncToken()){
+        const choice=confirm('Vuoi salvare i dati nel cloud prima di uscire?');
+        if(choice){
+            await cloudPush();
+            clearTimeout(_persistTimer);
+            await _persistStore();
+        }
+    }
+    // Flush any pending persist
+    clearTimeout(_persistTimer);
+    await _persistStore();
+    // Clear in-memory state
+    _cryptoKey=null;
+    _cloudKey=null;
+    _appStore={};
+    _appUnlocked=false;
+    apiaries=[];
+    activeApiaryId=null;
+    // Hide app, show login
+    document.querySelector('.header').style.display='none';
+    document.querySelector('.main').style.display='none';
+    const logoutBtn=document.getElementById('logoutBtn');
+    if(logoutBtn) logoutBtn.style.display='none';
+    document.getElementById('loginOverlay').style.display='';
+    _renderLoginUI();
 }
 
 function _startApp(){

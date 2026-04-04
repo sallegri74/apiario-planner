@@ -2579,11 +2579,17 @@ async function cloudPush(){
 
     try{
         const data=collectAllData();
-        const content=JSON.stringify(data);
+        let content;
+        if(_cryptoKey){
+            // Encrypt cloud data with same key
+            const encrypted=await _aesEncrypt(_cryptoKey,JSON.stringify(data));
+            content=JSON.stringify({encrypted:true,data:encrypted,exported:data.exported});
+        } else {
+            content=JSON.stringify(data);
+        }
         const gistId=getSyncGistId();
 
         if(gistId){
-            // Update existing gist
             const res=await fetch('https://api.github.com/gists/'+gistId,{
                 method:'PATCH',
                 headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
@@ -2594,12 +2600,11 @@ async function cloudPush(){
                 throw new Error('Errore aggiornamento: '+res.status);
             }
         } else {
-            // Create new private gist
             const res=await fetch('https://api.github.com/gists',{
                 method:'POST',
                 headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
                 body:JSON.stringify({
-                    description:'Apiario Planner - dati sincronizzati',
+                    description:'Apiario Planner - dati sincronizzati (cifrati)',
                     public:false,
                     files:{'apiario-data.json':{content}}
                 })
@@ -2633,7 +2638,20 @@ async function cloudPull(silent){
         const file=gist.files['apiario-data.json'];
         if(!file) throw new Error('File dati non trovato nel gist');
 
-        const data=JSON.parse(file.content);
+        let raw=JSON.parse(file.content);
+        let data;
+        // Decrypt if cloud data is encrypted
+        if(raw.encrypted&&raw.data){
+            if(!_cryptoKey){alert('I dati cloud sono cifrati. Effettua il login con la password per decifrarli.');return;}
+            try{
+                const json=await _aesDecrypt(_cryptoKey,raw.data);
+                data=JSON.parse(json);
+            }catch(e){
+                alert('Impossibile decifrare i dati cloud. La password potrebbe essere diversa da quella usata per cifrare.');return;
+            }
+        } else {
+            data=raw;
+        }
         if(!data.apiaries) throw new Error('Dati non validi');
 
         if(!silent){
@@ -2679,11 +2697,15 @@ async function cloudAutoLoad(){
         const gist=await res.json();
         const file=gist.files['apiario-data.json'];
         if(!file)return;
-        const cloudData=JSON.parse(file.content);
+        let raw=JSON.parse(file.content);
+        let cloudData;
+        if(raw.encrypted&&raw.data){
+            if(!_cryptoKey)return;
+            try{cloudData=JSON.parse(await _aesDecrypt(_cryptoKey,raw.data));}catch(e){return;}
+        } else {cloudData=raw;}
         if(!cloudData.apiaries)return;
         const cloudTime=new Date(cloudData.exported).getTime();
         const localTime=new Date(localStorage.getItem('apiario-last-sync')||0).getTime();
-        // If cloud is newer, auto-update silently
         if(cloudTime>localTime){
             restoreAllData(cloudData);
             localStorage.setItem('apiario-last-sync',new Date().toISOString());

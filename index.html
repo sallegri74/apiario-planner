@@ -801,7 +801,9 @@
 // ============================================================
 const ENC_STORE_KEY='apiario-enc-store';
 const ENC_SALT_KEY='apiario-enc-salt';
-let _cryptoKey=null, _appStore={}, _appUnlocked=false, _persistTimer=null;
+let _cryptoKey=null, _cloudKey=null, _appStore={}, _appUnlocked=false, _persistTimer=null;
+// Fixed salt for cloud encryption (same on all devices → same password = same key)
+const _CLOUD_SALT=new Uint8Array([65,112,105,97,114,105,111,80,108,97,110,110,101,114,67,108]); // "ApiarioPlannerCl"
 
 // Raw localStorage access (unpatched)
 const _rawGet=localStorage.getItem.bind(localStorage);
@@ -907,6 +909,7 @@ async function _doSetup(){
         const salt=crypto.getRandomValues(new Uint8Array(16));
         _rawSet(ENC_SALT_KEY,btoa(String.fromCharCode(...salt)));
         _cryptoKey=await _deriveKey(p1,salt);
+        _cloudKey=await _deriveKey(p1,_CLOUD_SALT);
         // Migrate legacy data
         const legacyKeys=_collectLegacyKeys();
         legacyKeys.forEach(k=>{_appStore[k]=_rawGet(k);});
@@ -933,6 +936,7 @@ async function _doLogin(){
         const saltB64=_rawGet(ENC_SALT_KEY);
         const salt=Uint8Array.from(atob(saltB64),c=>c.charCodeAt(0));
         _cryptoKey=await _deriveKey(pwd,salt);
+        _cloudKey=await _deriveKey(pwd,_CLOUD_SALT);
         const encStore=_rawGet(ENC_STORE_KEY);
         if(!encStore) throw new Error('no-data');
         const json=await _aesDecrypt(_cryptoKey,encStore);
@@ -1006,7 +1010,10 @@ async function _changePassword(){
         const newSalt=crypto.getRandomValues(new Uint8Array(16));
         _rawSet(ENC_SALT_KEY,btoa(String.fromCharCode(...newSalt)));
         _cryptoKey=await _deriveKey(newPwd,newSalt);
+        _cloudKey=await _deriveKey(newPwd,_CLOUD_SALT);
         await _persistStore();
+        // Re-push to cloud with new cloud key
+        if(getSyncToken()) await cloudPush();
         alert('Password cambiata con successo');
     }catch(e){alert('Errore: '+e.message);}
 }
@@ -2647,7 +2654,7 @@ async function handleSyncQRResult(data){
         renderSyncUI();
         await cloudPull(true);
         clearTimeout(_persistTimer);await _persistStore();
-        alert('Dispositivo collegato come '+user.login+'! Dati sincronizzati.');
+        alert('Dispositivo collegato come '+user.login+'!\n\nImportante: usa la stessa password su tutti i dispositivi per sincronizzare i dati.');
         location.reload();
     }catch(e){
         alert('Errore: '+e.message);
@@ -2747,9 +2754,9 @@ async function cloudPush(){
     try{
         const data=collectAllData();
         let content;
-        if(_cryptoKey){
-            // Encrypt cloud data with same key
-            const encrypted=await _aesEncrypt(_cryptoKey,JSON.stringify(data));
+        if(_cloudKey){
+            // Encrypt cloud data with cloud key (same password = same key on all devices)
+            const encrypted=await _aesEncrypt(_cloudKey,JSON.stringify(data));
             content=JSON.stringify({encrypted:true,data:encrypted,exported:data.exported});
         } else {
             content=JSON.stringify(data);
@@ -2809,9 +2816,9 @@ async function cloudPull(silent){
         let data;
         // Decrypt if cloud data is encrypted
         if(raw.encrypted&&raw.data){
-            if(!_cryptoKey){alert('I dati cloud sono cifrati. Effettua il login con la password per decifrarli.');return;}
+            if(!_cloudKey){alert('I dati cloud sono cifrati. Effettua il login con la password per decifrarli.');return;}
             try{
-                const json=await _aesDecrypt(_cryptoKey,raw.data);
+                const json=await _aesDecrypt(_cloudKey,raw.data);
                 data=JSON.parse(json);
             }catch(e){
                 alert('Impossibile decifrare i dati cloud. La password potrebbe essere diversa da quella usata per cifrare.');return;
@@ -2870,8 +2877,8 @@ async function cloudAutoLoad(){
         let raw=JSON.parse(file.content);
         let cloudData;
         if(raw.encrypted&&raw.data){
-            if(!_cryptoKey)return;
-            try{cloudData=JSON.parse(await _aesDecrypt(_cryptoKey,raw.data));}catch(e){return;}
+            if(!_cloudKey)return;
+            try{cloudData=JSON.parse(await _aesDecrypt(_cloudKey,raw.data));}catch(e){return;}
         } else {cloudData=raw;}
         if(!cloudData.apiaries)return;
         const cloudTime=new Date(cloudData.exported).getTime();

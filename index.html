@@ -2515,6 +2515,8 @@ async function saveSyncToken(){
             renderSyncUI();
             // Pull data from existing gist
             await cloudPull(true); // silent=true, auto-confirm
+            clearTimeout(_persistTimer);
+            await _persistStore();
             alert('Collegato come '+user.login+'!\nDati sincronizzati dal cloud.');
             location.reload();
             return;
@@ -2663,6 +2665,9 @@ async function cloudPull(silent){
         restoreAllData(data);
         localStorage.setItem('apiario-last-sync',new Date().toISOString());
         activeApiaryId=apiaries.length?apiaries[0].id:null;
+        // Flush encrypted store before reload
+        clearTimeout(_persistTimer);
+        await _persistStore();
         if(!silent) location.reload();
     }catch(e){
         alert('Errore: '+e.message);
@@ -2710,6 +2715,9 @@ async function cloudAutoLoad(){
             restoreAllData(cloudData);
             localStorage.setItem('apiario-last-sync',new Date().toISOString());
             activeApiaryId=apiaries.length?apiaries[0].id:null;
+            // Flush encrypted store before reload
+            clearTimeout(_persistTimer);
+            await _persistStore();
             location.reload();
         }
     }catch(e){/* silent fail */}

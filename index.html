@@ -172,6 +172,10 @@
         .gantt-done-date { width:130px; padding:4px 6px; border:1px solid #ddd; border-radius:5px; font-size:.85em; color:var(--gray); background:var(--white); flex-shrink:0; cursor:pointer; }
         .gantt-done-date:disabled { opacity:.3; cursor:default; background:var(--gray-light); }
         .gantt-done-date:not(:disabled) { color:var(--green-dark); border-color:var(--green); background:var(--green-light); }
+        .gantt-tag-done { display:inline-block; padding:1px 7px; border-radius:10px; font-size:.7em; font-weight:700; background:#C8E6C9; color:#2E7D32; margin-left:4px; white-space:nowrap; }
+        .gantt-tag-cat { display:inline-block; padding:1px 6px; border-radius:10px; font-size:.65em; font-weight:600; color:white; margin-left:3px; white-space:nowrap; }
+        .gantt-row-done { background:rgba(200,230,201,.25); }
+        .gantt-row-done .gantt-label { border-left:3px solid #4CAF50; }
         .gantt-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; padding-top:8px; border-top:1px solid #eee; }
         .gantt-legend-item { display:flex; align-items:center; gap:4px; font-size:.73em; color:var(--gray); }
         .gantt-legend-color { width:12px; height:12px; border-radius:6px; }
@@ -3759,9 +3763,11 @@ function renderGantt(){
     for(const cat of catOrd){const acts=grp[cat];if(!acts.length)continue;const ci=PLANNER_CATS[cat];
         h+='<div class="gantt-category-row"><div class="gantt-label">'+ci.icon+' '+ci.label+'</div>';for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+='</div>';
         acts.forEach(a=>{const dd=a.done&&a.doneDate?formatDateIT(a.doneDate):'';
-            h+='<div class="gantt-row"><div class="gantt-label">';
+            h+=`<div class="gantt-row ${a.done?'gantt-row-done':''}"><div class="gantt-label">`;
             h+=`<span class="gantt-check" onclick="toggleActivityDone('${a.id}')" title="${a.done?'Segna da fare':'Completa'}">${a.done?'\u2705':'\u2B1C'}</span>`;
             h+=`<span style="${a.done?'text-decoration:line-through;opacity:.5':''};flex:1;overflow:hidden;text-overflow:ellipsis" title="${a.name}">${a.name}</span>`;
+            if(a.done) h+=`<span class="gantt-tag-done">FATTO${dd?' · '+dd:''}</span>`;
+            h+=`<span class="gantt-tag-cat" style="background:${ci.color}">${ci.icon}</span>`;
             h+=`<input type="date" class="gantt-done-date" value="${a.doneDate||''}" ${a.done?'':'disabled'} title="${a.done?'Completata: '+dd:'Completa prima'}" onchange="changeDoneDate('${a.id}',this.value)"/>`;
             h+=(!a.system?`<button class="planner-btn-del" onclick="deleteActivity('${a.id}')">\u2716</button>`:'');
             h+='</div>';for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+='</div>';

@@ -1827,28 +1827,95 @@ function updateGTSForecast() {
     const currentGTS = gd.gts;
     const remaining = targetGTS - currentGTS;
     if (remaining <= 0) { res.textContent = 'Già raggiunto!'; det.textContent = ''; return; }
-    // Calculate avg daily GTS from last 14 days (or all available if less)
+
+    // Calculate monthly avg GTS/day from actual data for this location
     const d = gd.daily;
-    const recentDays = Math.min(14, d.length);
-    const recent = d.slice(-recentDays);
-    const avgRecent = recent.reduce((s, r) => s + r.contrib, 0) / recentDays;
-    // Also calculate avg from last 30 days for comparison
-    const monthDays = Math.min(30, d.length);
-    const monthly = d.slice(-monthDays);
-    const avgMonth = monthly.reduce((s, r) => s + r.contrib, 0) / monthDays;
-    // Use weighted average: 60% recent trend, 40% monthly trend
-    const avgDaily = avgRecent * 0.6 + avgMonth * 0.4;
-    if (avgDaily <= 0.5) {
-        res.textContent = 'Accumulo troppo lento per stimare';
-        det.textContent = `Media giornaliera: ${avgDaily.toFixed(1)} GTS/giorno (ultime ${recentDays} gg)`;
+    const monthlyAvg = {};
+    d.forEach(r => {
+        const m = new Date(r.date + 'T00:00:00').getMonth();
+        if (!monthlyAvg[m]) monthlyAvg[m] = { sum: 0, count: 0 };
+        monthlyAvg[m].sum += r.contrib;
+        monthlyAvg[m].count++;
+    });
+
+    // Typical monthly GTS/day ratios relative to April (baseline)
+    // Used to estimate months we don't have data for yet
+    // Based on Swiss temperature patterns: cold winters, warm summers
+    const monthRatios = [0.05, 0.15, 0.5, 0.8, 1.0, 1.2, 1.3, 1.2, 0.9, 0.5, 0.15, 0.05];
+    // Find the best reference month we have full data for (prefer recent, warmer months)
+    let refRate = null, refMonth = -1;
+    for (let m = d[d.length-1] ? new Date(d[d.length-1].date+'T00:00:00').getMonth() : 3; m >= 0; m--) {
+        if (monthlyAvg[m] && monthlyAvg[m].count >= 15 && monthRatios[m] > 0.3) {
+            refRate = monthlyAvg[m].sum / monthlyAvg[m].count;
+            refMonth = m;
+            break;
+        }
+    }
+    if (!refRate) {
+        // Fallback: use last 14 days average
+        const recent = d.slice(-14);
+        refRate = recent.reduce((s, r) => s + r.contrib, 0) / recent.length;
+        refMonth = new Date(d[d.length-1].date+'T00:00:00').getMonth();
+    }
+
+    // Project forward day by day using seasonal model
+    const today = new Date();
+    let cumGTS = currentGTS;
+    let dayCount = 0;
+    const maxDays = 300; // safety limit
+    const year = today.getFullYear();
+
+    while (cumGTS < targetGTS && dayCount < maxDays) {
+        dayCount++;
+        const futureDate = new Date(today);
+        futureDate.setDate(today.getDate() + dayCount);
+        const fm = futureDate.getMonth();
+
+        // If we cross into next year, GTS resets
+        if (futureDate.getFullYear() > year) {
+            // GTS resets Jan 1 — target won't be reached this year
+            res.innerHTML = `<span style="color:#E65100">Probabilmente non quest'anno</span>`;
+            const totalThisYear = GTS_BLOOMS[GTS_BLOOMS.length-1].gts; // rough max
+            // Estimate what month next year based on ratios
+            let nextYearCum = 0, estMonth = -1;
+            for (let m = 0; m < 12; m++) {
+                const dailyRate = (refRate / monthRatios[refMonth]) * monthRatios[m];
+                const daysInMonth = new Date(year+1, m+1, 0).getDate();
+                // GTS factor: Jan x0.5, Feb x0.75, rest x1
+                const factor = m === 0 ? 0.5 : m === 1 ? 0.75 : 1.0;
+                nextYearCum += dailyRate * factor * daysInMonth;
+                if (nextYearCum >= targetGTS) { estMonth = m; break; }
+            }
+            if (estMonth >= 0) {
+                const mNames = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+                det.textContent = `Mancano ${Math.round(remaining)} GTS | Il GTS si azzera a gennaio — stima: ${mNames[estMonth]} ${year+1} (basata sul profilo termico locale)`;
+            } else {
+                det.textContent = `Mancano ${Math.round(remaining)} GTS | Soglia probabilmente non raggiungibile a questa altitudine`;
+            }
+            return;
+        }
+
+        // Use actual monthly avg if available, otherwise estimate from ratios
+        let dailyRate;
+        if (monthlyAvg[fm] && monthlyAvg[fm].count >= 10) {
+            dailyRate = monthlyAvg[fm].sum / monthlyAvg[fm].count;
+        } else {
+            dailyRate = (refRate / monthRatios[refMonth]) * monthRatios[fm];
+        }
+        cumGTS += dailyRate;
+    }
+
+    if (dayCount >= maxDays) {
+        res.innerHTML = `<span style="color:#E65100">Oltre ${maxDays} giorni — soglia difficilmente raggiungibile</span>`;
+        det.textContent = `Mancano ${Math.round(remaining)} GTS | L'altitudine e il clima locale rallentano l'accumulo`;
         return;
     }
-    const estDays = Math.ceil(remaining / avgDaily);
-    const estDate = new Date();
-    estDate.setDate(estDate.getDate() + estDays);
-    const bloom = GTS_BLOOMS.find(b => b.gts === targetGTS);
-    res.innerHTML = `~<strong>${estDays}</strong> giorni (circa ${estDate.getDate()}/${estDate.getMonth()+1}/${estDate.getFullYear()})`;
-    det.textContent = `Mancano ${Math.round(remaining)} GTS | Media: ${avgDaily.toFixed(1)} GTS/giorno (ultimi ${recentDays} gg) | Stima basata sul trend recente`;
+
+    const estDate = new Date(today);
+    estDate.setDate(today.getDate() + dayCount);
+    const avgDaily = remaining / dayCount;
+    res.innerHTML = `~<strong>${dayCount}</strong> giorni (circa ${estDate.getDate()}/${estDate.getMonth()+1}/${estDate.getFullYear()})`;
+    det.textContent = `Mancano ${Math.round(remaining)} GTS | Media stimata: ${avgDaily.toFixed(1)} GTS/giorno | Modello stagionale basato su dati locali`;
 }
 
 // ============================================================

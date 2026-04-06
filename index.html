@@ -248,6 +248,9 @@
         .gantt-hive-cell.current-month { background:rgba(245,166,35,.15); }
         .gantt-hive-bar { width:60%; border-radius:4px 4px 0 0; background:linear-gradient(180deg,var(--honey),var(--honey-dark)); min-height:2px; transition:height .3s; }
         .gantt-hive-count { font-size:.7em; font-weight:700; color:var(--honey-dark); margin-top:1px; line-height:1; }
+        .diary-dd-arrow { display:inline-block; font-size:.7em; transition:transform .2s; }
+        .diary-hive-row { background:#F1F8E9; }
+        .diary-type-row:hover { background:#E8F5E9; }
         .gantt-hive-cell .hive-cell-delta { position:absolute; top:2px; right:2px; font-size:.58em; font-weight:700; }
         .gantt-hive-cell .hive-cell-delta.pos { color:var(--green-dark); }
         .gantt-hive-cell .hive-cell-delta.neg { color:var(--red); }
@@ -3764,11 +3767,11 @@ function renderGantt(){
             h+='</div>';for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+='</div>';
         });
     }
-    // === Diary activities (done) section ===
+    // === Diary activities (done) section with drill-down per hive ===
     const diary=activeApiaryId?loadDiary(activeApiaryId):[];
     const diaryYear=diary.filter(e=>e.date&&e.date.startsWith(String(year)));
     if(diaryYear.length>0){
-        // Group by type
+        // Group by type, then by hive within each type
         const dGrp={};
         diaryYear.forEach(e=>{
             const t=e.type||'altro';
@@ -3777,47 +3780,78 @@ function renderGantt(){
         });
         h+=`<div class="gantt-category-row" style="background:#E8F5E9;border-bottom:2px solid #A5D6A7"><div class="gantt-label" style="color:var(--green-dark);font-weight:700">📖 ATTIVITÀ SVOLTE (DIARIO)</div>`;
         for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+=`</div>`;
+        let _diaryTypeIdx=0;
         Object.keys(DIARY_TYPES).forEach(typeKey=>{
             const entries=dGrp[typeKey];
             if(!entries||!entries.length)return;
             const dt=DIARY_TYPES[typeKey];
-            // Category sub-header
-            h+=`<div class="gantt-row diary-gantt-row"><div class="gantt-label" style="font-size:.82em;color:var(--green-dark)">${dt.icon} ${dt.label} <span style="font-weight:400;color:var(--gray)">(${entries.length})</span></div>`;
+            // Group entries by hive
+            const byHive={};
+            entries.forEach(e=>{const hv=e.hive||'Tutte';if(!byHive[hv])byHive[hv]=[];byHive[hv].push(e);});
+            const hiveNames=Object.keys(byHive).sort((a,b)=>a==='Tutte'?1:b==='Tutte'?-1:a.localeCompare(b));
+            const hasMultipleHives=hiveNames.length>1||(hiveNames.length===1&&hiveNames[0]!=='Tutte');
+            const grpId='dg'+_diaryTypeIdx;
+            // Type header row (clickable if drill-down available)
+            h+=`<div class="gantt-row diary-gantt-row diary-type-row" data-grp="${grpId}" ${hasMultipleHives?`onclick="toggleDiaryDrilldown('${grpId}')" style="cursor:pointer"`:''}><div class="gantt-label" style="font-size:.82em;color:var(--green-dark)">${hasMultipleHives?'<span class="diary-dd-arrow" id="arrow-'+grpId+'">▶</span> ':''}${dt.icon} ${dt.label} <span style="font-weight:400;color:var(--gray)">(${entries.length})</span></div>`;
             for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+=`</div>`;
+            // Per-hive sub-rows (hidden by default)
+            if(hasMultipleHives){
+                hiveNames.forEach(hv=>{
+                    const hvEntries=byHive[hv];
+                    h+=`<div class="gantt-row diary-gantt-row diary-hive-row" data-parent="${grpId}" style="display:none"><div class="gantt-label" style="font-size:.78em;color:#558B2F;padding-left:24px">🐝 ${hv} <span style="font-weight:400;color:var(--gray)">(${hvEntries.length})</span></div>`;
+                    for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+=`</div>`;
+                });
+            }
+            _diaryTypeIdx++;
         });
     }
 
     container.innerHTML=h;
 
-    // Position diary dots
+    // Position diary dots on type rows and hive sub-rows
     if(diaryYear.length>0){
-        const diaryRows=container.querySelectorAll('.diary-gantt-row');
-        let dIdx=0;
+        const dGrp={};
+        diaryYear.forEach(e=>{const t=e.type||'altro';if(!dGrp[t])dGrp[t]=[];dGrp[t].push(e);});
+        let _dtIdx=0;
         Object.keys(DIARY_TYPES).forEach(typeKey=>{
-            const entries=(function(){const d=diaryYear.filter(e=>(e.type||'altro')===typeKey);return d;})();
-            if(!entries.length)return;
-            const row=diaryRows[dIdx];
-            if(!row){dIdx++;return;}
-            row.style.position='relative';
-            const cells=row.querySelectorAll('.gantt-cell');
-            if(cells.length<12){dIdx++;return;}
-            const gL=cells[0].offsetLeft,gW=cells[11].offsetLeft+cells[11].offsetWidth-gL;
-            entries.forEach(e=>{
-                const d=new Date(e.date+'T00:00:00');
-                if(d.getFullYear()!==year)return;
-                let doy=0;for(let m2=0;m2<d.getMonth();m2++)doy+=dim[m2];doy+=d.getDate();
-                const x=gL+(doy-1)/totD*gW;
-                const dot=document.createElement('div');
-                dot.style.cssText=`position:absolute;left:${x-5}px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--green-dark);cursor:pointer;z-index:2`;
-                dot.title=`${formatDateIT(e.date)} - ${e.hive}\n${e.notes||''}`;
-                dot.onclick=()=>{
-                    const diaryFull=loadDiary(activeApiaryId);
-                    const match=diaryFull.findIndex(x=>x.id===e.id);
-                    if(match>=0) editDiaryEntry(match);
-                };
-                row.appendChild(dot);
+            const entries=dGrp[typeKey];
+            if(!entries||!entries.length)return;
+            const grpId='dg'+_dtIdx;
+            // Dots on type row (all entries for this type)
+            const typeRow=container.querySelector(`.diary-type-row[data-grp="${grpId}"]`);
+            if(typeRow){
+                typeRow.style.position='relative';
+                const cells=typeRow.querySelectorAll('.gantt-cell');
+                if(cells.length>=12){
+                    const gL=cells[0].offsetLeft,gW=cells[11].offsetLeft+cells[11].offsetWidth-gL;
+                    entries.forEach(e=>{
+                        const d=new Date(e.date+'T00:00:00');
+                        if(d.getFullYear()!==year)return;
+                        let doy=0;for(let m2=0;m2<d.getMonth();m2++)doy+=dim[m2];doy+=d.getDate();
+                        const x=gL+(doy-1)/totD*gW;
+                        const dot=document.createElement('div');
+                        dot.style.cssText=`position:absolute;left:${x-5}px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--green-dark);cursor:pointer;z-index:2`;
+                        dot.title=`${formatDateIT(e.date)} - ${e.hive||'Tutte'}\n${e.notes||''}`;
+                        dot.onclick=(ev)=>{ev.stopPropagation();const diaryFull=loadDiary(activeApiaryId);const match=diaryFull.findIndex(x=>x.id===e.id);if(match>=0)editDiaryEntry(match);};
+                        row_appendDiaryDot(typeRow,dot);
+                    });
+                }
+            }
+            // Store hive entries data on sub-rows for deferred dot positioning
+            const byHive={};
+            entries.forEach(e=>{const hv=e.hive||'Tutte';if(!byHive[hv])byHive[hv]=[];byHive[hv].push(e);});
+            const hiveNames=Object.keys(byHive).sort((a,b)=>a==='Tutte'?1:b==='Tutte'?-1:a.localeCompare(b));
+            const hiveRows=container.querySelectorAll(`.diary-hive-row[data-parent="${grpId}"]`);
+            hiveNames.forEach((hv,hi)=>{
+                const hiveRow=hiveRows[hi];
+                if(!hiveRow)return;
+                hiveRow.style.position='relative';
+                hiveRow._diaryEntries=byHive[hv];
+                hiveRow._year=year;
+                hiveRow._dim=dim;
+                hiveRow._totD=totD;
             });
-            dIdx++;
+            _dtIdx++;
         });
     }
 
@@ -3847,6 +3881,38 @@ function renderGantt(){
 }
 
 function formatDateIT(ds){if(!ds)return'';const d=new Date(ds+"T00:00:00");return`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;}
+
+function row_appendDiaryDot(row,dot){row.appendChild(dot);}
+
+function toggleDiaryDrilldown(grpId){
+    const arrow=document.getElementById('arrow-'+grpId);
+    const hiveRows=document.querySelectorAll(`.diary-hive-row[data-parent="${grpId}"]`);
+    const isOpen=hiveRows.length>0&&hiveRows[0].style.display!=='none';
+    hiveRows.forEach(r=>{
+        r.style.display=isOpen?'none':'';
+        // Position dots on first show
+        if(!isOpen&&r._diaryEntries&&!r._dotsPlaced){
+            r._dotsPlaced=true;
+            requestAnimationFrame(()=>{
+                const cells=r.querySelectorAll('.gantt-cell');
+                if(cells.length<12)return;
+                const gL=cells[0].offsetLeft,gW=cells[11].offsetLeft+cells[11].offsetWidth-gL;
+                r._diaryEntries.forEach(e=>{
+                    const d=new Date(e.date+'T00:00:00');
+                    if(d.getFullYear()!==r._year)return;
+                    let doy=0;for(let m2=0;m2<d.getMonth();m2++)doy+=r._dim[m2];doy+=d.getDate();
+                    const x=gL+(doy-1)/r._totD*gW;
+                    const dot=document.createElement('div');
+                    dot.style.cssText=`position:absolute;left:${x-5}px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:#66BB6A;border:1.5px solid #2E7D32;cursor:pointer;z-index:2`;
+                    dot.title=`${formatDateIT(e.date)} - ${e.hive||'Tutte'}\n${e.notes||''}`;
+                    dot.onclick=(ev)=>{ev.stopPropagation();const diaryFull=loadDiary(activeApiaryId);const match=diaryFull.findIndex(x=>x.id===e.id);if(match>=0)editDiaryEntry(match);};
+                    r.appendChild(dot);
+                });
+            });
+        }
+    });
+    if(arrow)arrow.textContent=isOpen?'▶':'▼';
+}
 
 // Get hive+nucs count at end of each month for a given year
 // Uses hive registry (locations + created date) as primary source, falls back to hivesHistory

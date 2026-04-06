@@ -3295,7 +3295,24 @@ function voiceSaveEntry(){
     const varroa=(document.getElementById('diaryVarroa')||{value:''}).value.trim();
     const entry={id:'d'+Date.now(),date,hive,type,queen,temper,strength,brood,food,varroa,notes};
     const diary=getActiveDiary();diary.push(entry);diary.sort((a,b)=>b.date.localeCompare(a.date));saveDiary(activeApiaryId,diary);
+    // Create planner task if filled
+    const taskName=(document.getElementById('diaryTaskName')||{}).value?.trim();
+    if(taskName){
+        const taskDate=(document.getElementById('diaryTaskDate')||{}).value||new Date(Date.now()+7*86400000).toISOString().split('T')[0];
+        const taskCat=(document.getElementById('diaryTaskCat')||{}).value||'diario';
+        const endDate=new Date(new Date(taskDate).getTime()+3*86400000).toISOString().split('T')[0];
+        const data=getActivePlanner();
+        data.push({
+            id:'dt'+Date.now(),
+            name:taskName+(hive&&hive!=='Tutte'?' ('+hive+')':''),
+            cat:taskCat, start:taskDate, end:endDate,
+            done:false, doneDate:null, system:false, fromDiary:true
+        });
+        saveActivePlanner(data);
+        renderGantt();
+    }
     document.getElementById('voiceTranscript').value='';
+    if(document.getElementById('diaryTaskName')) document.getElementById('diaryTaskName').value='';
     renderDiary();
 }
 
@@ -3497,6 +3514,10 @@ function toggleDiaryForm() {
     const area = document.getElementById('diaryDetailsArea');
     if (area) area.classList.toggle('open');
 }
+function toggleDiaryTask() {
+    const area = document.getElementById('diaryTaskArea');
+    if (area) area.style.display = area.style.display === 'none' ? '' : 'none';
+}
 
 function renderDiary() {
     const sec = document.getElementById('diarySection');
@@ -3574,6 +3595,26 @@ function renderDiary() {
     h += `<div><label>Covata</label><select id="diaryCovata"><option value="">--</option><option value="ottima">Ottima</option><option value="buona">Buona</option><option value="irregolare">Irregolare</option><option value="assente">Assente</option></select></div>`;
     h += `<div><label>Scorte</label><select id="diaryFood"><option value="">--</option><option value="abbondanti">Abbondanti</option><option value="sufficienti">Sufficienti</option><option value="scarse">Scarse</option></select></div>`;
     h += `<div><label>Varroa</label><input type="text" id="diaryVarroa" placeholder="es. 3 su 100 api" /></div>`;
+    h += `</div>`;
+    h += `</div>`;
+
+    // === Task for planner ===
+    h += `<button class="diary-details-toggle" onclick="toggleDiaryTask()" style="background:#E3F2FD;color:#1565C0;border-left-color:#1976D2">📋 Aggiungi attività al planner</button>`;
+    h += `<div id="diaryTaskArea" style="display:none;padding:10px 12px;background:#F5F9FF;border-radius:8px;margin-bottom:8px">`;
+    h += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">`;
+    h += `<input type="text" id="diaryTaskName" placeholder="Descrizione attività (es. Controllare regina, Aggiungere melario...)" style="flex:1;min-width:200px;min-height:40px;padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:.92em" />`;
+    h += `</div>`;
+    h += `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">`;
+    h += `<label style="font-size:.82em;font-weight:600;color:var(--gray-dark)">Scadenza:</label>`;
+    const defTask=new Date(Date.now()+7*86400000).toISOString().split('T')[0];
+    h += `<input type="date" id="diaryTaskDate" value="${defTask}" style="min-height:40px;padding:6px 8px;border:1px solid #ddd;border-radius:8px" />`;
+    h += `<select id="diaryTaskCat" style="min-height:40px;padding:6px 8px;border:1px solid #ddd;border-radius:8px;font-size:.88em">`;
+    h += `<option value="diario">📋 Attività dal diario</option>`;
+    h += `<option value="controlli">🔍 Controlli</option>`;
+    h += `<option value="varroa">🐛 Trattamenti varroa</option>`;
+    h += `<option value="nutrizione">🍬 Nutrizione</option>`;
+    h += `<option value="gestione">✏️ Gestione</option>`;
+    h += `</select>`;
     h += `</div>`;
     h += `</div>`;
 

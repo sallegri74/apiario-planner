@@ -2264,14 +2264,14 @@ function openQuickEntry(hiveName, apiaryId){
                 </div>
                 <textarea class="quick-entry-textarea" id="qeNotes" placeholder="Scrivi o detta le note per ${hiveName}..."></textarea>
                 <div class="quick-entry-quick">
-                    <button onclick="qeAppend('Regina vista')">👑 Regina vista</button>
-                    <button onclick="qeAppend('Regina non vista')">❓ Non vista</button>
-                    <button onclick="qeAppend('Celle reali presenti')">⚠️ Celle reali</button>
-                    <button onclick="qeAppend('Covata regolare')">✅ Covata OK</button>
-                    <button onclick="qeAppend('Scorte scarse')">🍯 Scorte scarse</button>
-                    <button onclick="qeAppend('Scorte abbondanti')">🍯 Scorte OK</button>
-                    <button onclick="qeAppend('Colonia forte')">💪 Forte</button>
-                    <button onclick="qeAppend('Colonia debole')">⚡ Debole</button>
+                    <button onclick="qeAppend('Regina vista',{qeEditQueen:'vista',diaryQueen:'vista'})">👑 Regina vista</button>
+                    <button onclick="qeAppend('Regina non vista',{qeEditQueen:'non vista',diaryQueen:'non vista'})">❓ Non vista</button>
+                    <button onclick="qeAppend('Celle reali presenti',{qeEditQueen:'celle reali',diaryQueen:'celle reali'})">⚠️ Celle reali</button>
+                    <button onclick="qeAppend('Covata regolare',{qeEditBrood:'buona',diaryCovata:'buona'})">✅ Covata OK</button>
+                    <button onclick="qeAppend('Scorte scarse',{qeEditFood:'scarse',diaryFood:'scarse'})">🍯 Scorte scarse</button>
+                    <button onclick="qeAppend('Scorte abbondanti',{qeEditFood:'abbondanti',diaryFood:'abbondanti'})">🍯 Scorte OK</button>
+                    <button onclick="qeAppend('Colonia forte',{qeEditStrength:'forte',diaryStrength:'forte'})">💪 Forte</button>
+                    <button onclick="qeAppend('Colonia debole',{qeEditStrength:'debole',diaryStrength:'debole'})">⚡ Debole</button>
                     <button onclick="qeAppend('Sciamatura in corso')">🐝 Sciamatura</button>
                     <button onclick="qeAppend('Trattamento effettuato')">💊 Trattamento</button>
                     <button onclick="qeFavoDaFuco('${hiveName.replace(/'/g,"\\'")}','${apiaryId}')" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>
@@ -2292,10 +2292,17 @@ function closeQuickEntry(){
     if(el)el.remove();
 }
 
-function qeAppend(text){
+function qeAppend(text, detailMap){
     const ta=document.getElementById('qeNotes');
     if(!ta)return;
     ta.value=ta.value?(ta.value.trimEnd()+'. '+text):text;
+    // Auto-fill detail fields
+    if(detailMap){
+        Object.keys(detailMap).forEach(id=>{
+            const el=document.getElementById(id);
+            if(el) el.value=detailMap[id];
+        });
+    }
     ta.focus();
 }
 
@@ -3279,9 +3286,15 @@ function toggleVoice(){
     status.classList.add('recording');
 }
 
-function voiceAppendQuick(text){
+function voiceAppendQuick(text, detailMap){
     const ta=document.getElementById('voiceTranscript');
     ta.value += (ta.value?'. ':'')+text;
+    if(detailMap){
+        Object.keys(detailMap).forEach(id=>{
+            const el=document.getElementById(id);
+            if(el) el.value=detailMap[id];
+        });
+    }
     ta.focus();
 }
 
@@ -3423,14 +3436,14 @@ function editDiaryEntry(idx){
                 </div>
                 <textarea class="quick-entry-textarea" id="qeNotes">${e.notes||''}</textarea>
                 <div class="quick-entry-quick">
-                    <button onclick="qeAppend('Regina vista')">👑 Regina vista</button>
-                    <button onclick="qeAppend('Regina non vista')">❓ Non vista</button>
-                    <button onclick="qeAppend('Celle reali presenti')">⚠️ Celle reali</button>
-                    <button onclick="qeAppend('Covata regolare')">✅ Covata OK</button>
-                    <button onclick="qeAppend('Scorte scarse')">🍯 Scorte scarse</button>
-                    <button onclick="qeAppend('Scorte abbondanti')">🍯 Scorte OK</button>
-                    <button onclick="qeAppend('Colonia forte')">💪 Forte</button>
-                    <button onclick="qeAppend('Colonia debole')">⚡ Debole</button>
+                    <button onclick="qeAppend('Regina vista',{qeEditQueen:'vista',diaryQueen:'vista'})">👑 Regina vista</button>
+                    <button onclick="qeAppend('Regina non vista',{qeEditQueen:'non vista',diaryQueen:'non vista'})">❓ Non vista</button>
+                    <button onclick="qeAppend('Celle reali presenti',{qeEditQueen:'celle reali',diaryQueen:'celle reali'})">⚠️ Celle reali</button>
+                    <button onclick="qeAppend('Covata regolare',{qeEditBrood:'buona',diaryCovata:'buona'})">✅ Covata OK</button>
+                    <button onclick="qeAppend('Scorte scarse',{qeEditFood:'scarse',diaryFood:'scarse'})">🍯 Scorte scarse</button>
+                    <button onclick="qeAppend('Scorte abbondanti',{qeEditFood:'abbondanti',diaryFood:'abbondanti'})">🍯 Scorte OK</button>
+                    <button onclick="qeAppend('Colonia forte',{qeEditStrength:'forte',diaryStrength:'forte'})">💪 Forte</button>
+                    <button onclick="qeAppend('Colonia debole',{qeEditStrength:'debole',diaryStrength:'debole'})">⚡ Debole</button>
                     <button onclick="qeFavoDaFuco('${e.hive.replace(/'/g,"\\'")}','${activeApiaryId}')" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>
                 </div>
                 <div style="font-size:.85em;font-weight:600;color:var(--gray-dark);margin:8px 0 4px">Dettagli:</div>
@@ -3441,6 +3454,24 @@ function editDiaryEntry(idx){
                     <div><label style="font-size:.78em">Covata</label>${mkSel('qeEditBrood',broodOpts,e.brood||'')}</div>
                     <div><label style="font-size:.78em">Scorte</label>${mkSel('qeEditFood',foodOpts,e.food||'')}</div>
                     <div><label style="font-size:.78em">Varroa</label><input type="text" id="qeEditVarroa" value="${e.varroa||''}" placeholder="es. 3/100" style="width:100%;min-height:40px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:.95em;box-sizing:border-box"></div>
+                </div>
+            </div>
+                <button class="diary-details-toggle" onclick="toggleDiaryTask()" style="background:#E3F2FD;color:#1565C0;border-left-color:#1976D2">📋 Aggiungi attività al planner</button>
+                <div id="diaryTaskArea" style="display:none;padding:10px 12px;background:#F5F9FF;border-radius:8px;margin-bottom:8px">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+                        <input type="text" id="editDiaryTaskName" placeholder="Descrizione attività (es. Controllare regina...)" style="flex:1;min-width:200px;min-height:40px;padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:.92em" />
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                        <label style="font-size:.82em;font-weight:600;color:var(--gray-dark)">Scadenza:</label>
+                        <input type="date" id="editDiaryTaskDate" value="${new Date(Date.now()+7*86400000).toISOString().split('T')[0]}" style="min-height:40px;padding:6px 8px;border:1px solid #ddd;border-radius:8px" />
+                        <select id="editDiaryTaskCat" style="min-height:40px;padding:6px 8px;border:1px solid #ddd;border-radius:8px;font-size:.88em">
+                            <option value="diario">📋 Attività dal diario</option>
+                            <option value="controlli">🔍 Controlli</option>
+                            <option value="varroa">🐛 Trattamenti varroa</option>
+                            <option value="nutrizione">🍬 Nutrizione</option>
+                            <option value="gestione">✏️ Gestione</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div style="position:sticky;bottom:0;padding:12px 16px;background:white;border-top:1px solid #eee;border-radius:0 0 16px 16px">
@@ -3468,6 +3499,17 @@ function saveEditDiary(idx){
     e.varroa=document.getElementById('qeEditVarroa').value.trim();
     diary.sort((a,b)=>b.date.localeCompare(a.date));
     saveDiary(activeApiaryId,diary);
+    // Save planner task if filled
+    const taskName=(document.getElementById('editDiaryTaskName')||{}).value?.trim();
+    if(taskName){
+        const taskDate=document.getElementById('editDiaryTaskDate')?.value||new Date(Date.now()+7*86400000).toISOString().split('T')[0];
+        const taskCat=document.getElementById('editDiaryTaskCat')?.value||'diario';
+        const endDate=new Date(new Date(taskDate+'T00:00:00').getTime()+86400000).toISOString().split('T')[0];
+        const data=getActivePlanner();
+        data.push({id:'dt'+Date.now(),name:taskName+(hive&&hive!=='Tutte'?' ('+hive+')':''),cat:taskCat,start:taskDate,end:endDate,done:false,doneDate:null,system:false,fromDiary:true});
+        saveActivePlanner(data);
+        renderGantt();
+    }
     closeQuickEntry();
     renderDiary();
     renderHiveRegistry();
@@ -3583,13 +3625,13 @@ function renderDiary() {
 
     // === Quick buttons ===
     h += `<div class="voice-quick-btns">`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Regina vista')">👑 Regina vista</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Regina non vista')">❓ Non vista</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Celle reali presenti')">⚠️ Celle reali</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Covata regolare')">✅ Covata OK</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Scorte scarse')">🍯 Scorte scarse</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia forte')">💪 Forte</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia debole')">⚡ Debole</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Regina vista',{diaryQueen:'vista'})">👑 Regina vista</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Regina non vista',{diaryQueen:'non vista'})">❓ Non vista</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Celle reali presenti',{diaryQueen:'celle reali'})">⚠️ Celle reali</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Covata regolare',{diaryCovata:'buona'})">✅ Covata OK</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Scorte scarse',{diaryFood:'scarse'})">🍯 Scorte scarse</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia forte',{diaryStrength:'forte'})">💪 Forte</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia debole',{diaryStrength:'debole'})">⚡ Debole</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Sciamatura in corso')">🐝 Sciamatura</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceFavoDaFuco()" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>`;
     h += `</div>`;

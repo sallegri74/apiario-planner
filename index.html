@@ -3798,13 +3798,13 @@ function renderGantt(){
             const hasMultipleHives=hiveNames.length>1||(hiveNames.length===1&&hiveNames[0]!=='Tutte');
             const grpId='dg'+_diaryTypeIdx;
             // Type header row (clickable if drill-down available)
-            h+=`<div class="gantt-row diary-gantt-row diary-type-row" data-grp="${grpId}" ${hasMultipleHives?`onclick="toggleDiaryDrilldown('${grpId}')" style="cursor:pointer"`:''}><div class="gantt-label" style="font-size:.82em;color:var(--green-dark)">${hasMultipleHives?'<span class="diary-dd-arrow" id="arrow-'+grpId+'">▶</span> ':''}${dt.icon} ${dt.label} <span style="font-weight:400;color:var(--gray)">(${entries.length})</span></div>`;
+            h+=`<div class="gantt-row diary-gantt-row diary-type-row gantt-row-done" data-grp="${grpId}" ${hasMultipleHives?`onclick="toggleDiaryDrilldown('${grpId}')" style="cursor:pointer"`:''}><div class="gantt-label" style="font-size:.82em;color:var(--green-dark)">${hasMultipleHives?'<span class="diary-dd-arrow" id="arrow-'+grpId+'">▶</span> ':''}${dt.icon} ${dt.label} <span style="font-weight:400;color:var(--gray)">(${entries.length})</span><span class="gantt-tag-done">FATTO</span><span class="gantt-tag-cat" style="background:#4CAF50">${dt.icon}</span></div>`;
             for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+=`</div>`;
             // Per-hive sub-rows (hidden by default)
             if(hasMultipleHives){
                 hiveNames.forEach(hv=>{
                     const hvEntries=byHive[hv];
-                    h+=`<div class="gantt-row diary-gantt-row diary-hive-row" data-parent="${grpId}" style="display:none"><div class="gantt-label" style="font-size:.78em;color:#558B2F;padding-left:24px">🐝 ${hv} <span style="font-weight:400;color:var(--gray)">(${hvEntries.length})</span></div>`;
+                    h+=`<div class="gantt-row diary-gantt-row diary-hive-row gantt-row-done" data-parent="${grpId}" style="display:none"><div class="gantt-label" style="font-size:.78em;color:#558B2F;padding-left:24px">🐝 ${hv} <span style="font-weight:400;color:var(--gray)">(${hvEntries.length})</span><span class="gantt-tag-done">FATTO</span><span class="gantt-tag-cat" style="background:#4CAF50">${dt.icon}</span></div>`;
                     for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+=`</div>`;
                 });
             }

@@ -372,11 +372,11 @@
 
         /* Quick Entry Modal */
         .quick-entry-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.85); z-index:10000; display:flex; flex-direction:column; animation:fadeIn .2s ease; overflow-y:auto; }
-        .quick-entry { background:white; width:100%; max-width:500px; margin:auto; border-radius:16px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,.4); }
+        .quick-entry { background:white; width:100%; max-width:500px; margin:auto; border-radius:16px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,.4); max-height:90vh; display:flex; flex-direction:column; }
         .quick-entry-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:linear-gradient(135deg,#FFF8E1,#FFF3E0); border-bottom:2px solid var(--honey); }
         .quick-entry-header h2 { margin:0; font-size:1.2em; color:var(--honey-dark); }
         .quick-entry-close { background:none; border:none; font-size:1.4em; cursor:pointer; padding:4px 8px; color:var(--gray); min-width:44px; min-height:44px; }
-        .quick-entry-body { padding:16px 20px; }
+        .quick-entry-body { padding:16px 20px; overflow-y:auto; flex:1; }
         .quick-entry-mic { display:flex; gap:10px; align-items:center; margin-bottom:12px; }
         .quick-entry-mic button { min-height:60px; min-width:60px; border-radius:14px; font-size:1.8em; border:none; cursor:pointer; }
         .quick-entry-mic .qe-mic { background:var(--green); color:white; }
@@ -3435,7 +3435,9 @@ function editDiaryEntry(idx){
                     <div><label style="font-size:.78em">Scorte</label>${mkSel('qeEditFood',foodOpts,e.food||'')}</div>
                     <div><label style="font-size:.78em">Varroa</label><input type="text" id="qeEditVarroa" value="${e.varroa||''}" placeholder="es. 3/100" style="width:100%;min-height:40px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:.95em;box-sizing:border-box"></div>
                 </div>
-                <button class="quick-entry-save" onclick="saveEditDiary(${idx})">💾 Salva modifiche</button>
+            </div>
+            <div style="position:sticky;bottom:0;padding:12px 16px;background:white;border-top:1px solid #eee;border-radius:0 0 16px 16px">
+                <button class="quick-entry-save" onclick="saveEditDiary(${idx})" style="width:100%;margin:0">💾 Salva modifiche</button>
             </div>
         </div>`;
     document.body.appendChild(overlay);

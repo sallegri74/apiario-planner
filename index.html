@@ -1744,6 +1744,22 @@ function renderGTS() {
     h += `<div class="gts-status" style="${statusClass}">${statusText}</div>`;
     if (currentBloom) h += `<div style="font-size:.85em">Fase attuale: <strong>${currentBloom.icon} ${currentBloom.name}</strong></div>`;
     if (nextBloom) h += `<div style="font-size:.82em;color:var(--gray)">Prossima: ${nextBloom.icon} ${nextBloom.name} (GTS ${nextBloom.gts}, mancano ~${Math.round(nextBloom.gts - gts)})</div>`;
+    // Forecast to selected bloom
+    const futureBlooms = GTS_BLOOMS.filter(b => b.gts > gts);
+    if (futureBlooms.length > 0) {
+        h += `<div style="margin-top:8px;padding:8px 12px;background:#FFF8E1;border-radius:8px;border:1px solid #FFE082">`;
+        h += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">`;
+        h += `<span style="font-size:.85em;font-weight:600;color:#E65100">📅 Previsione fioritura:</span>`;
+        h += `<select id="gtsBloomTarget" onchange="updateGTSForecast()" style="min-height:36px;padding:4px 8px;border:1px solid #FFE082;border-radius:6px;font-size:.88em;background:white">`;
+        futureBlooms.forEach((b,i) => {
+            h += `<option value="${b.gts}" ${i===0?'selected':''}>${b.icon} ${b.name} (GTS ${b.gts})</option>`;
+        });
+        h += `</select>`;
+        h += `<span id="gtsForecastResult" style="font-size:.88em;font-weight:700;color:#E65100"></span>`;
+        h += `</div>`;
+        h += `<div id="gtsForecastDetail" style="font-size:.75em;color:var(--gray);margin-top:4px"></div>`;
+        h += `</div>`;
+    }
     h += `</div>`;
 
     // Progress bar
@@ -1797,6 +1813,42 @@ function renderGTS() {
     h += `</div>`;
 
     sec.innerHTML = h;
+    updateGTSForecast();
+}
+
+function updateGTSForecast() {
+    const sel = document.getElementById('gtsBloomTarget');
+    const res = document.getElementById('gtsForecastResult');
+    const det = document.getElementById('gtsForecastDetail');
+    if (!sel || !res) return;
+    const gd = gtsCache[activeApiaryId];
+    if (!gd || !gd.daily || gd.daily.length < 7) { res.textContent = 'Dati insufficienti'; return; }
+    const targetGTS = parseFloat(sel.value);
+    const currentGTS = gd.gts;
+    const remaining = targetGTS - currentGTS;
+    if (remaining <= 0) { res.textContent = 'Già raggiunto!'; det.textContent = ''; return; }
+    // Calculate avg daily GTS from last 14 days (or all available if less)
+    const d = gd.daily;
+    const recentDays = Math.min(14, d.length);
+    const recent = d.slice(-recentDays);
+    const avgRecent = recent.reduce((s, r) => s + r.contrib, 0) / recentDays;
+    // Also calculate avg from last 30 days for comparison
+    const monthDays = Math.min(30, d.length);
+    const monthly = d.slice(-monthDays);
+    const avgMonth = monthly.reduce((s, r) => s + r.contrib, 0) / monthDays;
+    // Use weighted average: 60% recent trend, 40% monthly trend
+    const avgDaily = avgRecent * 0.6 + avgMonth * 0.4;
+    if (avgDaily <= 0.5) {
+        res.textContent = 'Accumulo troppo lento per stimare';
+        det.textContent = `Media giornaliera: ${avgDaily.toFixed(1)} GTS/giorno (ultime ${recentDays} gg)`;
+        return;
+    }
+    const estDays = Math.ceil(remaining / avgDaily);
+    const estDate = new Date();
+    estDate.setDate(estDate.getDate() + estDays);
+    const bloom = GTS_BLOOMS.find(b => b.gts === targetGTS);
+    res.innerHTML = `~<strong>${estDays}</strong> giorni (circa ${estDate.getDate()}/${estDate.getMonth()+1}/${estDate.getFullYear()})`;
+    det.textContent = `Mancano ${Math.round(remaining)} GTS | Media: ${avgDaily.toFixed(1)} GTS/giorno (ultimi ${recentDays} gg) | Stima basata sul trend recente`;
 }
 
 // ============================================================

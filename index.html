@@ -3455,9 +3455,8 @@ function editDiaryEntry(idx){
                     <div><label style="font-size:.78em">Scorte</label>${mkSel('qeEditFood',foodOpts,e.food||'')}</div>
                     <div><label style="font-size:.78em">Varroa</label><input type="text" id="qeEditVarroa" value="${e.varroa||''}" placeholder="es. 3/100" style="width:100%;min-height:40px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:.95em;box-sizing:border-box"></div>
                 </div>
-            </div>
-                <button class="diary-details-toggle" onclick="toggleDiaryTask()" style="background:#E3F2FD;color:#1565C0;border-left-color:#1976D2">📋 Aggiungi attività al planner</button>
-                <div id="diaryTaskArea" style="display:none;padding:10px 12px;background:#F5F9FF;border-radius:8px;margin-bottom:8px">
+                <button class="diary-details-toggle" onclick="document.getElementById('editTaskArea').style.display=document.getElementById('editTaskArea').style.display==='none'?'':'none'" style="background:#E3F2FD;color:#1565C0;border-left-color:#1976D2;margin-top:8px">📋 Aggiungi attività al planner</button>
+                <div id="editTaskArea" style="display:none;padding:10px 12px;background:#F5F9FF;border-radius:8px;margin-bottom:8px">
                     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
                         <input type="text" id="editDiaryTaskName" placeholder="Descrizione attività (es. Controllare regina...)" style="flex:1;min-width:200px;min-height:40px;padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:.92em" />
                     </div>

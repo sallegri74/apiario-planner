@@ -3764,9 +3764,65 @@ function renderGantt(){
             h+='</div>';for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+='</div>';
         });
     }
+    // === Diary activities (done) section ===
+    const diary=activeApiaryId?loadDiary(activeApiaryId):[];
+    const diaryYear=diary.filter(e=>e.date&&e.date.startsWith(String(year)));
+    if(diaryYear.length>0){
+        // Group by type
+        const dGrp={};
+        diaryYear.forEach(e=>{
+            const t=e.type||'altro';
+            if(!dGrp[t])dGrp[t]=[];
+            dGrp[t].push(e);
+        });
+        h+=`<div class="gantt-category-row" style="background:#E8F5E9;border-bottom:2px solid #A5D6A7"><div class="gantt-label" style="color:var(--green-dark);font-weight:700">📖 ATTIVITÀ SVOLTE (DIARIO)</div>`;
+        for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+=`</div>`;
+        Object.keys(DIARY_TYPES).forEach(typeKey=>{
+            const entries=dGrp[typeKey];
+            if(!entries||!entries.length)return;
+            const dt=DIARY_TYPES[typeKey];
+            // Category sub-header
+            h+=`<div class="gantt-row diary-gantt-row"><div class="gantt-label" style="font-size:.82em;color:var(--green-dark)">${dt.icon} ${dt.label} <span style="font-weight:400;color:var(--gray)">(${entries.length})</span></div>`;
+            for(let m=0;m<12;m++)h+=`<div class="gantt-cell ${m===curM?'current-month':''}"></div>`;h+=`</div>`;
+        });
+    }
+
     container.innerHTML=h;
+
+    // Position diary dots
+    if(diaryYear.length>0){
+        const diaryRows=container.querySelectorAll('.diary-gantt-row');
+        let dIdx=0;
+        Object.keys(DIARY_TYPES).forEach(typeKey=>{
+            const entries=(function(){const d=diaryYear.filter(e=>(e.type||'altro')===typeKey);return d;})();
+            if(!entries.length)return;
+            const row=diaryRows[dIdx];
+            if(!row){dIdx++;return;}
+            row.style.position='relative';
+            const cells=row.querySelectorAll('.gantt-cell');
+            if(cells.length<12){dIdx++;return;}
+            const gL=cells[0].offsetLeft,gW=cells[11].offsetLeft+cells[11].offsetWidth-gL;
+            entries.forEach(e=>{
+                const d=new Date(e.date+'T00:00:00');
+                if(d.getFullYear()!==year)return;
+                let doy=0;for(let m2=0;m2<d.getMonth();m2++)doy+=dim[m2];doy+=d.getDate();
+                const x=gL+(doy-1)/totD*gW;
+                const dot=document.createElement('div');
+                dot.style.cssText=`position:absolute;left:${x-5}px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--green-dark);cursor:pointer;z-index:2`;
+                dot.title=`${formatDateIT(e.date)} - ${e.hive}\n${e.notes||''}`;
+                dot.onclick=()=>{
+                    const diaryFull=loadDiary(activeApiaryId);
+                    const match=diaryFull.findIndex(x=>x.id===e.id);
+                    if(match>=0) editDiaryEntry(match);
+                };
+                row.appendChild(dot);
+            });
+            dIdx++;
+        });
+    }
+
     // Position bars
-    const rows=container.querySelectorAll('.gantt-row');let idx=0;
+    const rows=container.querySelectorAll('.gantt-row:not(.diary-gantt-row)');let idx=0;
     for(const cat of catOrd){const acts=grp[cat];if(!acts.length)continue;
         acts.forEach(a=>{const row=rows[idx];if(!row){idx++;return;}
             const sd=new Date(a.start+"T00:00:00"),ed=new Date(a.end+"T00:00:00");

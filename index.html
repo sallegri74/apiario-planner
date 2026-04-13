@@ -3170,6 +3170,8 @@ function buildHiveReport(hive){
     h+=`<div class="hive-stat"><div class="hive-stat-value">${daysSinceLast!==null?daysSinceLast+"g":"—"}</div><div class="hive-stat-label">Dall'ultima visita</div></div>`;
     h+=`<div class="hive-stat"><div class="hive-stat-value">${treatmentsThisYear}</div><div class="hive-stat-label">Trattamenti ${now.getFullYear()}</div></div>`;
     h+=`<div class="hive-stat" onclick="editHiveFrames('${hive.id}')" style="cursor:pointer" title="Clicca per modificare"><div class="hive-stat-value">${hive.frames||0}</div><div class="hive-stat-label">🖼️ Telai ✏️</div></div>`;
+    const totalSyrup=entries.filter(e=>e.feedType==='sciroppo'&&e.feedQty).reduce((s,e)=>s+(e.feedQty||0),0);
+    h+=`<div class="hive-stat"><div class="hive-stat-value">${totalSyrup?totalSyrup+'l':'—'}</div><div class="hive-stat-label">🧴 Sciroppo dato</div></div>`;
     h+=`</div>`;
 
     // Location history

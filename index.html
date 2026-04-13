@@ -1938,6 +1938,22 @@ function getActiveHives(apiaryId){
     return loadHiveRegistry(apiaryId).filter(h=>h.status==="attiva");
 }
 
+function _updateHiveFrames(apiaryId, hiveName, action, qty) {
+    const reg = loadHiveRegistry(apiaryId);
+    const hive = reg.find(h => h.name === hiveName);
+    if (!hive) return;
+    if (!hive.frames) hive.frames = 0;
+    if (action === 'inserito') hive.frames += qty;
+    else if (action === 'rimosso') hive.frames = Math.max(0, hive.frames - qty);
+    saveHiveRegistry(apiaryId, reg);
+}
+
+function getHiveFrameCount(apiaryId, hiveName) {
+    const reg = loadHiveRegistry(apiaryId);
+    const hive = reg.find(h => h.name === hiveName);
+    return hive ? (hive.frames || 0) : 0;
+}
+
 let selectedHiveId = null;
 
 function addHiveToRegistry(){
@@ -3190,6 +3206,8 @@ function buildHiveReport(hive){
             if(e.brood) details.push("Covata: "+e.brood);
             if(e.food) details.push("Scorte: "+e.food);
             if(e.varroa) details.push("Varroa: "+e.varroa);
+            if(e.feedType) details.push("🍯 "+(e.feedType==='sciroppo'?'Sciroppo'+(e.feedQty?' '+e.feedQty+'l':''):'Candito'));
+            if(e.frameAction) details.push("🖼️ "+(e.frameAction==='inserito'?'+':'-')+(e.frameQty||1)+" telai");
             if(e.notes) details.push(e.notes);
             h+=`<div class="hive-report-entry" style="cursor:pointer" onclick="editDiaryEntryFrom('${e._srcApiary}',${e._srcIdx})" title="Clicca per modificare">`;
             h+=`<span class="hive-report-entry-date">${formatDateIT(e.date)}</span>`;
@@ -3261,6 +3279,7 @@ function renderHiveRegistry(){
             const diary=loadDiary(activeApiaryId);
             const visits=diary.filter(e=>e.hive===hv.name).length;
             if(visits>0) h+=`<span>📋 ${visits} visit${visits===1?"a":"e"}</span>`;
+            if(hv.frames) h+=`<span>🖼️ ${hv.frames} telai</span>`;
             h+=`</div>`;
             if(hv.notes) h+=`<div class="hive-card-note">${hv.notes}</div>`;
             // Photo
@@ -3432,7 +3451,15 @@ function voiceSaveEntry(){
     const brood=(document.getElementById('diaryCovata')||{}).value||'';
     const food=(document.getElementById('diaryFood')||{}).value||'';
     const varroa=(document.getElementById('diaryVarroa')||{value:''}).value.trim();
-    const entry={id:'d'+Date.now(),date,hive,type,queen,temper,strength,brood,food,varroa,notes};
+    const feedType=(document.getElementById('diaryFeedType')||{}).value||'';
+    const feedQty=feedType==='sciroppo'?parseFloat((document.getElementById('diaryFeedQty')||{}).value)||0:0;
+    const frameAction=(document.getElementById('diaryFrameAction')||{}).value||'';
+    const frameQty=frameAction?parseInt((document.getElementById('diaryFrameQty')||{}).value)||1:0;
+    const entry={id:'d'+Date.now(),date,hive,type,queen,temper,strength,brood,food,varroa,feedType,feedQty,frameAction,frameQty,notes};
+    // Update hive frame count in registry
+    if(frameAction&&hive&&hive!=='Tutte'){
+        _updateHiveFrames(activeApiaryId,hive,frameAction,frameQty);
+    }
     const diary=getActiveDiary();diary.push(entry);diary.sort((a,b)=>b.date.localeCompare(a.date));saveDiary(activeApiaryId,diary);
     // Create planner task if filled
     const taskName=(document.getElementById('diaryTaskName')||{}).value?.trim();
@@ -3463,6 +3490,11 @@ function addDiaryEntry() {
     if (!date) { alert('Inserisci la data'); return; }
     if (!hive) { alert('Seleziona un\'arnia o nucleo'); return; }
 
+    const feedType = (document.getElementById('diaryFeedType')||{}).value||'';
+    const feedQty = feedType==='sciroppo'?parseFloat((document.getElementById('diaryFeedQty')||{}).value)||0:0;
+    const frameAction = (document.getElementById('diaryFrameAction')||{}).value||'';
+    const frameQty = frameAction?parseInt((document.getElementById('diaryFrameQty')||{}).value)||1:0;
+
     const entry = {
         id: 'd' + Date.now(),
         date, hive, type,
@@ -3472,8 +3504,13 @@ function addDiaryEntry() {
         brood: document.getElementById('diaryCovata').value,
         food: document.getElementById('diaryFood').value,
         varroa: document.getElementById('diaryVarroa').value.trim(),
+        feedType, feedQty, frameAction, frameQty,
         notes: document.getElementById('diaryNotes').value.trim()
     };
+
+    if(frameAction&&hive&&hive!=='Tutte'){
+        _updateHiveFrames(activeApiaryId,hive,frameAction,frameQty);
+    }
 
     const diary = getActiveDiary();
     diary.push(entry);
@@ -3564,6 +3601,9 @@ function editDiaryEntry(idx){
                     <button onclick="qeAppend('Colonia forte',{qeEditStrength:'forte',diaryStrength:'forte'})">💪 Forte</button>
                     <button onclick="qeAppend('Colonia debole',{qeEditStrength:'debole',diaryStrength:'debole'})">⚡ Debole</button>
                     <button onclick="qeFavoDaFuco('${e.hive.replace(/'/g,"\\'")}','${activeApiaryId}')" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>
+                    <button onclick="qeAppend('Dato sciroppo',{qeEditFeedType:'sciroppo'});document.getElementById('qeEditFeedLitersWrap').style.display='flex'" style="border-color:#FFE082;color:#E65100">🧴 Sciroppo</button>
+                    <button onclick="qeAppend('Dato candito',{qeEditFeedType:'candito'});document.getElementById('qeEditFeedLitersWrap').style.display='none'" style="border-color:#FFE082;color:#E65100">🍬 Candito</button>
+                    <button onclick="qeAppend('Inserito telaio',{qeEditFrameAction:'inserito'})" style="border-color:#90CAF9;color:#1565C0">🖼️ +Telaio</button>
                 </div>
                 <div style="font-size:.85em;font-weight:600;color:var(--gray-dark);margin:8px 0 4px">Dettagli:</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -3573,6 +3613,32 @@ function editDiaryEntry(idx){
                     <div><label style="font-size:.78em">Covata</label>${mkSel('qeEditBrood',broodOpts,e.brood||'')}</div>
                     <div><label style="font-size:.78em">Scorte</label>${mkSel('qeEditFood',foodOpts,e.food||'')}</div>
                     <div><label style="font-size:.78em">Varroa</label><input type="text" id="qeEditVarroa" value="${e.varroa||''}" placeholder="es. 3/100" style="width:100%;min-height:40px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:.95em;box-sizing:border-box"></div>
+                </div>
+                <div style="margin-top:8px;padding:8px 10px;background:#FFF8E1;border-radius:8px;border:1px solid #FFE082">
+                    <div style="font-size:.82em;font-weight:700;color:#E65100;margin-bottom:6px">🍯 Nutrimento</div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <select id="qeEditFeedType" onchange="document.getElementById('qeEditFeedLitersWrap').style.display=this.value==='sciroppo'?'flex':'none'" style="min-height:38px;padding:4px 8px;border:1px solid #FFE082;border-radius:6px;font-size:.9em">
+                            <option value=""${!e.feedType?' selected':''}>-- Nessuno --</option>
+                            <option value="sciroppo"${e.feedType==='sciroppo'?' selected':''}>🧴 Sciroppo</option>
+                            <option value="candito"${e.feedType==='candito'?' selected':''}>🍬 Candito</option>
+                        </select>
+                        <div id="qeEditFeedLitersWrap" style="display:${e.feedType==='sciroppo'?'flex':'none'};align-items:center;gap:4px">
+                            <input type="number" id="qeEditFeedQty" min="0" step="0.5" value="${e.feedQty||''}" placeholder="Litri" style="width:80px;min-height:38px;padding:4px 8px;border:1px solid #FFE082;border-radius:6px;font-size:.9em" />
+                            <span style="font-size:.82em;color:var(--gray)">litri</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:8px;padding:8px 10px;background:#E3F2FD;border-radius:8px;border:1px solid #90CAF9">
+                    <div style="font-size:.82em;font-weight:700;color:#1565C0;margin-bottom:6px">🖼️ Telai</div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <select id="qeEditFrameAction" style="min-height:38px;padding:4px 8px;border:1px solid #90CAF9;border-radius:6px;font-size:.9em">
+                            <option value=""${!e.frameAction?' selected':''}>-- Nessuna azione --</option>
+                            <option value="inserito"${e.frameAction==='inserito'?' selected':''}>➕ Inserito telaio</option>
+                            <option value="rimosso"${e.frameAction==='rimosso'?' selected':''}>➖ Rimosso telaio</option>
+                        </select>
+                        <input type="number" id="qeEditFrameQty" min="1" max="20" value="${e.frameQty||1}" style="width:60px;min-height:38px;padding:4px 8px;border:1px solid #90CAF9;border-radius:6px;font-size:.9em" />
+                        <span style="font-size:.82em;color:var(--gray)">telai</span>
+                    </div>
                 </div>
                 <button class="diary-details-toggle" onclick="document.getElementById('editTaskArea').style.display=document.getElementById('editTaskArea').style.display==='none'?'':'none'" style="background:#E3F2FD;color:#1565C0;border-left-color:#1976D2;margin-top:8px">📋 Aggiungi attività al planner</button>
                 <div id="editTaskArea" style="display:none;padding:10px 12px;background:#F5F9FF;border-radius:8px;margin-bottom:8px">
@@ -3615,6 +3681,19 @@ function saveEditDiary(idx){
     e.brood=document.getElementById('qeEditBrood').value;
     e.food=document.getElementById('qeEditFood').value;
     e.varroa=document.getElementById('qeEditVarroa').value.trim();
+    const oldFrameAction=e.frameAction||'';
+    const oldFrameQty=e.frameQty||0;
+    e.feedType=(document.getElementById('qeEditFeedType')||{}).value||'';
+    e.feedQty=e.feedType==='sciroppo'?parseFloat((document.getElementById('qeEditFeedQty')||{}).value)||0:0;
+    e.frameAction=(document.getElementById('qeEditFrameAction')||{}).value||'';
+    e.frameQty=e.frameAction?parseInt((document.getElementById('qeEditFrameQty')||{}).value)||1:0;
+    // Update hive frames if changed
+    if((e.frameAction!==oldFrameAction||e.frameQty!==oldFrameQty)&&hive&&hive!=='Tutte'){
+        // Reverse old action first
+        if(oldFrameAction) _updateHiveFrames(activeApiaryId,hive,oldFrameAction==='inserito'?'rimosso':'inserito',oldFrameQty);
+        // Apply new action
+        if(e.frameAction) _updateHiveFrames(activeApiaryId,hive,e.frameAction,e.frameQty);
+    }
     diary.sort((a,b)=>b.date.localeCompare(a.date));
     saveDiary(activeApiaryId,diary);
     // Save planner task if filled
@@ -3682,6 +3761,11 @@ function setDiaryFilter(val) {
 function toggleDiaryForm() {
     const area = document.getElementById('diaryDetailsArea');
     if (area) area.classList.toggle('open');
+}
+function toggleFeedLiters() {
+    const sel = document.getElementById('diaryFeedType') || document.getElementById('qeEditFeedType');
+    const wrap = document.getElementById('feedLitersWrap') || document.getElementById('qeEditFeedLitersWrap');
+    if (sel && wrap) wrap.style.display = sel.value === 'sciroppo' ? 'flex' : 'none';
 }
 function toggleDiaryTask() {
     const area = document.getElementById('diaryTaskArea');
@@ -3751,6 +3835,9 @@ function renderDiary() {
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia forte',{diaryStrength:'forte'})">💪 Forte</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia debole',{diaryStrength:'debole'})">⚡ Debole</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Sciamatura in corso')">🐝 Sciamatura</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Dato sciroppo',{diaryFeedType:'sciroppo'});toggleFeedLiters()" style="border-color:#FFE082;color:#E65100">🧴 Sciroppo</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Dato candito',{diaryFeedType:'candito'});toggleFeedLiters()" style="border-color:#FFE082;color:#E65100">🍬 Candito</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Inserito telaio',{diaryFrameAction:'inserito'})" style="border-color:#90CAF9;color:#1565C0">🖼️ +Telaio</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceFavoDaFuco()" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>`;
     h += `</div>`;
 
@@ -3764,6 +3851,28 @@ function renderDiary() {
     h += `<div><label>Covata</label><select id="diaryCovata"><option value="">--</option><option value="ottima">Ottima</option><option value="buona">Buona</option><option value="irregolare">Irregolare</option><option value="assente">Assente</option></select></div>`;
     h += `<div><label>Scorte</label><select id="diaryFood"><option value="">--</option><option value="abbondanti">Abbondanti</option><option value="sufficienti">Sufficienti</option><option value="scarse">Scarse</option></select></div>`;
     h += `<div><label>Varroa</label><input type="text" id="diaryVarroa" placeholder="es. 3 su 100 api" /></div>`;
+    h += `</div>`;
+    h += `<div style="margin-top:8px;padding:8px 10px;background:#FFF8E1;border-radius:8px;border:1px solid #FFE082">`;
+    h += `<div style="font-size:.82em;font-weight:700;color:#E65100;margin-bottom:6px">🍯 Nutrimento</div>`;
+    h += `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">`;
+    h += `<select id="diaryFeedType" onchange="toggleFeedLiters()" style="min-height:38px;padding:4px 8px;border:1px solid #FFE082;border-radius:6px;font-size:.9em">`;
+    h += `<option value="">-- Nessuno --</option><option value="sciroppo">🧴 Sciroppo</option><option value="candito">🍬 Candito</option>`;
+    h += `</select>`;
+    h += `<div id="feedLitersWrap" style="display:none;align-items:center;gap:4px">`;
+    h += `<input type="number" id="diaryFeedQty" min="0" step="0.5" placeholder="Litri" style="width:80px;min-height:38px;padding:4px 8px;border:1px solid #FFE082;border-radius:6px;font-size:.9em" />`;
+    h += `<span style="font-size:.82em;color:var(--gray)">litri</span>`;
+    h += `</div>`;
+    h += `</div>`;
+    h += `</div>`;
+    h += `<div style="margin-top:8px;padding:8px 10px;background:#E3F2FD;border-radius:8px;border:1px solid #90CAF9">`;
+    h += `<div style="font-size:.82em;font-weight:700;color:#1565C0;margin-bottom:6px">🖼️ Telai</div>`;
+    h += `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">`;
+    h += `<select id="diaryFrameAction" style="min-height:38px;padding:4px 8px;border:1px solid #90CAF9;border-radius:6px;font-size:.9em">`;
+    h += `<option value="">-- Nessuna azione --</option><option value="inserito">➕ Inserito telaio</option><option value="rimosso">➖ Rimosso telaio</option>`;
+    h += `</select>`;
+    h += `<input type="number" id="diaryFrameQty" min="1" max="20" value="1" style="width:60px;min-height:38px;padding:4px 8px;border:1px solid #90CAF9;border-radius:6px;font-size:.9em" />`;
+    h += `<span style="font-size:.82em;color:var(--gray)">telai</span>`;
+    h += `</div>`;
     h += `</div>`;
     h += `</div>`;
 
@@ -3834,6 +3943,8 @@ function renderDiary() {
             if (e.brood) details.push({ label: 'Covata', val: e.brood });
             if (e.food) details.push({ label: 'Scorte', val: e.food });
             if (e.varroa) details.push({ label: 'Varroa', val: e.varroa });
+            if (e.feedType) details.push({ label: '🍯 Nutrimento', val: e.feedType==='sciroppo' ? `Sciroppo${e.feedQty?' ('+e.feedQty+' l)':''}` : 'Candito' });
+            if (e.frameAction) details.push({ label: '🖼️ Telai', val: (e.frameAction==='inserito'?'+ ':'- ')+(e.frameQty||1)+' telaio'+(e.frameQty>1?'i':'') });
 
             if (details.length) {
                 h += `<div class="diary-entry-detail">`;

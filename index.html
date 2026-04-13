@@ -3768,6 +3768,10 @@ function toggleDiaryForm() {
     const area = document.getElementById('diaryDetailsArea');
     if (area) area.classList.toggle('open');
 }
+function openDiaryDetails() {
+    const area = document.getElementById('diaryDetailsArea');
+    if (area && !area.classList.contains('open')) area.classList.add('open');
+}
 function toggleFeedLiters() {
     const sel = document.getElementById('diaryFeedType') || document.getElementById('qeEditFeedType');
     const wrap = document.getElementById('feedLitersWrap') || document.getElementById('qeEditFeedLitersWrap');
@@ -3841,9 +3845,9 @@ function renderDiary() {
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia forte',{diaryStrength:'forte'})">💪 Forte</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia debole',{diaryStrength:'debole'})">⚡ Debole</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Sciamatura in corso')">🐝 Sciamatura</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Dato sciroppo',{diaryFeedType:'sciroppo'});toggleFeedLiters()" style="border-color:#FFE082;color:#E65100">🧴 Sciroppo</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Dato candito',{diaryFeedType:'candito'});toggleFeedLiters()" style="border-color:#FFE082;color:#E65100">🍬 Candito</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Inserito telaio',{diaryFrameAction:'inserito'})" style="border-color:#90CAF9;color:#1565C0">🖼️ +Telaio</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Dato sciroppo',{diaryFeedType:'sciroppo'});openDiaryDetails();toggleFeedLiters()" style="border-color:#FFE082;color:#E65100">🧴 Sciroppo</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Dato candito',{diaryFeedType:'candito'});openDiaryDetails();toggleFeedLiters()" style="border-color:#FFE082;color:#E65100">🍬 Candito</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Inserito telaio',{diaryFrameAction:'inserito'});openDiaryDetails()" style="border-color:#90CAF9;color:#1565C0">🖼️ +Telaio</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceFavoDaFuco()" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>`;
     h += `</div>`;
 

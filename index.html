@@ -1954,6 +1954,17 @@ function getHiveFrameCount(apiaryId, hiveName) {
     return hive ? (hive.frames || 0) : 0;
 }
 
+function editHiveFrames(hiveId) {
+    const reg = loadHiveRegistry(activeApiaryId);
+    const hive = reg.find(h => h.id === hiveId);
+    if (!hive) return;
+    const val = prompt(`Numero telai per "${hive.name}":`, hive.frames || 0);
+    if (val === null) return;
+    hive.frames = Math.max(0, parseInt(val) || 0);
+    saveHiveRegistry(activeApiaryId, reg);
+    renderHiveRegistry();
+}
+
 let selectedHiveId = null;
 
 function addHiveToRegistry(){
@@ -1963,9 +1974,10 @@ function addHiveToRegistry(){
     const status=document.getElementById("regHiveStatus").value;
     const created=document.getElementById("regHiveDate").value||new Date().toISOString().split("T")[0];
     const notes=document.getElementById("regHiveNotes").value.trim();
+    const frames=parseInt((document.getElementById("regHiveFrames")||{}).value)||0;
     const reg=loadHiveRegistry(activeApiaryId);
     const ap=apiaries.find(a=>a.id===activeApiaryId);
-    const hive={id:"h"+Date.now(),name,type,status,created,notes,locations:[{apiaryId:activeApiaryId,apiaryName:ap?ap.name:'',from:created,to:null}]};
+    const hive={id:"h"+Date.now(),name,type,status,created,notes,frames,locations:[{apiaryId:activeApiaryId,apiaryName:ap?ap.name:'',from:created,to:null}]};
     reg.push(hive);
     reg.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
     saveHiveRegistry(activeApiaryId,reg);
@@ -3157,7 +3169,7 @@ function buildHiveReport(hive){
     h+=`<div class="hive-stat"><div class="hive-stat-value">${totalVisits}</div><div class="hive-stat-label">Visite totali</div></div>`;
     h+=`<div class="hive-stat"><div class="hive-stat-value">${daysSinceLast!==null?daysSinceLast+"g":"—"}</div><div class="hive-stat-label">Dall'ultima visita</div></div>`;
     h+=`<div class="hive-stat"><div class="hive-stat-value">${treatmentsThisYear}</div><div class="hive-stat-label">Trattamenti ${now.getFullYear()}</div></div>`;
-    h+=`<div class="hive-stat"><div class="hive-stat-value">${hive.frames||0}</div><div class="hive-stat-label">🖼️ Telai</div></div>`;
+    h+=`<div class="hive-stat" onclick="editHiveFrames('${hive.id}')" style="cursor:pointer" title="Clicca per modificare"><div class="hive-stat-value">${hive.frames||0}</div><div class="hive-stat-label">🖼️ Telai ✏️</div></div>`;
     h+=`</div>`;
 
     // Location history
@@ -3238,6 +3250,7 @@ function renderHiveRegistry(){
     h+=`<div><label>Stato</label><select id="regHiveStatus"><option value="attiva">Attiva</option><option value="inattiva">Inattiva</option><option value="persa">Persa</option><option value="venduta">Venduta</option><option value="unita">Unita</option></select></div>`;
     h+=`<div><label>Data</label><input type="date" id="regHiveDate" value="${today}"></div>`;
     h+=`<div><label>Note</label><input type="text" id="regHiveNotes" placeholder="Origine, note..."></div>`;
+    h+=`<div><label>🖼️ Telai</label><input type="number" id="regHiveFrames" min="0" max="30" value="0" placeholder="0" style="width:70px"></div>`;
     h+=`<div><label>&nbsp;</label><button class="registry-btn-add" onclick="addHiveToRegistry()">+ Aggiungi</button></div>`;
     h+=`</div>`;
 

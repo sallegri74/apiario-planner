@@ -3157,16 +3157,7 @@ function buildHiveReport(hive){
     h+=`<div class="hive-stat"><div class="hive-stat-value">${totalVisits}</div><div class="hive-stat-label">Visite totali</div></div>`;
     h+=`<div class="hive-stat"><div class="hive-stat-value">${daysSinceLast!==null?daysSinceLast+"g":"—"}</div><div class="hive-stat-label">Dall'ultima visita</div></div>`;
     h+=`<div class="hive-stat"><div class="hive-stat-value">${treatmentsThisYear}</div><div class="hive-stat-label">Trattamenti ${now.getFullYear()}</div></div>`;
-
-    // Last inspection details
-    if(lastInspection){
-        const details=[];
-        if(lastInspection.queen&&lastInspection.queen!=="non verificata") details.push(lastInspection.queen==="vista"?"👑 Vista":"⚠️ Non vista");
-        if(lastInspection.strength) details.push(lastInspection.strength==="forte"?"💪 Forte":lastInspection.strength==="media"?"➡️ Media":"⚠️ Debole");
-        if(lastInspection.brood) details.push(lastInspection.brood==="ottima"?"🥚 Ottima":lastInspection.brood==="buona"?"🥚 Buona":lastInspection.brood==="irregolare"?"⚠️ Irregolare":"❌ Assente");
-        if(lastInspection.food) details.push(lastInspection.food==="abbondanti"?"🍯 Abbondanti":lastInspection.food==="sufficienti"?"🍯 Sufficienti":"⚠️ Scarse");
-        h+=`<div class="hive-stat"><div class="hive-stat-value" style="font-size:.85em">${details.join(" ")||"—"}</div><div class="hive-stat-label">Ultima ispezione (${formatDateIT(lastInspection.date)})</div></div>`;
-    }
+    h+=`<div class="hive-stat"><div class="hive-stat-value">${hive.frames||0}</div><div class="hive-stat-label">🖼️ Telai</div></div>`;
     h+=`</div>`;
 
     // Location history

@@ -3170,8 +3170,13 @@ function buildHiveReport(hive){
     h+=`<div class="hive-stat"><div class="hive-stat-value">${daysSinceLast!==null?daysSinceLast+"g":"—"}</div><div class="hive-stat-label">Dall'ultima visita</div></div>`;
     h+=`<div class="hive-stat"><div class="hive-stat-value">${treatmentsThisYear}</div><div class="hive-stat-label">Trattamenti ${now.getFullYear()}</div></div>`;
     h+=`<div class="hive-stat" onclick="editHiveFrames('${hive.id}')" style="cursor:pointer" title="Clicca per modificare"><div class="hive-stat-value">${hive.frames||0}</div><div class="hive-stat-label">🖼️ Telai ✏️</div></div>`;
-    const totalSyrup=entries.filter(e=>e.feedType==='sciroppo'&&e.feedQty).reduce((s,e)=>s+(e.feedQty||0),0);
-    h+=`<div class="hive-stat"><div class="hive-stat-value">${totalSyrup?totalSyrup+'l':'—'}</div><div class="hive-stat-label">🧴 Sciroppo dato</div></div>`;
+    const syrupEntries=entries.filter(e=>e.feedType==='sciroppo');
+    const totalSyrup=syrupEntries.reduce((s,e)=>s+(e.feedQty||0),0);
+    const canditoEntries=entries.filter(e=>e.feedType==='candito');
+    let feedText='—';
+    if(totalSyrup>0) feedText=totalSyrup+'l';
+    else if(syrupEntries.length>0) feedText=syrupEntries.length+'x';
+    h+=`<div class="hive-stat"><div class="hive-stat-value">${feedText}</div><div class="hive-stat-label">🧴 Sciroppo${canditoEntries.length?' + 🍬'+canditoEntries.length+'x':''}</div></div>`;
     h+=`</div>`;
 
     // Location history
@@ -3458,7 +3463,17 @@ function voiceSaveEntry(){
     const food=(document.getElementById('diaryFood')||{}).value||'';
     const varroa=(document.getElementById('diaryVarroa')||{value:''}).value.trim();
     const feedType=(document.getElementById('diaryFeedType')||{}).value||'';
-    const feedQty=feedType==='sciroppo'?parseFloat((document.getElementById('diaryFeedQty')||{}).value)||0:0;
+    let feedQty=0;
+    if(feedType==='sciroppo'){
+        feedQty=parseFloat((document.getElementById('diaryFeedQty')||{}).value)||0;
+        if(!feedQty){
+            openDiaryDetails();
+            const el=document.getElementById('diaryFeedQty');
+            if(el){el.style.border='2px solid #E53935';el.focus();}
+            alert('Inserisci i litri di sciroppo');
+            return;
+        }
+    }
     const frameAction=(document.getElementById('diaryFrameAction')||{}).value||'';
     const frameQty=frameAction?parseInt((document.getElementById('diaryFrameQty')||{}).value)||1:0;
     const entry={id:'d'+Date.now(),date,hive,type,queen,temper,strength,brood,food,varroa,feedType,feedQty,frameAction,frameQty,notes};
@@ -3845,7 +3860,7 @@ function renderDiary() {
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia forte',{diaryStrength:'forte'})">💪 Forte</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Colonia debole',{diaryStrength:'debole'})">⚡ Debole</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Sciamatura in corso')">🐝 Sciamatura</button>`;
-    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Dato sciroppo',{diaryFeedType:'sciroppo'});openDiaryDetails();toggleFeedLiters()" style="border-color:#FFE082;color:#E65100">🧴 Sciroppo</button>`;
+    h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Dato sciroppo',{diaryFeedType:'sciroppo'});openDiaryDetails();toggleFeedLiters();setTimeout(()=>{const f=document.getElementById('diaryFeedQty');if(f){f.style.display='';f.parentElement.style.display='flex';f.focus();}},100)" style="border-color:#FFE082;color:#E65100">🧴 Sciroppo</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Dato candito',{diaryFeedType:'candito'});openDiaryDetails();toggleFeedLiters()" style="border-color:#FFE082;color:#E65100">🍬 Candito</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceAppendQuick('Inserito telaio',{diaryFrameAction:'inserito'});openDiaryDetails()" style="border-color:#90CAF9;color:#1565C0">🖼️ +Telaio</button>`;
     h += `<button class="voice-quick-btn" onclick="voiceFavoDaFuco()" style="border-color:#E53935;color:#C62828">🐝 Favo da fuco</button>`;

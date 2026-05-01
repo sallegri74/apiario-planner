@@ -2667,6 +2667,26 @@ let syncDebounceTimer=null;
 function getSyncToken(){ return localStorage.getItem(SYNC_TOKEN_KEY)||''; }
 function getSyncGistId(){ return localStorage.getItem(SYNC_GIST_KEY)||''; }
 
+function handleAuthError(){
+    const msg = 'Il token GitHub non è più valido (scaduto o revocato).\n\n' +
+                'Per ripristinare la sincronizzazione devi:\n' +
+                '1. Generare un nuovo token su GitHub\n' +
+                '2. Inserirlo nuovamente nell\'app\n\n' +
+                'Vuoi aprire ora la pagina GitHub per generare un nuovo token?\n\n' +
+                'IMPORTANTE: i tuoi dati locali NON saranno cancellati.';
+    if(confirm(msg)){
+        window.open('https://github.com/settings/tokens/new?description=Apiario%20Planner&scopes=gist','_blank');
+        setTimeout(()=>{
+            const newToken = prompt('Incolla qui il nuovo token GitHub (inizia con "ghp_" o "github_pat_"):');
+            if(newToken && newToken.trim()){
+                localStorage.setItem(SYNC_TOKEN_KEY, newToken.trim());
+                alert('Token aggiornato! Riprova ora la sincronizzazione.');
+                renderSyncUI();
+            }
+        }, 1500);
+    }
+}
+
 function renderSyncUI(){
     const el=document.getElementById('syncUI');
     if(!el)return;
@@ -2978,6 +2998,11 @@ async function cloudPush(){
                 body:JSON.stringify({files:{'apiario-data.json':{content}}})
             });
             if(!res.ok){
+                if(res.status===401||res.status===403){
+                    if(btn){btn.disabled=false;btn.textContent='☁️ Salva nel cloud';}
+                    handleAuthError();
+                    return;
+                }
                 if(res.status===404){localStorage.removeItem(SYNC_GIST_KEY);await cloudPush();return;}
                 throw new Error('Errore aggiornamento: '+res.status);
             }
@@ -2991,6 +3016,11 @@ async function cloudPush(){
                     files:{'apiario-data.json':{content}}
                 })
             });
+            if(res.status===401||res.status===403){
+                if(btn){btn.disabled=false;btn.textContent='☁️ Salva nel cloud';}
+                handleAuthError();
+                return;
+            }
             if(!res.ok) throw new Error('Errore creazione gist: '+res.status);
             const gist=await res.json();
             localStorage.setItem(SYNC_GIST_KEY,gist.id);
@@ -3015,6 +3045,19 @@ async function cloudPull(silent){
         const res=await fetch('https://api.github.com/gists/'+gistId,{
             headers:{'Authorization':'Bearer '+token}
         });
+        if(res.status===401||res.status===403){
+            if(btn){btn.disabled=false;btn.textContent='📥 Scarica dal cloud';}
+            handleAuthError();
+            return;
+        }
+        if(res.status===404){
+            if(btn){btn.disabled=false;btn.textContent='📥 Scarica dal cloud';}
+            if(confirm('Il gist non esiste più (eliminato o non accessibile).\n\nVuoi cancellare il riferimento e ricreare un nuovo backup?')){
+                localStorage.removeItem(SYNC_GIST_KEY);
+                renderSyncUI();
+            }
+            return;
+        }
         if(!res.ok) throw new Error('Errore lettura gist: '+res.status);
         const gist=await res.json();
         const file=gist.files['apiario-data.json'];

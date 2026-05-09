@@ -1,0 +1,151 @@
+═══════════════════════════════════════════════════════════════
+   APIARIO PLANNER — ISTRUZIONI DEPLOY SU INFOMANIAK
+═══════════════════════════════════════════════════════════════
+
+Questa cartella "deploy" contiene TUTTO il necessario per pubblicare
+l'app su allegri.ch ospitato da Infomaniak.
+
+File contenuti:
+  • index.html    → l'app (singolo file, ~500 KB)
+  • .htaccess     → configurazione server (HTTPS, sicurezza, cache)
+
+
+═══════════════════════════════════════════════════════════════
+   OPZIONE A: SOTTOCARTELLA → https://allegri.ch/apiario/
+═══════════════════════════════════════════════════════════════
+
+Più semplice, non richiede configurazione DNS.
+
+PASSO 1 — Connettiti via FTP/SFTP
+─────────────────────────────────
+1. Apri il Manager Infomaniak: https://manager.infomaniak.com
+2. Vai su: Hosting → allegri.ch → "FTP/SSH"
+3. Annota: host, username, password (li trovi qui)
+4. Apri FileZilla (o WinSCP)
+5. Connettiti con i dati sopra
+
+PASSO 2 — Crea la cartella e carica
+────────────────────────────────────
+1. Naviga nella cartella web del sito allegri.ch
+   (di solito si chiama "sites/allegri.ch" o "www" o "public_html")
+2. Crea una nuova cartella chiamata "apiario"
+3. Entra dentro "apiario"
+4. Carica i 2 file da questa cartella deploy:
+   - index.html
+   - .htaccess  (IMPORTANTE: file nascosto, abilita "mostra file
+                  nascosti" in FileZilla con Ctrl+H)
+
+PASSO 3 — Verifica
+──────────────────
+Apri nel browser: https://allegri.ch/apiario/
+✓ Deve apparire la schermata di login
+✓ L'URL deve avere il lucchetto verde (HTTPS)
+
+
+═══════════════════════════════════════════════════════════════
+   OPZIONE B: SOTTODOMINIO → https://apiario.allegri.ch/
+═══════════════════════════════════════════════════════════════
+
+Più pulito ma richiede 2 passaggi extra (DNS + creazione sito).
+
+PASSO 1 — Crea il sottodominio
+──────────────────────────────
+1. Manager Infomaniak → Domini → allegri.ch
+2. Sezione "DNS / Sottodomini"
+3. Crea sottodominio: apiario.allegri.ch
+   (Infomaniak crea automaticamente il record DNS)
+
+PASSO 2 — Crea il sito Web
+──────────────────────────
+1. Manager Infomaniak → Hosting → allegri.ch
+2. "Aggiungi sito" → seleziona apiario.allegri.ch
+3. Imposta cartella radice (es. "/sites/apiario.allegri.ch/")
+4. Attiva certificato Let's Encrypt (gratis, automatico)
+
+PASSO 3 — Carica i file
+───────────────────────
+Via FTP nella cartella radice del nuovo sito carica:
+   - index.html
+   - .htaccess
+
+
+═══════════════════════════════════════════════════════════════
+   IMPORTANTE: TRASFERIMENTO DEI DATI
+═══════════════════════════════════════════════════════════════
+
+I dati sono salvati nel localStorage del browser, LEGATO AL DOMINIO.
+Quando passi da sallegri74.github.io a allegri.ch, i dati NON sono
+visibili automaticamente perché sono su un altro dominio.
+
+PROCEDURA (UN'UNICA VOLTA):
+
+1) SUL VECCHIO SITO (sallegri74.github.io/apiario-planner/)
+   ─────────────────────────────────────────────────────────
+   • Login con la tua password
+   • Vai nella sezione Sicurezza/Sync
+   • Premi "☁️ Salva nel cloud" (push verso GitHub Gist)
+   • Attendi conferma "Salvato"
+
+2) SUL NUOVO SITO (allegri.ch/apiario/)
+   ──────────────────────────────────────
+   • Apri il sito
+   • Crea/inserisci la STESSA PASSWORD usata prima
+     (cruciale: la password è la chiave di cifratura)
+   • Vai nella sezione Sync
+   • Inserisci lo STESSO TOKEN GitHub (lo trovi nel localStorage
+     del vecchio sito, oppure ne generi uno nuovo)
+   • Premi "📥 Scarica dal cloud"
+   • Tutti i dati (apiari, arnie, diari, planner) ricompariranno
+
+⚠ PASSWORD: deve essere identica perché la chiave di cifratura dei
+   dati nel cloud è derivata dalla password. Se dimentichi la
+   password vecchia, i dati cifrati nel cloud non sono recuperabili.
+
+
+═══════════════════════════════════════════════════════════════
+   AGGIORNAMENTI FUTURI
+═══════════════════════════════════════════════════════════════
+
+Ogni volta che il file index.html viene aggiornato sulla repo
+GitHub, basta:
+1. Scaricare il nuovo index.html
+2. Caricarlo via FTP sostituendo il vecchio
+3. (Eventualmente svuotare la cache del browser con Ctrl+F5)
+
+Il file .htaccess di solito non cambia.
+
+
+═══════════════════════════════════════════════════════════════
+   PROBLEMI COMUNI E SOLUZIONI
+═══════════════════════════════════════════════════════════════
+
+❌ "Errore: getUserMedia not allowed"
+   → HTTPS non attivo. Verifica che Let's Encrypt sia attivato
+     in Manager → Hosting → SSL/TLS.
+
+❌ "crypto.subtle is undefined"
+   → HTTPS non attivo (stessa soluzione sopra) oppure browser
+     molto vecchio (richiede Chrome 60+, Firefox 60+, Safari 11+).
+
+❌ "Pagina bianca / app non carica"
+   → Controlla console browser (F12). Spesso è blocco CDN
+     (leaflet, qrcode). Verifica che i CDN siano raggiungibili.
+
+❌ "Sincronizzazione dà errore 401"
+   → Token GitHub scaduto. L'app mostra ora un dialogo guidato
+     per rigenerarlo.
+
+❌ ".htaccess sembra non funzionare"
+   → Su Infomaniak Apache è attivo di default. Verifica che
+     mod_rewrite, mod_headers, mod_deflate siano abilitati
+     (di solito lo sono). Se serve, contatta supporto Infomaniak.
+
+
+═══════════════════════════════════════════════════════════════
+   CONTATTI
+═══════════════════════════════════════════════════════════════
+
+Repository GitHub:  https://github.com/sallegri74/apiario-planner
+Supporto Infomaniak: https://www.infomaniak.com/it/supporto
+
+═══════════════════════════════════════════════════════════════

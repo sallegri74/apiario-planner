@@ -1,0 +1,45 @@
+# =========================================================
+# Apiario Planner - configurazione Apache per Infomaniak
+# =========================================================
+
+# Forza HTTPS (necessario per crypto.subtle, getUserMedia, MediaRecorder)
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Default file
+DirectoryIndex index.html
+
+# MIME types corretti
+<IfModule mod_mime.c>
+    AddType text/html .html
+    AddType application/manifest+json .webmanifest
+    AddCharset UTF-8 .html .json .js .css
+</IfModule>
+
+# Compressione gzip (riduce il file da ~500KB a ~120KB)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+# Cache: HTML breve (per aggiornamenti rapidi), risorse statiche lunga
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 5 minutes"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
+
+# Headers di sicurezza
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(self), microphone=(self), geolocation=(self)"
+    # HSTS: forza HTTPS per 6 mesi (attivare solo dopo che HTTPS funziona perfettamente)
+    # Header set Strict-Transport-Security "max-age=15768000; includeSubDomains"
+</IfModule>
+
+# Custom error pages (opzionale)
+ErrorDocument 404 /index.html

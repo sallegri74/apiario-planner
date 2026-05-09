@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#C47F0A">
+    <title>🍯 Miele dell'Apiario Allegri — Ticino</title>
+    <link rel="icon" type="image/png" href="ape.png">
+    <link rel="apple-touch-icon" href="ape.png">
+    <meta name="description" content="Miele artigianale del Ticino: acacia, castagno, tiglio, millefiori. Prodotto a Claro da apicoltore locale.">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --honey: #F5A623;
+            --honey-light: #FFF3D6;
+            --honey-dark: #C47F0A;
+            --brown: #6D4C2E;
+            --brown-dark: #4E342E;
+            --cream: #FFF8E7;
+            --gold: #FFE082;
+            --green: #8FBF7F;
+            --red: #E53935;
+            --text: #4E342E;
+            --gray: #A07855;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            color: var(--text);
+            background: var(--cream);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        a { color: var(--honey-dark); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        button { font-family: inherit; cursor: pointer; }
+
+        /* === HEADER === */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 248, 231, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--gold);
+            padding: 12px 20px;
+        }
+        .header-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--brown-dark);
+        }
+        .header-logo img { width: 42px; height: 42px; object-fit: contain; }
+        .header-logo-text { font-weight: 800; font-size: 1.05em; line-height: 1.1; }
+        .header-logo-text small { display: block; font-size: 0.7em; color: var(--gray); font-weight: 500; }
+        .header-nav { display: flex; gap: 18px; align-items: center; }
+        .header-nav a { font-size: 0.92em; font-weight: 600; }
+        .cart-btn {
+            position: relative;
+            background: var(--honey);
+            color: white;
+            border: none;
+            padding: 8px 16px 8px 14px;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 0.92em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 3px 10px rgba(196, 127, 10, 0.25);
+            transition: transform 0.15s;
+        }
+        .cart-btn:hover { transform: translateY(-2px); }
+        .cart-count {
+            background: var(--brown-dark);
+            color: white;
+            border-radius: 100px;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78em;
+            font-weight: 800;
+        }
+
+        /* === HERO === */
+        .hero {
+            background: linear-gradient(135deg, #FFF8E7 0%, #FFE9B0 50%, #F5C76A 100%);
+            padding: 60px 20px 50px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-inner { max-width: 800px; margin: 0 auto; position: relative; }
+        .hero-bee {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 16px;
+            animation: float 4s ease-in-out infinite;
+        }
+        .hero-bee img {
+            width: 100%; height: 100%; object-fit: contain;
+            filter: drop-shadow(0 8px 22px rgba(196, 127, 10, 0.25));
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(-1deg); }
+            50% { transform: translateY(-12px) rotate(1deg); }
+        }
+        .hero h1 {
+            font-size: 2.6em;
+            color: var(--brown-dark);
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+        .hero p { font-size: 1.1em; color: var(--brown); max-width: 540px; margin: 0 auto; }
+        .hero-tags {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+            margin-top: 22px;
+        }
+        .hero-tag {
+            background: white;
+            color: var(--brown);
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.85em;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* === SECTIONS === */
+        section { padding: 60px 20px; }
+        .section-inner { max-width: 1100px; margin: 0 auto; }
+        .section-title {
+            text-align: center;
+            font-size: 2em;
+            color: var(--brown-dark);
+            margin-bottom: 8px;
+        }
+        .section-subtitle {
+            text-align: center;
+            color: var(--gray);
+            margin-bottom: 40px;
+            font-size: 1em;
+        }
+
+        /* === PRODUCTS === */
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 22px;
+        }
+        .product {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(78, 52, 46, 0.08);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+        }
+        .product:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(196, 127, 10, 0.15);
+            border-color: var(--gold);
+        }
+        .product-icon {
+            font-size: 4em;
+            text-align: center;
+            margin-bottom: 12px;
+            line-height: 1;
+        }
+        .product-jar {
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(180deg, transparent 0%, transparent 25%, var(--jar-color, #F5A623) 25%, var(--jar-color, #F5A623) 100%);
+            border-radius: 8px 8px 14px 14px;
+            position: relative;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .product-jar::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 18px;
+            background: var(--brown);
+            border-radius: 3px;
+        }
+        .product-jar::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            color: var(--brown-dark);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+        .product h3 {
+            font-size: 1.25em;
+            color: var(--brown-dark);
+            margin-bottom: 6px;
+        }
+        .product-desc {
+            font-size: 0.9em;
+            color: var(--gray);
+            margin-bottom: 14px;
+            flex: 1;
+        }
+        .product-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 14px;
+        }
+        .product-tag {
+            background: var(--honey-light);
+            color: var(--brown);
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-size: 0.72em;
+            font-weight: 600;
+        }
+        .product-sizes {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .product-size {
+            flex: 1;
+            min-width: 80px;
+            background: var(--cream);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 8px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .product-size:hover { border-color: var(--gold); }
+        .product-size.selected {
+            background: var(--honey-light);
+            border-color: var(--honey);
+        }
+        .product-size-name { font-size: 0.78em; color: var(--gray); display: block; }
+        .product-size-price { font-weight: 800; color: var(--brown-dark); font-size: 1em; }
+        .product-add {
+            background: linear-gradient(135deg, var(--honey), var(--honey-dark));
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 3px 10px rgba(196, 127, 10, 0.25);
+            transition: transform 0.15s;
+        }
+        .product-add:hover { transform: translateY(-1px); }
+        .product-add.added { background: linear-gradient(135deg, #66BB6A, #43A047); }
+
+        /* === ABOUT === */
+        .about {
+            background: white;
+        }
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        .about-image {
+            text-align: center;
+        }
+        .about-image img {
+            width: 80%;
+            max-width: 280px;
+            filter: drop-shadow(0 10px 24px rgba(196, 127, 10, 0.2));
+        }
+        .about-text h2 { color: var(--brown-dark); margin-bottom: 16px; font-size: 1.8em; }
+        .about-text p { margin-bottom: 12px; color: var(--brown); }
+        .about-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .feature {
+            background: var(--honey-light);
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 0.88em;
+        }
+        .feature strong { display: block; color: var(--brown-dark); }
+
+        /* === CONTACT === */
+        .contact {
+            background: linear-gradient(135deg, var(--honey-light), var(--gold));
+        }
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .contact-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        .contact-card-icon { font-size: 2.4em; margin-bottom: 8px; }
+        .contact-card strong { display: block; color: var(--brown-dark); margin-bottom: 4px; }
+        .contact-card a { color: var(--honey-dark); font-weight: 600; word-break: break-word; }
+
+        /* === FOOTER === */
+        footer {
+            background: var(--brown-dark);
+            color: var(--cream);
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 0.88em;
+        }
+        footer a { color: var(--gold); }
+
+        /* === CART OVERLAY === */
+        .cart-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            align-items: flex-start;
+            justify-content: flex-end;
+        }
+        .cart-overlay.open { display: flex; }
+        .cart-panel {
+            background: white;
+            width: 100%;
+            max-width: 460px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.25s ease-out;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .cart-header {
+            padding: 20px;
+            background: var(--honey-light);
+            border-bottom: 2px solid var(--gold);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cart-header h2 { color: var(--brown-dark); font-size: 1.3em; }
+        .cart-close {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: var(--brown);
+            width: 36px; height: 36px;
+            border-radius: 100px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .cart-close:hover { background: rgba(0,0,0,0.06); }
+        .cart-body { flex: 1; overflow-y: auto; padding: 16px; }
+        .cart-empty { text-align: center; padding: 40px 20px; color: var(--gray); }
+        .cart-empty-icon { font-size: 3em; margin-bottom: 12px; opacity: 0.6; }
+        .cart-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid var(--honey-light);
+        }
+        .cart-item-icon { font-size: 1.8em; }
+        .cart-item-name { font-weight: 700; color: var(--brown-dark); font-size: 0.95em; }
+        .cart-item-meta { font-size: 0.82em; color: var(--gray); }
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .qty-btn {
+            background: var(--honey-light);
+            border: none;
+            width: 26px; height: 26px;
+            border-radius: 6px;
+            font-weight: 800;
+            color: var(--brown-dark);
+        }
+        .qty-btn:hover { background: var(--gold); }
+        .qty-val { min-width: 26px; text-align: center; font-weight: 700; }
+        .cart-item-price { font-weight: 800; color: var(--brown-dark); }
+        .cart-item-remove {
+            background: none; border: none; color: var(--red);
+            opacity: 0.5; padding: 4px;
+        }
+        .cart-item-remove:hover { opacity: 1; }
+        .cart-footer {
+            padding: 16px 20px;
+            background: var(--cream);
+            border-top: 2px solid var(--gold);
+        }
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2em;
+            font-weight: 800;
+            color: var(--brown-dark);
+            margin-bottom: 12px;
+        }
+        .cart-checkout {
+            width: 100%;
+            background: linear-gradient(135deg, var(--honey), var(--honey-dark));
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1em;
+            box-shadow: 0 4px 12px rgba(196, 127, 10, 0.3);
+        }
+        .cart-checkout:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* === CHECKOUT MODAL === */
+        .checkout-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .checkout-overlay.open { display: flex; }
+        .checkout-modal {
+            background: white;
+            border-radius: 20px;
+            max-width: 520px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .checkout-header {
+            padding: 20px;
+            background: var(--honey-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .checkout-header h2 { color: var(--brown-dark); font-size: 1.3em; }
+        .checkout-body { flex: 1; overflow-y: auto; padding: 20px; }
+        .checkout-summary {
+            background: var(--cream);
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 0.9em;
+        }
+        .checkout-summary-item {
+            display: flex; justify-content: space-between;
+            padding: 4px 0;
+        }
+        .checkout-summary-total {
+            border-top: 1px solid var(--gold);
+            margin-top: 6px; padding-top: 8px;
+            font-weight: 800; font-size: 1.05em;
+            color: var(--brown-dark);
+        }
+        .form-row { margin-bottom: 14px; }
+        .form-row label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.88em;
+            color: var(--brown-dark);
+            margin-bottom: 5px;
+        }
+        .form-row input, .form-row textarea, .form-row select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #ddd;
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-family: inherit;
+            background: white;
+        }
+        .form-row input:focus, .form-row textarea:focus, .form-row select:focus {
+            outline: none;
+            border-color: var(--honey);
+            box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+        }
+        .form-row textarea { resize: vertical; min-height: 70px; }
+        .delivery-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .delivery-option {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+            background: white;
+        }
+        .delivery-option.selected {
+            border-color: var(--honey);
+            background: var(--honey-light);
+        }
+        .delivery-option-icon { font-size: 1.6em; margin-bottom: 4px; }
+        .delivery-option-name { font-weight: 700; font-size: 0.9em; color: var(--brown-dark); }
+        .delivery-option-desc { font-size: 0.78em; color: var(--gray); }
+        .checkout-footer {
+            padding: 16px 20px;
+            background: var(--cream);
+            border-top: 1px solid var(--gold);
+            display: flex;
+            gap: 8px;
+        }
+        .btn-secondary {
+            flex: 1;
+            background: white;
+            color: var(--brown-dark);
+            border: 1.5px solid #ddd;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .btn-primary {
+            flex: 2;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-primary-email {
+            background: linear-gradient(135deg, var(--honey), var(--honey-dark));
+        }
+
+        /* === TOAST === */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            background: var(--brown-dark);
+            color: white;
+            padding: 12px 22px;
+            border-radius: 100px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            z-index: 2000;
+            transition: transform 0.3s;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 720px) {
+            .hero h1 { font-size: 2em; }
+            .hero-bee { width: 140px; height: 140px; }
+            .section-title { font-size: 1.5em; }
+            .header-nav a:not(.cart-btn) { display: none; }
+            .about-grid { grid-template-columns: 1fr; }
+            .about-features { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <a href="#" class="header-logo">
+            <img src="ape.png" alt="">
+            <div class="header-logo-text">
+                Apiario Allegri
+                <small>Miele del Ticino</small>
+            </div>
+        </a>
+        <nav class="header-nav">
+            <a href="#prodotti">Prodotti</a>
+            <a href="#chi-siamo">Chi siamo</a>
+            <a href="#contatti">Contatti</a>
+            <button class="cart-btn" onclick="openCart()">
+                🛒 Carrello
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </nav>
+    </div>
+</header>
+
+<div class="hero">
+    <div class="hero-inner">
+        <div class="hero-bee"><img src="ape.png" alt="Apetta con vasetto di miele"></div>
+        <h1>Miele artigianale del Ticino</h1>
+        <p>Prodotto con cura nei nostri apiari di Claro, raccolto a regola d'arte e lavorato a freddo per preservare tutte le proprietà naturali.</p>
+        <div class="hero-tags">
+            <span class="hero-tag">🌿 100% naturale</span>
+            <span class="hero-tag">🇨🇭 Origine svizzera</span>
+            <span class="hero-tag">🐝 Apicoltore locale</span>
+            <span class="hero-tag">📦 Ritiro o consegna</span>
+        </div>
+    </div>
+</div>
+
+<section id="prodotti">
+    <div class="section-inner">
+        <h2 class="section-title">I nostri mieli</h2>
+        <p class="section-subtitle">Seleziona il formato e aggiungi al carrello</p>
+        <div class="products" id="productsGrid"></div>
+    </div>
+</section>
+
+<section class="about" id="chi-siamo">
+    <div class="section-inner">
+        <div class="about-grid">
+            <div class="about-image">
+                <img src="ape.png" alt="">
+            </div>
+            <div class="about-text">
+                <h2>La nostra apicoltura</h2>
+                <p>Conduciamo i nostri apiari nel cuore del Ticino, in zone collinari ricche di flora spontanea. Le nostre api bottinano in ambienti incontaminati, a contatto con boschi di castagno, acacia e tigli secolari.</p>
+                <p>Ogni vasetto è il risultato di un lavoro stagionale che rispetta i ritmi naturali delle colonie: estraiamo il miele solo quando è maturo, lo filtriamo a freddo e lo invasettiamo manualmente.</p>
+                <div class="about-features">
+                    <div class="feature">
+                        <strong>🌍 Km 0</strong>
+                        Apiari nel Ticino
+                    </div>
+                    <div class="feature">
+                        <strong>❄️ Lavorazione a freddo</strong>
+                        Mai pastorizzato
+                    </div>
+                    <div class="feature">
+                        <strong>🚫 Zero additivi</strong>
+                        Solo miele puro
+                    </div>
+                    <div class="feature">
+                        <strong>♻️ Vasetti restituibili</strong>
+                        Sconto al ritorno
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="contact" id="contatti">
+    <div class="section-inner">
+        <h2 class="section-title">Contatti</h2>
+        <p class="section-subtitle">Per ordini, ritiri o domande</p>
+        <div class="contact-grid">
+            <div class="contact-card">
+                <div class="contact-card-icon">📱</div>
+                <strong>WhatsApp</strong>
+                <a href="https://wa.me/41000000000" target="_blank">+41 00 000 00 00</a>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon">✉️</div>
+                <strong>Email</strong>
+                <a href="mailto:miele@allegri.ch">miele@allegri.ch</a>
+            </div>
+            <div class="contact-card">
+                <div class="contact-card-icon">📍</div>
+                <strong>Ritiro</strong>
+                <span>Claro (TI), su appuntamento</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>© Apiario Allegri · Claro, Ticino · <a href="/">allegri.ch</a></p>
+    <p style="margin-top:6px; font-size: 0.82em; opacity: 0.8">
+        Miele svizzero prodotto secondo le direttive
+    </p>
+</footer>
+
+<!-- Cart panel -->
+<div class="cart-overlay" id="cartOverlay" onclick="if(event.target===this)closeCart()">
+    <div class="cart-panel">
+        <div class="cart-header">
+            <h2>🛒 Il tuo carrello</h2>
+            <button class="cart-close" onclick="closeCart()">✕</button>
+        </div>
+        <div class="cart-body" id="cartBody"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Totale:</span>
+                <span id="cartTotal">CHF 0.00</span>
+            </div>
+            <button class="cart-checkout" id="cartCheckoutBtn" onclick="openCheckout()">
+                Procedi all'ordine →
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Checkout modal -->
+<div class="checkout-overlay" id="checkoutOverlay" onclick="if(event.target===this)closeCheckout()">
+    <div class="checkout-modal">
+        <div class="checkout-header">
+            <h2>📝 Completa l'ordine</h2>
+            <button class="cart-close" onclick="closeCheckout()">✕</button>
+        </div>
+        <div class="checkout-body">
+            <div class="checkout-summary" id="checkoutSummary"></div>
+
+            <div class="form-row">
+                <label>Nome e cognome *</label>
+                <input type="text" id="checkoutName" placeholder="Mario Rossi" required>
+            </div>
+            <div class="form-row">
+                <label>Telefono *</label>
+                <input type="tel" id="checkoutPhone" placeholder="+41 79 000 00 00" required>
+            </div>
+            <div class="form-row">
+                <label>Email</label>
+                <input type="email" id="checkoutEmail" placeholder="mario@example.com">
+            </div>
+            <div class="form-row">
+                <label>Modalità di consegna *</label>
+                <div class="delivery-options">
+                    <div class="delivery-option selected" onclick="selectDelivery('ritiro', this)">
+                        <div class="delivery-option-icon">🏡</div>
+                        <div class="delivery-option-name">Ritiro</div>
+                        <div class="delivery-option-desc">A Claro, su appuntamento</div>
+                    </div>
+                    <div class="delivery-option" onclick="selectDelivery('consegna', this)">
+                        <div class="delivery-option-icon">🚗</div>
+                        <div class="delivery-option-name">Consegna</div>
+                        <div class="delivery-option-desc">In Ticino, da concordare</div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row" id="addressRow" style="display:none">
+                <label>Indirizzo di consegna *</label>
+                <input type="text" id="checkoutAddress" placeholder="Via Roma 10, 6500 Bellinzona">
+            </div>
+            <div class="form-row">
+                <label>Note (opzionale)</label>
+                <textarea id="checkoutNotes" placeholder="Es. data preferita per il ritiro, allergie, ecc."></textarea>
+            </div>
+        </div>
+        <div class="checkout-footer">
+            <button class="btn-secondary" onclick="closeCheckout()">Annulla</button>
+            <button class="btn-primary" onclick="submitOrder('whatsapp')">
+                💬 Invia con WhatsApp
+            </button>
+        </div>
+        <div style="padding: 0 20px 16px; background: var(--cream)">
+            <button class="btn-primary btn-primary-email" style="width:100%; margin-top: 0" onclick="submitOrder('email')">
+                ✉️ Oppure invia per email
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast">Aggiunto al carrello! 🎉</div>
+
+<script>
+// =============== CONFIGURATION ===============
+// Modifica qui prodotti, prezzi e contatti
+const SHOP_CONFIG = {
+    whatsappNumber: '41000000000', // senza + e senza spazi (es. 41791234567)
+    email: 'miele@allegri.ch',
+    currency: 'CHF',
+    shopName: 'Apiario Allegri'
+};
+
+const PRODUCTS = [
+    {
+        id: 'acacia',
+        name: 'Miele di Acacia',
+        icon: '🌼',
+        color: '#FFE082',
+        labelText: 'ACACIA',
+        description: 'Cristallino e dorato chiaro, dal sapore delicato e poco aromatico. Non cristallizza facilmente. Perfetto per dolcificare bevande senza alterarne il gusto.',
+        tags: ['Delicato', 'Liquido', 'Pregiato'],
+        sizes: [
+            { name: '250 g', price: 12 },
+            { name: '500 g', price: 22 },
+            { name: '1 kg', price: 40 }
+        ]
+    },
+    {
+        id: 'castagno',
+        name: 'Miele di Castagno',
+        icon: '🌰',
+        color: '#8D6E63',
+        labelText: 'CASTAGNO',
+        description: 'Ambrato scuro, dal gusto deciso e leggermente amarognolo. Tipico delle valli ticinesi. Ricco di sali minerali e con elevato potere antiossidante.',
+        tags: ['Intenso', 'Amarognolo', 'Ricco di minerali'],
+        sizes: [
+            { name: '250 g', price: 11 },
+            { name: '500 g', price: 20 },
+            { name: '1 kg', price: 36 }
+        ]
+    },
+    {
+        id: 'tiglio',
+        name: 'Miele di Tiglio',
+        icon: '🍃',
+        color: '#C5E1A5',
+        labelText: 'TIGLIO',
+        description: 'Giallo paglierino con riflessi verdi, profumo intenso di fiori di tiglio. Dal gusto fresco e mentolato. Apprezzato per le proprietà calmanti e balsamiche.',
+        tags: ['Aromatico', 'Balsamico', 'Calmante'],
+        sizes: [
+            { name: '250 g', price: 12 },
+            { name: '500 g', price: 22 },
+            { name: '1 kg', price: 40 }
+        ]
+    },
+    {
+        id: 'millefiori',
+        name: 'Millefiori',
+        icon: '🌸',
+        color: '#FFB74D',
+        labelText: 'MILLEFIORI',
+        description: 'Bouquet floreale variabile a seconda della stagione e della zona di raccolta. Colore e gusto cambiano ogni anno: ogni vasetto racconta una primavera diversa.',
+        tags: ['Equilibrato', 'Versatile', 'Stagionale'],
+        sizes: [
+            { name: '250 g', price: 10 },
+            { name: '500 g', price: 18 },
+            { name: '1 kg', price: 32 }
+        ]
+    },
+    {
+        id: 'melata',
+        name: 'Melata di Bosco',
+        icon: '🌲',
+        color: '#5D4037',
+        labelText: 'MELATA',
+        description: 'Scurissimo, denso, ricco di minerali e oligoelementi. Prodotto dalle api a partire dalla melata raccolta su conifere e latifoglie. Sapore maltato, poco dolce.',
+        tags: ['Scuro', 'Maltato', 'Ricco'],
+        sizes: [
+            { name: '250 g', price: 13 },
+            { name: '500 g', price: 24 },
+            { name: '1 kg', price: 44 }
+        ]
+    },
+    {
+        id: 'propoli',
+        name: 'Propoli in tintura',
+        icon: '💧',
+        color: '#A1887F',
+        labelText: 'PROPOLI',
+        description: 'Estratto idroalcolico di propoli grezzo dei nostri alveari. Tradizionalmente usato per il benessere delle vie respiratorie. Flacone con contagocce.',
+        tags: ['Benessere', 'Naturale'],
+        sizes: [
+            { name: '30 ml', price: 14 },
+            { name: '50 ml', price: 22 }
+        ]
+    }
+];
+
+// =============== CART STATE ===============
+const CART_KEY = 'apiario-shop-cart';
+let cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+let selectedDelivery = 'ritiro';
+
+function saveCart() {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    renderCart();
+    updateCartCount();
+}
+
+function updateCartCount() {
+    const count = cart.reduce((s, i) => s + i.qty, 0);
+    document.getElementById('cartCount').textContent = count;
+}
+
+function addToCart(productId, sizeIndex) {
+    const p = PRODUCTS.find(x => x.id === productId);
+    if (!p) return;
+    const size = p.sizes[sizeIndex];
+    const itemId = productId + ':' + sizeIndex;
+    const existing = cart.find(c => c.id === itemId);
+    if (existing) existing.qty++;
+    else cart.push({ id: itemId, productId, sizeIndex, name: p.name, icon: p.icon, sizeName: size.name, price: size.price, qty: 1 });
+    saveCart();
+    showToast(`${p.name} (${size.name}) aggiunto al carrello`);
+    // Visual feedback on button
+    const btn = document.querySelector(`[data-product-id="${productId}"] .product-add`);
+    if (btn) {
+        btn.classList.add('added');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ Aggiunto';
+        setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = orig; }, 1200);
+    }
+}
+
+function changeQty(itemId, delta) {
+    const item = cart.find(c => c.id === itemId);
+    if (!item) return;
+    item.qty += delta;
+    if (item.qty <= 0) cart = cart.filter(c => c.id !== itemId);
+    saveCart();
+}
+
+function removeItem(itemId) {
+    cart = cart.filter(c => c.id !== itemId);
+    saveCart();
+}
+
+function getCartTotal() {
+    return cart.reduce((s, i) => s + i.price * i.qty, 0);
+}
+
+// =============== RENDERING ===============
+function renderProducts() {
+    const grid = document.getElementById('productsGrid');
+    grid.innerHTML = PRODUCTS.map(p => `
+        <div class="product" data-product-id="${p.id}">
+            <div class="product-jar" data-label="${p.labelText}" style="--jar-color:${p.color}"></div>
+            <h3>${p.icon} ${p.name}</h3>
+            <p class="product-desc">${p.description}</p>
+            <div class="product-tags">
+                ${p.tags.map(t => `<span class="product-tag">${t}</span>`).join('')}
+            </div>
+            <div class="product-sizes" data-product="${p.id}">
+                ${p.sizes.map((s, i) => `
+                    <button class="product-size ${i === 0 ? 'selected' : ''}" data-size="${i}" onclick="selectSize('${p.id}', ${i}, this)">
+                        <span class="product-size-name">${s.name}</span>
+                        <span class="product-size-price">${SHOP_CONFIG.currency} ${s.price}</span>
+                    </button>
+                `).join('')}
+            </div>
+            <button class="product-add" onclick="addSelectedToCart('${p.id}')">
+                🛒 Aggiungi al carrello
+            </button>
+        </div>
+    `).join('');
+}
+
+function selectSize(productId, idx, btn) {
+    btn.parentElement.querySelectorAll('.product-size').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+}
+
+function addSelectedToCart(productId) {
+    const sizesEl = document.querySelector(`[data-product="${productId}"]`);
+    const sel = sizesEl.querySelector('.selected');
+    const idx = sel ? parseInt(sel.dataset.size) : 0;
+    addToCart(productId, idx);
+}
+
+function renderCart() {
+    const body = document.getElementById('cartBody');
+    const total = document.getElementById('cartTotal');
+    const checkoutBtn = document.getElementById('cartCheckoutBtn');
+    if (cart.length === 0) {
+        body.innerHTML = `
+            <div class="cart-empty">
+                <div class="cart-empty-icon">🛒</div>
+                <p>Il carrello è vuoto</p>
+                <p style="font-size:.85em; margin-top:6px">Aggiungi qualche vasetto di miele!</p>
+            </div>`;
+        total.textContent = `${SHOP_CONFIG.currency} 0.00`;
+        checkoutBtn.disabled = true;
+        return;
+    }
+    body.innerHTML = cart.map(item => `
+        <div class="cart-item">
+            <div class="cart-item-icon">${item.icon}</div>
+            <div>
+                <div class="cart-item-name">${item.name}</div>
+                <div class="cart-item-meta">${item.sizeName} · ${SHOP_CONFIG.currency} ${item.price}</div>
+                <div class="cart-item-controls">
+                    <button class="qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
+                    <span class="qty-val">${item.qty}</span>
+                    <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
+                    <button class="cart-item-remove" onclick="removeItem('${item.id}')" title="Rimuovi">🗑️</button>
+                </div>
+            </div>
+            <div class="cart-item-price">${SHOP_CONFIG.currency} ${(item.price * item.qty).toFixed(2)}</div>
+        </div>
+    `).join('');
+    total.textContent = `${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}`;
+    checkoutBtn.disabled = false;
+}
+
+// =============== CART OVERLAY ===============
+function openCart() { document.getElementById('cartOverlay').classList.add('open'); }
+function closeCart() { document.getElementById('cartOverlay').classList.remove('open'); }
+
+// =============== CHECKOUT ===============
+function openCheckout() {
+    if (cart.length === 0) return;
+    closeCart();
+    renderCheckoutSummary();
+    document.getElementById('checkoutOverlay').classList.add('open');
+}
+function closeCheckout() { document.getElementById('checkoutOverlay').classList.remove('open'); }
+
+function renderCheckoutSummary() {
+    const sum = document.getElementById('checkoutSummary');
+    sum.innerHTML = cart.map(i => `
+        <div class="checkout-summary-item">
+            <span>${i.icon} ${i.name} (${i.sizeName}) × ${i.qty}</span>
+            <strong>${SHOP_CONFIG.currency} ${(i.price * i.qty).toFixed(2)}</strong>
+        </div>
+    `).join('') + `
+        <div class="checkout-summary-item checkout-summary-total">
+            <span>Totale</span>
+            <span>${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}</span>
+        </div>
+    `;
+}
+
+function selectDelivery(type, btn) {
+    selectedDelivery = type;
+    btn.parentElement.querySelectorAll('.delivery-option').forEach(o => o.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('addressRow').style.display = type === 'consegna' ? '' : 'none';
+}
+
+function buildOrderText() {
+    const name = document.getElementById('checkoutName').value.trim();
+    const phone = document.getElementById('checkoutPhone').value.trim();
+    const email = document.getElementById('checkoutEmail').value.trim();
+    const address = document.getElementById('checkoutAddress').value.trim();
+    const notes = document.getElementById('checkoutNotes').value.trim();
+
+    let txt = `🍯 NUOVO ORDINE — ${SHOP_CONFIG.shopName}\n\n`;
+    txt += `👤 Cliente: ${name}\n`;
+    txt += `📱 Telefono: ${phone}\n`;
+    if (email) txt += `✉️ Email: ${email}\n`;
+    txt += `\n📦 Modalità: ${selectedDelivery === 'ritiro' ? 'Ritiro a Claro' : 'Consegna a domicilio'}\n`;
+    if (selectedDelivery === 'consegna' && address) txt += `📍 Indirizzo: ${address}\n`;
+    txt += `\n🛒 PRODOTTI:\n`;
+    cart.forEach(i => {
+        txt += `  • ${i.name} (${i.sizeName}) × ${i.qty} = ${SHOP_CONFIG.currency} ${(i.price * i.qty).toFixed(2)}\n`;
+    });
+    txt += `\n💰 TOTALE: ${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}\n`;
+    if (notes) txt += `\n📝 Note: ${notes}\n`;
+    return txt;
+}
+
+function validateCheckout() {
+    const name = document.getElementById('checkoutName').value.trim();
+    const phone = document.getElementById('checkoutPhone').value.trim();
+    const address = document.getElementById('checkoutAddress').value.trim();
+    if (!name) { alert('Inserisci il tuo nome'); document.getElementById('checkoutName').focus(); return false; }
+    if (!phone) { alert('Inserisci il tuo telefono'); document.getElementById('checkoutPhone').focus(); return false; }
+    if (selectedDelivery === 'consegna' && !address) {
+        alert('Inserisci l\'indirizzo di consegna');
+        document.getElementById('checkoutAddress').focus();
+        return false;
+    }
+    return true;
+}
+
+function submitOrder(method) {
+    if (!validateCheckout()) return;
+    const text = buildOrderText();
+    if (method === 'whatsapp') {
+        const url = `https://wa.me/${SHOP_CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+    } else {
+        const subject = `Nuovo ordine miele — ${document.getElementById('checkoutName').value.trim()}`;
+        const url = `mailto:${SHOP_CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+        window.location.href = url;
+    }
+    // Show confirmation, optionally clear cart
+    setTimeout(() => {
+        if (confirm('Ordine inviato! 🎉\n\nVuoi svuotare il carrello?')) {
+            cart = [];
+            saveCart();
+        }
+        closeCheckout();
+    }, 600);
+}
+
+// =============== TOAST ===============
+let toastTimer;
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// =============== INIT ===============
+renderProducts();
+renderCart();
+updateCartCount();
+</script>
+
+</body>
+</html>

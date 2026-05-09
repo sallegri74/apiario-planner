@@ -1,0 +1,40 @@
+# =========================================================
+# Apiario Planner - configurazione Apache per Infomaniak
+# =========================================================
+
+# NOTA: NON forziamo HTTPS qui (causa redirect loop su Infomaniak
+# perché il loro server è dietro reverse proxy).
+# Per attivare HTTPS forzato: Manager Infomaniak → Hosting →
+# SSL/TLS → "Reindirizza HTTP verso HTTPS" (gestito a livello
+# di piattaforma, sempre affidabile).
+
+# Default file
+DirectoryIndex index.html
+
+# MIME types corretti
+<IfModule mod_mime.c>
+    AddType text/html .html
+    AddCharset UTF-8 .html .json .js .css
+</IfModule>
+
+# Compressione gzip (riduce il file da ~280KB a ~70KB)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+# Cache: HTML breve (per aggiornamenti rapidi), risorse statiche lunga
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 5 minutes"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
+
+# Headers di sicurezza
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(self), microphone=(self), geolocation=(self)"
+</IfModule>

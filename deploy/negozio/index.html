@@ -757,22 +757,31 @@
             </div>
             <div class="form-row">
                 <label>Modalità di consegna *</label>
-                <div class="delivery-options">
+                <div class="delivery-options" style="grid-template-columns: 1fr 1fr 1fr">
                     <div class="delivery-option selected" onclick="selectDelivery('ritiro', this)">
                         <div class="delivery-option-icon">🏡</div>
                         <div class="delivery-option-name">Ritiro</div>
-                        <div class="delivery-option-desc">A Claro, su appuntamento</div>
+                        <div class="delivery-option-desc">A Claro, gratis</div>
                     </div>
                     <div class="delivery-option" onclick="selectDelivery('consegna', this)">
                         <div class="delivery-option-icon">🚗</div>
                         <div class="delivery-option-name">Consegna</div>
-                        <div class="delivery-option-desc">In Ticino, da concordare</div>
+                        <div class="delivery-option-desc">In Ticino, gratis</div>
+                    </div>
+                    <div class="delivery-option" onclick="selectDelivery('spedizione', this)">
+                        <div class="delivery-option-icon">📦</div>
+                        <div class="delivery-option-name">Spedizione</div>
+                        <div class="delivery-option-desc">Posta CH, a pagamento</div>
                     </div>
                 </div>
             </div>
             <div class="form-row" id="addressRow" style="display:none">
-                <label>Indirizzo di consegna *</label>
+                <label id="addressLabel">Indirizzo di consegna *</label>
                 <input type="text" id="checkoutAddress" placeholder="Via Roma 10, 6500 Bellinzona">
+            </div>
+            <div id="shippingInfoBox" style="display:none; background:#FFF8E1; padding:12px; border-radius:10px; border:1px solid #FFE082; margin-bottom:14px; font-size:.88em">
+                <strong style="color:#E65100">📦 Costi di spedizione</strong>
+                <div id="shippingDetails" style="margin-top:6px; color:var(--brown)"></div>
             </div>
             <div class="form-row">
                 <label>Note (opzionale)</label>
@@ -805,6 +814,22 @@ const SHOP_CONFIG = {
     shopName: 'Apiario Allegri'
 };
 
+// Costi di spedizione: pacchi PostPac Economy nazionale (Posta Svizzera)
+// I prezzi reali variano: aggiornarli se cambiano. Verifica su https://www.posta.ch
+const SHIPPING_CONFIG = {
+    packagingFee: 5.00,  // costo imballaggio (vasetti + scatola + materiale anticolpo)
+    // Tariffe per peso (in grammi): max → costo CHF
+    // PostPac Economy 2025 indicativo
+    rates: [
+        { maxWeightG: 2000,  cost: 8.00,  label: 'fino a 2 kg' },
+        { maxWeightG: 5000,  cost: 9.50,  label: 'fino a 5 kg' },
+        { maxWeightG: 10000, cost: 12.50, label: 'fino a 10 kg' },
+        { maxWeightG: 20000, cost: 17.00, label: 'fino a 20 kg' },
+        { maxWeightG: 30000, cost: 22.00, label: 'fino a 30 kg' }
+    ],
+    overweightMessage: 'Peso superiore a 30 kg: contattaci per un preventivo personalizzato'
+};
+
 const PRODUCTS = [
     {
         id: 'millefiori',
@@ -815,9 +840,9 @@ const PRODUCTS = [
         description: 'Bouquet floreale variabile a seconda della stagione e della zona di raccolta. Colore e gusto cambiano ogni anno: ogni vasetto racconta una primavera diversa.',
         tags: ['Equilibrato', 'Versatile', 'Stagionale'],
         sizes: [
-            { name: '250 g', price: 10 },
-            { name: '500 g', price: 18 },
-            { name: '1 kg', price: 32 }
+            { name: '250 g', price: 10, weightG: 350 },   // 250g miele + 100g vasetto
+            { name: '500 g', price: 18, weightG: 650 },   // 500g miele + 150g vasetto
+            { name: '1 kg', price: 32, weightG: 1250 }    // 1000g miele + 250g vasetto
         ]
     }
 ];
@@ -871,8 +896,45 @@ function removeItem(itemId) {
     saveCart();
 }
 
-function getCartTotal() {
+function getCartSubtotal() {
     return cart.reduce((s, i) => s + i.price * i.qty, 0);
+}
+
+function getCartWeight() {
+    // Calcola peso totale in grammi sommando weightG di ogni item
+    return cart.reduce((s, i) => {
+        const p = PRODUCTS.find(x => x.id === i.productId);
+        if (!p) return s;
+        const size = p.sizes[i.sizeIndex];
+        return s + (size.weightG || 0) * i.qty;
+    }, 0);
+}
+
+function calculateShipping(deliveryType) {
+    if (deliveryType !== 'spedizione') return { fee: 0, packaging: 0, postage: 0, total: 0, weight: 0, label: 'Gratis', overweight: false };
+    const weight = getCartWeight();
+    if (weight === 0) return { fee: 0, packaging: 0, postage: 0, total: 0, weight: 0, label: '—', overweight: false };
+    // Trova la tariffa giusta in base al peso
+    const tier = SHIPPING_CONFIG.rates.find(r => weight <= r.maxWeightG);
+    if (!tier) {
+        return {
+            fee: 0, packaging: SHIPPING_CONFIG.packagingFee, postage: 0, total: 0,
+            weight, label: 'Da concordare', overweight: true
+        };
+    }
+    return {
+        fee: SHIPPING_CONFIG.packagingFee + tier.cost,
+        packaging: SHIPPING_CONFIG.packagingFee,
+        postage: tier.cost,
+        total: SHIPPING_CONFIG.packagingFee + tier.cost,
+        weight,
+        label: tier.label,
+        overweight: false
+    };
+}
+
+function getCartTotal() {
+    return getCartSubtotal() + calculateShipping(selectedDelivery).fee;
 }
 
 // =============== RENDERING ===============
@@ -928,7 +990,7 @@ function renderCart() {
         checkoutBtn.disabled = true;
         return;
     }
-    body.innerHTML = cart.map(item => `
+    let h = cart.map(item => `
         <div class="cart-item">
             <div class="cart-item-icon">${item.icon}</div>
             <div>
@@ -944,6 +1006,32 @@ function renderCart() {
             <div class="cart-item-price">${SHOP_CONFIG.currency} ${(item.price * item.qty).toFixed(2)}</div>
         </div>
     `).join('');
+    // Subtotal + shipping breakdown se applicabile
+    const subtotal = getCartSubtotal();
+    const ship = calculateShipping(selectedDelivery);
+    if (selectedDelivery === 'spedizione' && ship.fee > 0) {
+        h += `
+        <div style="padding:12px; border-top:1px solid var(--gold); margin-top:8px; font-size:.92em">
+            <div style="display:flex; justify-content:space-between; padding:3px 0; color:var(--brown)">
+                <span>Subtotale prodotti</span>
+                <span>${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:3px 0; color:var(--brown)">
+                <span>📦 Imballaggio</span>
+                <span>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:3px 0; color:var(--brown)">
+                <span>📮 Spedizione (${(ship.weight/1000).toFixed(2)} kg)</span>
+                <span>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</span>
+            </div>
+        </div>`;
+    } else if (selectedDelivery === 'spedizione' && ship.overweight) {
+        h += `
+        <div style="padding:12px; background:#FFEBEE; color:#C62828; font-size:.85em; border-radius:8px; margin:10px 12px">
+            ⚠️ Peso superiore a 30 kg. ${SHIPPING_CONFIG.overweightMessage}
+        </div>`;
+    }
+    body.innerHTML = h;
     total.textContent = `${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}`;
     checkoutBtn.disabled = false;
 }
@@ -963,24 +1051,83 @@ function closeCheckout() { document.getElementById('checkoutOverlay').classList.
 
 function renderCheckoutSummary() {
     const sum = document.getElementById('checkoutSummary');
-    sum.innerHTML = cart.map(i => `
+    if (!sum) return;
+    let h = cart.map(i => `
         <div class="checkout-summary-item">
             <span>${i.icon} ${i.name} (${i.sizeName}) × ${i.qty}</span>
             <strong>${SHOP_CONFIG.currency} ${(i.price * i.qty).toFixed(2)}</strong>
         </div>
-    `).join('') + `
+    `).join('');
+    const subtotal = getCartSubtotal();
+    const ship = calculateShipping(selectedDelivery);
+    if (selectedDelivery === 'spedizione' && ship.fee > 0) {
+        h += `
+            <div class="checkout-summary-item" style="border-top:1px solid var(--gold); margin-top:6px; padding-top:6px">
+                <span>Subtotale prodotti</span>
+                <span>${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}</span>
+            </div>
+            <div class="checkout-summary-item">
+                <span>📦 Imballaggio</span>
+                <span>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</span>
+            </div>
+            <div class="checkout-summary-item">
+                <span>📮 Spedizione (${(ship.weight/1000).toFixed(2)} kg)</span>
+                <span>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</span>
+            </div>`;
+    }
+    h += `
         <div class="checkout-summary-item checkout-summary-total">
             <span>Totale</span>
             <span>${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}</span>
-        </div>
-    `;
+        </div>`;
+    sum.innerHTML = h;
 }
 
 function selectDelivery(type, btn) {
     selectedDelivery = type;
     btn.parentElement.querySelectorAll('.delivery-option').forEach(o => o.classList.remove('selected'));
     btn.classList.add('selected');
-    document.getElementById('addressRow').style.display = type === 'consegna' ? '' : 'none';
+    const addressRow = document.getElementById('addressRow');
+    const addressLabel = document.getElementById('addressLabel');
+    const addressInput = document.getElementById('checkoutAddress');
+    const shippingBox = document.getElementById('shippingInfoBox');
+    if (type === 'ritiro') {
+        addressRow.style.display = 'none';
+        shippingBox.style.display = 'none';
+    } else if (type === 'consegna') {
+        addressRow.style.display = '';
+        addressLabel.textContent = 'Indirizzo di consegna *';
+        if (addressInput) addressInput.placeholder = 'Via Roma 10, 6500 Bellinzona';
+        shippingBox.style.display = 'none';
+    } else if (type === 'spedizione') {
+        addressRow.style.display = '';
+        addressLabel.textContent = 'Indirizzo di spedizione *';
+        if (addressInput) addressInput.placeholder = 'Via Roma 10, 6500 Bellinzona';
+        shippingBox.style.display = '';
+        renderShippingDetails();
+    }
+    renderCheckoutSummary();
+    renderCart(); // aggiorna anche il carrello con il nuovo totale
+}
+
+function renderShippingDetails() {
+    const ship = calculateShipping('spedizione');
+    const el = document.getElementById('shippingDetails');
+    if (!el) return;
+    if (ship.weight === 0) {
+        el.innerHTML = 'Aggiungi prodotti al carrello per calcolare la spedizione.';
+        return;
+    }
+    if (ship.overweight) {
+        el.innerHTML = `Peso pacco: <strong>${(ship.weight/1000).toFixed(2)} kg</strong><br>${SHIPPING_CONFIG.overweightMessage}`;
+        return;
+    }
+    el.innerHTML = `
+        Peso pacco: <strong>${(ship.weight/1000).toFixed(2)} kg</strong> (${ship.label})<br>
+        Imballaggio: <strong>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</strong><br>
+        Spedizione (PostPac Economy): <strong>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</strong><br>
+        <span style="color:#E65100; font-weight:700">Totale spedizione: ${SHOP_CONFIG.currency} ${ship.fee.toFixed(2)}</span>
+    `;
 }
 
 function buildOrderText() {
@@ -990,16 +1137,32 @@ function buildOrderText() {
     const address = document.getElementById('checkoutAddress').value.trim();
     const notes = document.getElementById('checkoutNotes').value.trim();
 
+    let modalita = 'Ritiro a Claro';
+    if (selectedDelivery === 'consegna') modalita = 'Consegna a domicilio in Ticino';
+    else if (selectedDelivery === 'spedizione') modalita = 'Spedizione postale (PostPac)';
+
     let txt = `🍯 NUOVO ORDINE — ${SHOP_CONFIG.shopName}\n\n`;
     txt += `👤 Cliente: ${name}\n`;
     txt += `📱 Telefono: ${phone}\n`;
     if (email) txt += `✉️ Email: ${email}\n`;
-    txt += `\n📦 Modalità: ${selectedDelivery === 'ritiro' ? 'Ritiro a Claro' : 'Consegna a domicilio'}\n`;
-    if (selectedDelivery === 'consegna' && address) txt += `📍 Indirizzo: ${address}\n`;
+    txt += `\n📦 Modalità: ${modalita}\n`;
+    if ((selectedDelivery === 'consegna' || selectedDelivery === 'spedizione') && address) {
+        txt += `📍 Indirizzo: ${address}\n`;
+    }
     txt += `\n🛒 PRODOTTI:\n`;
     cart.forEach(i => {
         txt += `  • ${i.name} (${i.sizeName}) × ${i.qty} = ${SHOP_CONFIG.currency} ${(i.price * i.qty).toFixed(2)}\n`;
     });
+    const subtotal = getCartSubtotal();
+    const ship = calculateShipping(selectedDelivery);
+    if (selectedDelivery === 'spedizione' && ship.fee > 0) {
+        txt += `\n📋 RIEPILOGO COSTI:\n`;
+        txt += `  Subtotale prodotti: ${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}\n`;
+        txt += `  Imballaggio: ${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}\n`;
+        txt += `  Spedizione PostPac (${(ship.weight/1000).toFixed(2)} kg): ${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}\n`;
+    } else if (selectedDelivery === 'spedizione' && ship.overweight) {
+        txt += `\n⚠️ Peso totale: ${(ship.weight/1000).toFixed(2)} kg — spedizione da concordare\n`;
+    }
     txt += `\n💰 TOTALE: ${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}\n`;
     if (notes) txt += `\n📝 Note: ${notes}\n`;
     return txt;
@@ -1011,8 +1174,8 @@ function validateCheckout() {
     const address = document.getElementById('checkoutAddress').value.trim();
     if (!name) { alert('Inserisci il tuo nome'); document.getElementById('checkoutName').focus(); return false; }
     if (!phone) { alert('Inserisci il tuo telefono'); document.getElementById('checkoutPhone').focus(); return false; }
-    if (selectedDelivery === 'consegna' && !address) {
-        alert('Inserisci l\'indirizzo di consegna');
+    if ((selectedDelivery === 'consegna' || selectedDelivery === 'spedizione') && !address) {
+        alert(selectedDelivery === 'spedizione' ? 'Inserisci l\'indirizzo di spedizione' : 'Inserisci l\'indirizzo di consegna');
         document.getElementById('checkoutAddress').focus();
         return false;
     }

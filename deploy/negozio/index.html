@@ -7,7 +7,7 @@
     <title>🍯 Miele dell'Apiario Allegri — Ticino</title>
     <link rel="icon" type="image/png" href="ape.png">
     <link rel="apple-touch-icon" href="ape.png">
-    <meta name="description" content="Miele artigianale del Ticino: acacia, castagno, tiglio, millefiori. Prodotto a Claro da apicoltore locale.">
+    <meta name="description" content="Miele artigianale del Ticino, prodotto a Claro da apicoltore locale. Ritiro, consegna o spedizione postale.">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -159,8 +159,9 @@
         /* === PRODUCTS === */
         .products {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 380px));
             gap: 22px;
+            justify-content: center;
         }
         .product {
             background: white;
@@ -176,12 +177,6 @@
             transform: translateY(-4px);
             box-shadow: 0 12px 28px rgba(196, 127, 10, 0.15);
             border-color: var(--gold);
-        }
-        .product-icon {
-            font-size: 4em;
-            text-align: center;
-            margin-bottom: 12px;
-            line-height: 1;
         }
         .product-jar {
             width: 100%;
@@ -286,9 +281,49 @@
         .product-add:hover { transform: translateY(-1px); }
         .product-add.added { background: linear-gradient(135deg, #66BB6A, #43A047); }
 
+        /* === SHIPPING TABLE === */
+        .shipping-info {
+            background: white;
+        }
+        .shipping-table {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(78, 52, 46, 0.08);
+        }
+        .shipping-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .shipping-table th {
+            background: var(--honey-light);
+            color: var(--brown-dark);
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 0.92em;
+            font-weight: 700;
+        }
+        .shipping-table td {
+            padding: 12px 16px;
+            border-top: 1px solid #FFF3D6;
+            font-size: 0.95em;
+        }
+        .shipping-table tr:hover td { background: #FFFBF0; }
+        .shipping-note {
+            text-align: center;
+            font-size: 0.82em;
+            color: var(--gray);
+            margin-top: 14px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         /* === ABOUT === */
         .about {
-            background: white;
+            background: var(--honey-light);
         }
         .about-grid {
             display: grid;
@@ -296,9 +331,7 @@
             gap: 40px;
             align-items: center;
         }
-        .about-image {
-            text-align: center;
-        }
+        .about-image { text-align: center; }
         .about-image img {
             width: 80%;
             max-width: 280px;
@@ -313,7 +346,7 @@
             margin-top: 20px;
         }
         .feature {
-            background: var(--honey-light);
+            background: white;
             padding: 12px 14px;
             border-radius: 12px;
             font-size: 0.88em;
@@ -425,6 +458,18 @@
             opacity: 0.5; padding: 4px;
         }
         .cart-item-remove:hover { opacity: 1; }
+        .cart-breakdown {
+            padding: 12px 16px;
+            border-top: 1px solid var(--gold);
+            margin-top: 8px;
+            font-size: 0.92em;
+        }
+        .cart-breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            color: var(--brown);
+        }
         .cart-footer {
             padding: 16px 20px;
             background: var(--cream);
@@ -524,13 +569,13 @@
         .form-row textarea { resize: vertical; min-height: 70px; }
         .delivery-options {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 8px;
         }
         .delivery-option {
             border: 2px solid #ddd;
             border-radius: 10px;
-            padding: 12px;
+            padding: 12px 8px;
             cursor: pointer;
             text-align: center;
             transition: all 0.15s;
@@ -541,8 +586,16 @@
             background: var(--honey-light);
         }
         .delivery-option-icon { font-size: 1.6em; margin-bottom: 4px; }
-        .delivery-option-name { font-weight: 700; font-size: 0.9em; color: var(--brown-dark); }
-        .delivery-option-desc { font-size: 0.78em; color: var(--gray); }
+        .delivery-option-name { font-weight: 700; font-size: 0.88em; color: var(--brown-dark); }
+        .delivery-option-desc { font-size: 0.74em; color: var(--gray); }
+        .shipping-info-box {
+            background: #FFF8E1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #FFE082;
+            margin-bottom: 14px;
+            font-size: 0.88em;
+        }
         .checkout-footer {
             padding: 16px 20px;
             background: var(--cream);
@@ -601,6 +654,8 @@
             .header-nav a:not(.cart-btn) { display: none; }
             .about-grid { grid-template-columns: 1fr; }
             .about-features { grid-template-columns: 1fr; }
+            .delivery-options { grid-template-columns: 1fr; }
+            .shipping-table th, .shipping-table td { padding: 10px 12px; font-size: 0.85em; }
         }
     </style>
 </head>
@@ -617,6 +672,7 @@
         </a>
         <nav class="header-nav">
             <a href="#prodotti">Prodotti</a>
+            <a href="#spedizione">Spedizione</a>
             <a href="#chi-siamo">Chi siamo</a>
             <a href="#contatti">Contatti</a>
             <button class="cart-btn" onclick="openCart()">
@@ -636,7 +692,7 @@
             <span class="hero-tag">🌿 100% naturale</span>
             <span class="hero-tag">🇨🇭 Origine svizzera</span>
             <span class="hero-tag">🐝 Apicoltore locale</span>
-            <span class="hero-tag">📦 Ritiro o consegna</span>
+            <span class="hero-tag">📦 Ritiro o spedizione</span>
         </div>
     </div>
 </div>
@@ -646,6 +702,51 @@
         <h2 class="section-title">I nostri mieli</h2>
         <p class="section-subtitle">Seleziona il formato e aggiungi al carrello</p>
         <div class="products" id="productsGrid"></div>
+    </div>
+</section>
+
+<section class="shipping-info" id="spedizione">
+    <div class="section-inner">
+        <h2 class="section-title">📦 Modalità di consegna</h2>
+        <p class="section-subtitle">Tre opzioni a tua scelta</p>
+        <div class="shipping-table">
+            <table>
+                <thead>
+                    <tr><th>Modalità</th><th>Costo</th><th>Note</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>🏡 Ritiro a Claro</strong></td>
+                        <td><strong style="color:var(--green)">Gratuito</strong></td>
+                        <td>Su appuntamento</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🚗 Consegna in Ticino</strong></td>
+                        <td><strong style="color:var(--green)">Gratuita</strong></td>
+                        <td>Da concordare insieme</td>
+                    </tr>
+                    <tr>
+                        <td><strong>📮 Spedizione PostPac</strong></td>
+                        <td><strong style="color:var(--honey-dark)">CHF 5 + tariffa peso</strong></td>
+                        <td>In tutta la Svizzera</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <h3 style="text-align:center; margin-top:36px; color:var(--brown-dark); font-size:1.15em">Tariffe spedizione (PostPac Economy)</h3>
+        <div class="shipping-table" style="margin-top:14px">
+            <table>
+                <thead>
+                    <tr><th>Peso pacco</th><th>Spedizione</th><th>+ Imballaggio</th><th>Totale</th></tr>
+                </thead>
+                <tbody id="shippingTableBody"></tbody>
+            </table>
+        </div>
+        <p class="shipping-note">
+            I prezzi delle spedizioni si riferiscono alle tariffe indicative della Posta Svizzera per il servizio
+            <a href="https://www.posta.ch" target="_blank" rel="noopener">PostPac Economy</a> e possono variare.
+            Il calcolo definitivo viene mostrato al momento dell'ordine.
+        </p>
     </div>
 </section>
 
@@ -688,7 +789,7 @@
         <p class="section-subtitle">Per ordini, ritiri o domande</p>
         <div class="contact-grid">
             <div class="contact-card">
-                <div class="contact-card-icon">📱</div>
+                <div class="contact-card-icon">💬</div>
                 <strong>WhatsApp</strong>
                 <a href="https://wa.me/41792256948" target="_blank">+41 79 225 69 48</a>
             </div>
@@ -757,7 +858,7 @@
             </div>
             <div class="form-row">
                 <label>Modalità di consegna *</label>
-                <div class="delivery-options" style="grid-template-columns: 1fr 1fr 1fr">
+                <div class="delivery-options">
                     <div class="delivery-option selected" onclick="selectDelivery('ritiro', this)">
                         <div class="delivery-option-icon">🏡</div>
                         <div class="delivery-option-name">Ritiro</div>
@@ -771,15 +872,15 @@
                     <div class="delivery-option" onclick="selectDelivery('spedizione', this)">
                         <div class="delivery-option-icon">📦</div>
                         <div class="delivery-option-name">Spedizione</div>
-                        <div class="delivery-option-desc">Posta CH, a pagamento</div>
+                        <div class="delivery-option-desc">Posta CH</div>
                     </div>
                 </div>
             </div>
             <div class="form-row" id="addressRow" style="display:none">
-                <label id="addressLabel">Indirizzo di consegna *</label>
+                <label id="addressLabel">Indirizzo *</label>
                 <input type="text" id="checkoutAddress" placeholder="Via Roma 10, 6500 Bellinzona">
             </div>
-            <div id="shippingInfoBox" style="display:none; background:#FFF8E1; padding:12px; border-radius:10px; border:1px solid #FFE082; margin-bottom:14px; font-size:.88em">
+            <div class="shipping-info-box" id="shippingInfoBox" style="display:none">
                 <strong style="color:#E65100">📦 Costi di spedizione</strong>
                 <div id="shippingDetails" style="margin-top:6px; color:var(--brown)"></div>
             </div>
@@ -806,20 +907,17 @@
 
 <script>
 // =============== CONFIGURATION ===============
-// Modifica qui prodotti, prezzi e contatti
 const SHOP_CONFIG = {
-    whatsappNumber: '41792256948', // senza + e senza spazi
+    whatsappNumber: '41792256948',
     email: 'api@allegri.ch',
     currency: 'CHF',
     shopName: 'Apiario Allegri'
 };
 
-// Costi di spedizione: pacchi PostPac Economy nazionale (Posta Svizzera)
-// I prezzi reali variano: aggiornarli se cambiano. Verifica su https://www.posta.ch
+// Costi di spedizione: PostPac Economy nazionale (Posta Svizzera)
+// Modifica i valori se le tariffe ufficiali cambiano (verifica su posta.ch)
 const SHIPPING_CONFIG = {
     packagingFee: 5.00,  // costo imballaggio (vasetti + scatola + materiale anticolpo)
-    // Tariffe per peso (in grammi): max → costo CHF
-    // PostPac Economy 2025 indicativo
     rates: [
         { maxWeightG: 2000,  cost: 8.00,  label: 'fino a 2 kg' },
         { maxWeightG: 5000,  cost: 9.50,  label: 'fino a 5 kg' },
@@ -840,18 +938,20 @@ const PRODUCTS = [
         description: 'Bouquet floreale variabile a seconda della stagione e della zona di raccolta. Colore e gusto cambiano ogni anno: ogni vasetto racconta una primavera diversa.',
         tags: ['Equilibrato', 'Versatile', 'Stagionale'],
         sizes: [
-            { name: '250 g', price: 10, weightG: 350 },   // 250g miele + 100g vasetto
-            { name: '500 g', price: 18, weightG: 650 },   // 500g miele + 150g vasetto
-            { name: '1 kg', price: 32, weightG: 1250 }    // 1000g miele + 250g vasetto
+            { name: '250 g', price: 10, weightG: 350 },
+            { name: '500 g', price: 18, weightG: 650 },
+            { name: '1 kg', price: 32, weightG: 1250 }
         ]
     }
 ];
 
-// =============== CART STATE ===============
+// =============== STATE ===============
 const CART_KEY = 'apiario-shop-cart';
 let cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
 let selectedDelivery = 'ritiro';
+let toastTimer;
 
+// =============== CART ===============
 function saveCart() {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
     renderCart();
@@ -870,10 +970,13 @@ function addToCart(productId, sizeIndex) {
     const itemId = productId + ':' + sizeIndex;
     const existing = cart.find(c => c.id === itemId);
     if (existing) existing.qty++;
-    else cart.push({ id: itemId, productId, sizeIndex, name: p.name, icon: p.icon, sizeName: size.name, price: size.price, qty: 1 });
+    else cart.push({
+        id: itemId, productId, sizeIndex,
+        name: p.name, icon: p.icon,
+        sizeName: size.name, price: size.price, qty: 1
+    });
     saveCart();
     showToast(`${p.name} (${size.name}) aggiunto al carrello`);
-    // Visual feedback on button
     const btn = document.querySelector(`[data-product-id="${productId}"] .product-add`);
     if (btn) {
         btn.classList.add('added');
@@ -901,7 +1004,6 @@ function getCartSubtotal() {
 }
 
 function getCartWeight() {
-    // Calcola peso totale in grammi sommando weightG di ogni item
     return cart.reduce((s, i) => {
         const p = PRODUCTS.find(x => x.id === i.productId);
         if (!p) return s;
@@ -911,14 +1013,15 @@ function getCartWeight() {
 }
 
 function calculateShipping(deliveryType) {
-    if (deliveryType !== 'spedizione') return { fee: 0, packaging: 0, postage: 0, total: 0, weight: 0, label: 'Gratis', overweight: false };
+    if (deliveryType !== 'spedizione') {
+        return { fee: 0, packaging: 0, postage: 0, weight: 0, label: 'Gratis', overweight: false };
+    }
     const weight = getCartWeight();
-    if (weight === 0) return { fee: 0, packaging: 0, postage: 0, total: 0, weight: 0, label: '—', overweight: false };
-    // Trova la tariffa giusta in base al peso
+    if (weight === 0) return { fee: 0, packaging: 0, postage: 0, weight: 0, label: '—', overweight: false };
     const tier = SHIPPING_CONFIG.rates.find(r => weight <= r.maxWeightG);
     if (!tier) {
         return {
-            fee: 0, packaging: SHIPPING_CONFIG.packagingFee, postage: 0, total: 0,
+            fee: 0, packaging: SHIPPING_CONFIG.packagingFee, postage: 0,
             weight, label: 'Da concordare', overweight: true
         };
     }
@@ -926,7 +1029,6 @@ function calculateShipping(deliveryType) {
         fee: SHIPPING_CONFIG.packagingFee + tier.cost,
         packaging: SHIPPING_CONFIG.packagingFee,
         postage: tier.cost,
-        total: SHIPPING_CONFIG.packagingFee + tier.cost,
         weight,
         label: tier.label,
         overweight: false
@@ -975,6 +1077,24 @@ function addSelectedToCart(productId) {
     addToCart(productId, idx);
 }
 
+function renderShippingTable() {
+    const body = document.getElementById('shippingTableBody');
+    if (!body) return;
+    body.innerHTML = SHIPPING_CONFIG.rates.map(r => `
+        <tr>
+            <td>${r.label}</td>
+            <td>${SHOP_CONFIG.currency} ${r.cost.toFixed(2)}</td>
+            <td>${SHOP_CONFIG.currency} ${SHIPPING_CONFIG.packagingFee.toFixed(2)}</td>
+            <td><strong>${SHOP_CONFIG.currency} ${(r.cost + SHIPPING_CONFIG.packagingFee).toFixed(2)}</strong></td>
+        </tr>
+    `).join('') + `
+        <tr>
+            <td>oltre 30 kg</td>
+            <td colspan="3" style="color:var(--gray); font-style:italic">${SHIPPING_CONFIG.overweightMessage}</td>
+        </tr>
+    `;
+}
+
 function renderCart() {
     const body = document.getElementById('cartBody');
     const total = document.getElementById('cartTotal');
@@ -1006,29 +1126,19 @@ function renderCart() {
             <div class="cart-item-price">${SHOP_CONFIG.currency} ${(item.price * item.qty).toFixed(2)}</div>
         </div>
     `).join('');
-    // Subtotal + shipping breakdown se applicabile
     const subtotal = getCartSubtotal();
     const ship = calculateShipping(selectedDelivery);
     if (selectedDelivery === 'spedizione' && ship.fee > 0) {
         h += `
-        <div style="padding:12px; border-top:1px solid var(--gold); margin-top:8px; font-size:.92em">
-            <div style="display:flex; justify-content:space-between; padding:3px 0; color:var(--brown)">
-                <span>Subtotale prodotti</span>
-                <span>${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding:3px 0; color:var(--brown)">
-                <span>📦 Imballaggio</span>
-                <span>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding:3px 0; color:var(--brown)">
-                <span>📮 Spedizione (${(ship.weight/1000).toFixed(2)} kg)</span>
-                <span>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</span>
-            </div>
+        <div class="cart-breakdown">
+            <div class="cart-breakdown-row"><span>Subtotale prodotti</span><span>${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}</span></div>
+            <div class="cart-breakdown-row"><span>📦 Imballaggio</span><span>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</span></div>
+            <div class="cart-breakdown-row"><span>📮 Spedizione (${(ship.weight/1000).toFixed(2)} kg)</span><span>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</span></div>
         </div>`;
     } else if (selectedDelivery === 'spedizione' && ship.overweight) {
         h += `
         <div style="padding:12px; background:#FFEBEE; color:#C62828; font-size:.85em; border-radius:8px; margin:10px 12px">
-            ⚠️ Peso superiore a 30 kg. ${SHIPPING_CONFIG.overweightMessage}
+            ⚠️ ${SHIPPING_CONFIG.overweightMessage}
         </div>`;
     }
     body.innerHTML = h;
@@ -1107,7 +1217,7 @@ function selectDelivery(type, btn) {
         renderShippingDetails();
     }
     renderCheckoutSummary();
-    renderCart(); // aggiorna anche il carrello con il nuovo totale
+    renderCart();
 }
 
 function renderShippingDetails() {
@@ -1139,7 +1249,7 @@ function buildOrderText() {
 
     let modalita = 'Ritiro a Claro';
     if (selectedDelivery === 'consegna') modalita = 'Consegna a domicilio in Ticino';
-    else if (selectedDelivery === 'spedizione') modalita = 'Spedizione postale (PostPac)';
+    else if (selectedDelivery === 'spedizione') modalita = 'Spedizione postale (PostPac Economy)';
 
     let txt = `🍯 NUOVO ORDINE — ${SHOP_CONFIG.shopName}\n\n`;
     txt += `👤 Cliente: ${name}\n`;
@@ -1193,7 +1303,6 @@ function submitOrder(method) {
         const url = `mailto:${SHOP_CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
         window.location.href = url;
     }
-    // Show confirmation, optionally clear cart
     setTimeout(() => {
         if (confirm('Ordine inviato! 🎉\n\nVuoi svuotare il carrello?')) {
             cart = [];
@@ -1204,7 +1313,6 @@ function submitOrder(method) {
 }
 
 // =============== TOAST ===============
-let toastTimer;
 function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -1215,6 +1323,7 @@ function showToast(msg) {
 
 // =============== INIT ===============
 renderProducts();
+renderShippingTable();
 renderCart();
 updateCartCount();
 </script>

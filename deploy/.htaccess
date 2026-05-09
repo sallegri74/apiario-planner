@@ -2,10 +2,11 @@
 # Apiario Planner - configurazione Apache per Infomaniak
 # =========================================================
 
-# Forza HTTPS (necessario per crypto.subtle, getUserMedia, MediaRecorder)
-RewriteEngine On
-RewriteCond %{HTTPS} !=on
-RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# NOTA: NON forziamo HTTPS qui (causa redirect loop su Infomaniak
+# perché il loro server è dietro reverse proxy).
+# Per attivare HTTPS forzato: Manager Infomaniak → Hosting →
+# SSL/TLS → "Reindirizza HTTP verso HTTPS" (gestito a livello
+# di piattaforma, sempre affidabile).
 
 # Default file
 DirectoryIndex index.html
@@ -13,11 +14,10 @@ DirectoryIndex index.html
 # MIME types corretti
 <IfModule mod_mime.c>
     AddType text/html .html
-    AddType application/manifest+json .webmanifest
     AddCharset UTF-8 .html .json .js .css
 </IfModule>
 
-# Compressione gzip (riduce il file da ~500KB a ~120KB)
+# Compressione gzip (riduce il file da ~280KB a ~70KB)
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
 </IfModule>
@@ -37,9 +37,4 @@ DirectoryIndex index.html
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
     Header set Permissions-Policy "camera=(self), microphone=(self), geolocation=(self)"
-    # HSTS: forza HTTPS per 6 mesi (attivare solo dopo che HTTPS funziona perfettamente)
-    # Header set Strict-Transport-Security "max-age=15768000; includeSubDomains"
 </IfModule>
-
-# Custom error pages (opzionale)
-ErrorDocument 404 /index.html

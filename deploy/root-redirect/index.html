@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#C47F0A">
+    <title>Allegri.ch</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cellipse cx='35' cy='30' rx='16' ry='10' fill='%23ffffffcc' transform='rotate(-25 35 30)'/%3E%3Cellipse cx='65' cy='30' rx='16' ry='10' fill='%23ffffffcc' transform='rotate(25 65 30)'/%3E%3Cellipse cx='50' cy='58' rx='22' ry='26' fill='%23FFD54F'/%3E%3Crect x='28' y='48' width='44' height='6' rx='3' fill='%234E342E'/%3E%3Crect x='30' y='60' width='40' height='6' rx='3' fill='%234E342E'/%3E%3Crect x='33' y='72' width='34' height='5' rx='2.5' fill='%234E342E'/%3E%3Ccircle cx='50' cy='32' r='14' fill='%23FFD54F'/%3E%3C/svg%3E">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #FFF3D6 0%, #FFE082 50%, #FFB74D 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: #4E342E;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 48px 40px;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(196, 127, 10, 0.25);
+        }
+        .logo {
+            font-size: 4em;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        h1 {
+            color: #C47F0A;
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #8D6E63;
+            font-size: 1em;
+            margin-bottom: 32px;
+        }
+        .apps {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .app-link {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #FFB74D, #C47F0A);
+            color: white;
+            text-decoration: none;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 1.05em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(196, 127, 10, 0.3);
+        }
+        .app-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(196, 127, 10, 0.4);
+        }
+        .app-link-icon {
+            font-size: 1.6em;
+            flex-shrink: 0;
+        }
+        .app-link-text {
+            flex: 1;
+            text-align: left;
+        }
+        .app-link-title {
+            display: block;
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+        .app-link-desc {
+            display: block;
+            font-size: 0.82em;
+            opacity: 0.9;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+        .app-link-arrow {
+            font-size: 1.2em;
+            transition: transform 0.2s;
+        }
+        .app-link:hover .app-link-arrow {
+            transform: translateX(4px);
+        }
+        footer {
+            margin-top: 36px;
+            padding-top: 20px;
+            border-top: 1px solid #FFE082;
+            font-size: 0.8em;
+            color: #A1887F;
+        }
+        @media (max-width: 480px) {
+            .container { padding: 32px 24px; }
+            h1 { font-size: 1.6em; }
+            .logo { font-size: 3.2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🐝</div>
+        <h1>Benvenuto su Allegri.ch</h1>
+        <p class="subtitle">Le mie applicazioni personali</p>
+
+        <div class="apps">
+            <a href="/apiario/" class="app-link">
+                <span class="app-link-icon">🍯</span>
+                <span class="app-link-text">
+                    <span class="app-link-title">Pianificatore Apiario</span>
+                    <span class="app-link-desc">Gestione apiari, arnie, diario e planner stagionale</span>
+                </span>
+                <span class="app-link-arrow">→</span>
+            </a>
+        </div>
+
+        <footer>
+            © Sandro Allegri · Ticino, Svizzera
+        </footer>
+    </div>
+</body>
+</html>

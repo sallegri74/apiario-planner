@@ -10,7 +10,7 @@
     <meta name="description" content="Allegria in barattolo — miele artigianale del Ticino, prodotto a Claro. Ritiro, consegna in Ticino o spedizione postale.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -28,7 +28,7 @@
             --red: #E53935;
             --text: #4E342E;
             --gray: #A07855;
-            --script-font: 'Pacifico', 'Brush Script MT', cursive;
+            --script-font: 'Great Vibes', 'Brush Script MT', cursive;
         }
         html { scroll-behavior: smooth; }
         body {
@@ -53,21 +53,6 @@
                 radial-gradient(ellipse 1.5px 1px at 22% 85%, rgba(196,127,10,.18) 50%, transparent 51%),
                 radial-gradient(ellipse 1.5px 1px at 60% 40%, rgba(196,127,10,.18) 50%, transparent 51%);
             background-size: 200px 200px;
-        }
-
-        /* === HONEYCOMB BANNER (top decoration) === */
-        .honeycomb-banner {
-            position: relative;
-            height: 120px;
-            background: linear-gradient(180deg, var(--cream-deep) 0%, var(--cream) 100%);
-            overflow: hidden;
-        }
-        .honeycomb-banner svg {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            display: block;
         }
 
         /* === HEADER === */
@@ -174,37 +159,90 @@
         .hero-brand-text {
             font-family: var(--script-font);
             color: var(--honey-dark);
-            text-shadow:
-                3px 3px 0 var(--cream),
-                3px 3px 0 var(--brown-dark),
-                4px 4px 0 var(--brown-dark);
             line-height: 1;
-            transform: rotate(-3deg);
+            transform: rotate(-2deg);
+            text-shadow: 2px 2px 0 rgba(78, 52, 46, 0.08);
         }
         .hero-brand-text .line1 {
-            font-size: 2.8em;
+            font-size: 3.2em;
             display: block;
+            font-weight: 400;
         }
         .hero-brand-text .line2 {
-            font-size: 2.8em;
+            font-size: 3.2em;
             display: block;
-            padding-left: 22px;
-            margin-top: -6px;
+            padding-left: 28px;
+            margin-top: -8px;
+            font-weight: 400;
         }
         .hero-bee {
-            width: 200px;
-            height: 200px;
+            width: 220px;
+            height: 220px;
             flex-shrink: 0;
-            animation: float 4s ease-in-out infinite;
             position: relative;
+            perspective: 800px;
+            transform-style: preserve-3d;
         }
         .hero-bee img {
-            width: 100%; height: 100%; object-fit: contain;
-            filter: drop-shadow(0 8px 22px rgba(196, 127, 10, 0.3));
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 12px 18px rgba(196, 127, 10, 0.35));
+            animation: bee3d 6s ease-in-out infinite, beeBuzz 0.18s ease-in-out infinite;
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease-out;
+            cursor: pointer;
         }
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(-2deg); }
-            50% { transform: translateY(-12px) rotate(2deg); }
+        .hero-bee img:hover {
+            animation-play-state: paused;
+            transform: scale(1.15) rotateY(20deg);
+        }
+        /* Volo 3D principale: si muove in tutte le direzioni con prospettiva */
+        @keyframes bee3d {
+            0% {
+                transform: translate3d(0, 0, 0) rotateY(-15deg) rotateZ(-3deg);
+            }
+            20% {
+                transform: translate3d(15px, -20px, 30px) rotateY(20deg) rotateZ(5deg);
+            }
+            40% {
+                transform: translate3d(-10px, -10px, 60px) rotateY(35deg) rotateZ(-2deg);
+            }
+            60% {
+                transform: translate3d(-20px, 5px, 20px) rotateY(-10deg) rotateZ(4deg);
+            }
+            80% {
+                transform: translate3d(8px, -15px, 40px) rotateY(-25deg) rotateZ(-4deg);
+            }
+            100% {
+                transform: translate3d(0, 0, 0) rotateY(-15deg) rotateZ(-3deg);
+            }
+        }
+        /* Vibrazione ad alta frequenza per simulare battito d'ali */
+        @keyframes beeBuzz {
+            0%, 100% { filter: drop-shadow(0 12px 18px rgba(196, 127, 10, 0.35)); }
+            50% { filter: drop-shadow(0 12px 18px rgba(196, 127, 10, 0.35)) blur(0.3px); }
+        }
+        /* Ombra a terra che si muove (effetto profondità) */
+        .hero-bee::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            width: 80%;
+            height: 18px;
+            background: radial-gradient(ellipse, rgba(78, 52, 46, 0.25) 0%, transparent 65%);
+            transform: translateX(-50%);
+            animation: beeShadow 6s ease-in-out infinite;
+            z-index: -1;
+            filter: blur(3px);
+        }
+        @keyframes beeShadow {
+            0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+            20% { opacity: 0.4; transform: translateX(-40%) scale(0.7); }
+            40% { opacity: 0.3; transform: translateX(-55%) scale(0.55); }
+            60% { opacity: 0.5; transform: translateX(-65%) scale(0.85); }
+            80% { opacity: 0.4; transform: translateX(-45%) scale(0.7); }
         }
         .hero-tagline {
             font-size: 1.15em;
@@ -787,9 +825,9 @@
 
         /* === RESPONSIVE === */
         @media (max-width: 720px) {
-            .hero-brand-text .line1, .hero-brand-text .line2 { font-size: 2em; }
-            .hero-brand-text .line2 { padding-left: 14px; }
-            .hero-bee { width: 130px; height: 130px; }
+            .hero-brand-text .line1, .hero-brand-text .line2 { font-size: 2.4em; }
+            .hero-brand-text .line2 { padding-left: 18px; }
+            .hero-bee { width: 150px; height: 150px; }
             .section-title { font-size: 2em; }
             .header-nav a:not(.cart-btn) { display: none; }
             .header-logo-text { font-size: 1.2em; }
@@ -802,52 +840,6 @@
     </style>
 </head>
 <body class="bee-wallpaper">
-
-<!-- Honeycomb decorative banner at top -->
-<div class="honeycomb-banner">
-    <svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <linearGradient id="hex1" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#FFD580"/>
-                <stop offset="100%" stop-color="#E89C1F"/>
-            </linearGradient>
-            <linearGradient id="hex2" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#F5A623"/>
-                <stop offset="100%" stop-color="#C47F0A"/>
-            </linearGradient>
-            <linearGradient id="hex3" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#FFC04D"/>
-                <stop offset="100%" stop-color="#E89C1F"/>
-            </linearGradient>
-            <linearGradient id="hex4" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#FFE082"/>
-                <stop offset="100%" stop-color="#FFC04D"/>
-            </linearGradient>
-        </defs>
-        <!-- Row 1 of hexagons (top, bigger, half-cut on top) -->
-        <g stroke="#C47F0A" stroke-width="3" stroke-linejoin="round">
-            <polygon points="60,-50 120,-15 120,55 60,90 0,55 0,-15" fill="url(#hex1)"/>
-            <polygon points="180,-50 240,-15 240,55 180,90 120,55 120,-15" fill="url(#hex2)"/>
-            <polygon points="300,-50 360,-15 360,55 300,90 240,55 240,-15" fill="url(#hex3)"/>
-            <polygon points="420,-50 480,-15 480,55 420,90 360,55 360,-15" fill="url(#hex1)"/>
-            <polygon points="540,-50 600,-15 600,55 540,90 480,55 480,-15" fill="url(#hex2)"/>
-            <polygon points="660,-50 720,-15 720,55 660,90 600,55 600,-15" fill="url(#hex4)"/>
-            <polygon points="780,-50 840,-15 840,55 780,90 720,55 720,-15" fill="url(#hex3)"/>
-            <polygon points="900,-50 960,-15 960,55 900,90 840,55 840,-15" fill="url(#hex2)"/>
-            <polygon points="1020,-50 1080,-15 1080,55 1020,90 960,55 960,-15" fill="url(#hex1)"/>
-            <polygon points="1140,-50 1200,-15 1200,55 1140,90 1080,55 1080,-15" fill="url(#hex3)"/>
-        </g>
-        <!-- Honey droplets falling from some hexagons -->
-        <g fill="#E89C1F" opacity="0.7">
-            <ellipse cx="180" cy="92" rx="6" ry="14"/>
-            <circle cx="180" cy="105" r="5"/>
-            <ellipse cx="540" cy="92" rx="6" ry="14"/>
-            <circle cx="540" cy="105" r="5"/>
-            <ellipse cx="900" cy="92" rx="6" ry="14"/>
-            <circle cx="900" cy="105" r="5"/>
-        </g>
-    </svg>
-</div>
 
 <header>
     <div class="header-inner">

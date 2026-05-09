@@ -182,14 +182,14 @@
             transform: rotate(-3deg);
         }
         .hero-brand-text .line1 {
-            font-size: 4.2em;
+            font-size: 2.8em;
             display: block;
         }
         .hero-brand-text .line2 {
-            font-size: 4.2em;
+            font-size: 2.8em;
             display: block;
-            padding-left: 30px;
-            margin-top: -10px;
+            padding-left: 22px;
+            margin-top: -6px;
         }
         .hero-bee {
             width: 200px;
@@ -289,20 +289,8 @@
             box-shadow: 0 16px 36px rgba(196, 127, 10, 0.18);
             border-color: var(--gold);
         }
-        .product-jar {
-            width: 100%;
-            height: 160px;
-            position: relative;
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .product-jar svg {
-            width: 130px;
-            height: 160px;
-        }
         .product h3 {
+            margin-top: 8px;
             font-family: var(--script-font);
             font-size: 1.7em;
             color: var(--honey-dark);
@@ -799,8 +787,8 @@
 
         /* === RESPONSIVE === */
         @media (max-width: 720px) {
-            .hero-brand-text .line1, .hero-brand-text .line2 { font-size: 2.6em; }
-            .hero-brand-text .line2 { padding-left: 18px; }
+            .hero-brand-text .line1, .hero-brand-text .line2 { font-size: 2em; }
+            .hero-brand-text .line2 { padding-left: 14px; }
             .hero-bee { width: 130px; height: 130px; }
             .section-title { font-size: 2em; }
             .header-nav a:not(.cart-btn) { display: none; }
@@ -1159,33 +1147,6 @@ let cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
 let selectedDelivery = 'ritiro';
 let toastTimer;
 
-// =============== JAR SVG (custom for each product) ===============
-function jarSVG(color, label) {
-    return `
-    <svg viewBox="0 0 130 160" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <linearGradient id="jarLight" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="${color}" stop-opacity="0.7"/>
-                <stop offset="50%" stop-color="${color}"/>
-                <stop offset="100%" stop-color="${color}" stop-opacity="0.7"/>
-            </linearGradient>
-        </defs>
-        <!-- Lid -->
-        <rect x="32" y="8" width="66" height="18" rx="4" fill="#6D4C2E"/>
-        <rect x="34" y="10" width="62" height="3" fill="#A07855" opacity="0.6"/>
-        <!-- Jar body -->
-        <path d="M 30 26 L 30 145 Q 30 152 38 152 L 92 152 Q 100 152 100 145 L 100 26 Z"
-              fill="url(#jarLight)" stroke="#C47F0A" stroke-width="1.5"/>
-        <!-- Highlight -->
-        <path d="M 36 32 L 36 140" stroke="white" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
-        <!-- Label -->
-        <rect x="38" y="60" width="54" height="50" fill="#FBF1DD" stroke="#C47F0A" stroke-width="1"/>
-        <text x="65" y="78" text-anchor="middle" font-family="Pacifico, cursive" font-size="11" fill="#C47F0A">Allegria</text>
-        <text x="65" y="92" text-anchor="middle" font-family="Pacifico, cursive" font-size="9" fill="#C47F0A">in barattolo</text>
-        <text x="65" y="105" text-anchor="middle" font-family="Quicksand, sans-serif" font-weight="700" font-size="7" fill="#6D4C2E" letter-spacing="1">${label}</text>
-    </svg>`;
-}
-
 // =============== CART ===============
 function saveCart() {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
@@ -1279,7 +1240,6 @@ function renderProducts() {
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = PRODUCTS.map(p => `
         <div class="product" data-product-id="${p.id}">
-            <div class="product-jar">${jarSVG(p.color, p.labelText)}</div>
             <h3>${p.name}</h3>
             <p class="product-desc">${p.description}</p>
             <div class="product-tags">

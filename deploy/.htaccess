@@ -8,6 +8,12 @@
 # SSL/TLS → "Reindirizza HTTP verso HTTPS" (gestito a livello
 # di piattaforma, sempre affidabile).
 
+# Redirect www -> non-www (canonico: allegri.ch)
+# Funziona solo se www.allegri.ch è configurato come alias del sito su Infomaniak
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^www\.allegri\.ch$ [NC]
+RewriteRule ^(.*)$ https://allegri.ch/$1 [L,R=301]
+
 # Default file
 DirectoryIndex index.html
 

@@ -205,46 +205,38 @@
         }
         .product-jar {
             width: 100%;
-            height: 220px;
-            background:
-                radial-gradient(circle at 50% 80%, rgba(245, 166, 35, 0.18) 0%, transparent 60%),
-                linear-gradient(180deg, #FFF8E7 0%, #FFE9B0 100%);
-            border-radius: 14px;
+            height: 140px;
+            background: linear-gradient(180deg, transparent 0%, transparent 25%, var(--jar-color, #F5A623) 25%, var(--jar-color, #F5A623) 100%);
+            border-radius: 8px 8px 14px 14px;
             position: relative;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         .product-jar::before {
-            /* Honeycomb decoration in background */
             content: '';
             position: absolute;
-            inset: 0;
-            background-image:
-                radial-gradient(circle at 15% 30%, rgba(196, 127, 10, 0.08) 5px, transparent 6px),
-                radial-gradient(circle at 85% 25%, rgba(196, 127, 10, 0.10) 7px, transparent 8px),
-                radial-gradient(circle at 80% 80%, rgba(196, 127, 10, 0.08) 4px, transparent 5px),
-                radial-gradient(circle at 20% 85%, rgba(196, 127, 10, 0.06) 6px, transparent 7px);
-            pointer-events: none;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 18px;
+            background: var(--brown);
+            border-radius: 3px;
         }
-        .jar-illustration {
-            width: 145px;
-            height: 200px;
-            position: relative;
-            z-index: 2;
-            filter: drop-shadow(0 8px 14px rgba(78, 52, 46, 0.22));
-            animation: jarHover 4s ease-in-out infinite;
-        }
-        @keyframes jarHover {
-            0%, 100% { transform: translateY(0) rotate(-1deg); }
-            50% { transform: translateY(-4px) rotate(1deg); }
-        }
-        .product:hover .jar-illustration {
-            animation-play-state: paused;
-            transform: scale(1.05) rotate(2deg);
-            transition: transform 0.3s;
+        .product-jar::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            color: var(--brown-dark);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            white-space: nowrap;
         }
         .product h3 {
             font-size: 1.25em;
@@ -988,78 +980,6 @@ let cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
 let selectedDelivery = 'ritiro';
 let toastTimer;
 
-// =============== JAR SVG (cartoon honey jar illustration) ===============
-function jarSVG(honeyColor, labelText) {
-    const safeColor = honeyColor || '#F5A623';
-    const safeId = labelText.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return `
-    <svg viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg" class="jar-illustration" aria-hidden="true">
-        <defs>
-            <linearGradient id="honey-${safeId}" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#FFD54F"/>
-                <stop offset="40%" stop-color="${safeColor}"/>
-                <stop offset="100%" stop-color="#A56708"/>
-            </linearGradient>
-            <linearGradient id="cap-${safeId}" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#8D6E63"/>
-                <stop offset="50%" stop-color="#5D4037"/>
-                <stop offset="100%" stop-color="#3E2723"/>
-            </linearGradient>
-        </defs>
-
-        <!-- Cap top -->
-        <rect x="34" y="10" width="92" height="22" rx="4" fill="url(#cap-${safeId})" stroke="#3E2723" stroke-width="2"/>
-        <!-- Cap highlight stripe -->
-        <rect x="38" y="14" width="84" height="2.5" rx="1.2" fill="#A07855" opacity="0.6"/>
-        <!-- Cap bottom ring -->
-        <rect x="30" y="28" width="100" height="11" rx="2" fill="#4E342E" stroke="#3E2723" stroke-width="1.5"/>
-
-        <!-- Glass jar body -->
-        <path d="M 36 41 L 36 178 Q 36 192 50 192 L 110 192 Q 124 192 124 178 L 124 41 Z"
-              fill="rgba(255, 252, 235, 0.35)" stroke="#4E342E" stroke-width="2.5"/>
-
-        <!-- Honey filling -->
-        <path d="M 39 52 L 39 176 Q 39 189 50 189 L 110 189 Q 121 189 121 176 L 121 52
-                 Q 100 47 80 52 Q 60 57 39 52 Z"
-              fill="url(#honey-${safeId})"/>
-
-        <!-- Glass shine left (big) -->
-        <path d="M 46 56 L 46 178" stroke="#FFFFFF" stroke-width="4" opacity="0.55" stroke-linecap="round"/>
-        <!-- Glass shine right (small) -->
-        <path d="M 116 75 L 116 135" stroke="#FFFFFF" stroke-width="2" opacity="0.35" stroke-linecap="round"/>
-
-        <!-- Bubbles -->
-        <circle cx="68" cy="170" r="2.2" fill="#FFEB94" opacity="0.7"/>
-        <circle cx="98" cy="130" r="1.6" fill="#FFEB94" opacity="0.6"/>
-        <circle cx="85" cy="75" r="1.2" fill="#FFEB94" opacity="0.5"/>
-
-        <!-- Label -->
-        <rect x="48" y="98" width="64" height="58" rx="3" fill="#FBF1DD" stroke="#A56708" stroke-width="1.3"/>
-        <!-- Label decorative top line -->
-        <line x1="56" y1="106" x2="104" y2="106" stroke="#A56708" stroke-width="0.6" opacity="0.5"/>
-
-        <!-- Brand name -->
-        <text x="80" y="121" text-anchor="middle" font-family="Fraunces, Georgia, serif"
-              font-size="10" font-weight="700" fill="#6D4C2E">Allegria</text>
-        <text x="80" y="132" text-anchor="middle" font-family="Fraunces, Georgia, serif"
-              font-size="7.5" font-style="italic" font-weight="500" fill="#A56708">in barattolo</text>
-
-        <!-- Divider line -->
-        <line x1="62" y1="138" x2="98" y2="138" stroke="#A56708" stroke-width="0.5" opacity="0.4"/>
-
-        <!-- Product type -->
-        <text x="80" y="149" text-anchor="middle" font-family="Inter, sans-serif"
-              font-size="7" font-weight="700" fill="#5D4037" letter-spacing="1.5">${labelText}</text>
-
-        <!-- Decorative honey drop floating outside -->
-        <g transform="translate(132, 65)">
-            <path d="M 0 0 Q -3 5 0 9 Q 3 5 0 0 Z" fill="${safeColor}" opacity="0.9"/>
-            <circle cx="0" cy="9" r="3.5" fill="${safeColor}" opacity="0.9" stroke="#A56708" stroke-width="1"/>
-            <circle cx="-1" cy="8" r="1" fill="white" opacity="0.6"/>
-        </g>
-    </svg>`;
-}
-
 // =============== CART ===============
 function saveCart() {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
@@ -1153,7 +1073,7 @@ function renderProducts() {
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = PRODUCTS.map(p => `
         <div class="product" data-product-id="${p.id}">
-            <div class="product-jar">${jarSVG(p.color, p.labelText)}</div>
+            <div class="product-jar" data-label="${p.labelText}" style="--jar-color:${p.color}"></div>
             <h3>${p.icon} ${p.name}</h3>
             <p class="product-desc">${p.description}</p>
             <div class="product-tags">

@@ -372,17 +372,28 @@
         .about-text p { margin-bottom: 12px; color: var(--brown); }
         .about-features {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 40px;
         }
         .feature {
             background: white;
-            padding: 12px 14px;
-            border-radius: 12px;
+            padding: 16px 18px;
+            border-radius: 14px;
             font-size: 0.88em;
+            box-shadow: 0 2px 8px rgba(78, 52, 46, 0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .feature strong { display: block; color: var(--brown-dark); }
+        .feature:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(78, 52, 46, 0.12);
+        }
+        .feature strong {
+            display: block;
+            color: var(--brown-dark);
+            margin-bottom: 4px;
+            font-size: 1.02em;
+        }
 
         /* === CONTACT === */
         .contact {
@@ -692,7 +703,7 @@
                 grid-column: 1 / -1;
                 order: 3;
             }
-            .about-features { grid-template-columns: 1fr; }
+            .about-features { grid-template-columns: 1fr 1fr; }
             .delivery-options { grid-template-columns: 1fr; }
             .shipping-table th, .shipping-table td { padding: 10px 12px; font-size: 0.85em; }
         }
@@ -744,23 +755,27 @@
                 <p>Seguo un approccio il più possibile naturale: al centro c'è il benessere delle api, non la produzione massima. Rispetto i ritmi delle colonie, intervengo solo quando serve e lascio sempre alle famiglie scorte sufficienti per affrontare la stagione fredda.</p>
                 <p>Per questo ogni vasetto racconta una stagione: il miele viene estratto solo quando è davvero maturo, filtrato a freddo e invasato a mano. La produzione principale è un millefiori estivo, che raccoglie il profumo e il carattere delle fioriture del Bellinzonese e della Valle di Blenio.</p>
                 <p>Se desideri assaggiarlo o riceverne qualche vasetto, puoi contattarmi via email, telefono o WhatsApp.</p>
-                <div class="about-features">
-                    <div class="feature">
-                        <strong>🌍 Km 0</strong>
-                        Apiario nel Ticino
-                    </div>
-                    <div class="feature">
-                        <strong>❄️ Lavorazione a freddo</strong>
-                        Mai pastorizzato
-                    </div>
-                    <div class="feature">
-                        <strong>🚫 Zero additivi</strong>
-                        Solo miele puro
-                    </div>
-                </div>
             </div>
             <div class="about-image">
                 <img src="foto-apicoltore.jpg" alt="Apicoltore con il figlio all'apiario" class="about-photo">
+            </div>
+        </div>
+        <div class="about-features">
+            <div class="feature">
+                <strong>🏔️ Claro + Blenio</strong>
+                Apiario in Ticino con nomadismo stagionale
+            </div>
+            <div class="feature">
+                <strong>🐝 Approccio naturale</strong>
+                Benessere delle api prima della resa
+            </div>
+            <div class="feature">
+                <strong>🌸 Millefiori estivo</strong>
+                Profumo del Bellinzonese e della Valle di Blenio
+            </div>
+            <div class="feature">
+                <strong>✋ Lavorato a mano</strong>
+                Estratto a freddo e invasato manualmente
             </div>
         </div>
     </div>

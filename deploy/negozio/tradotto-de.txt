@@ -1,0 +1,401 @@
+═══════════════════════════════════════════════════════════════
+ TESTI DA TRADURRE — Allegria in barattolo
+ Versione italiana sorgente · da tradurre in tedesco e francese
+═══════════════════════════════════════════════════════════════
+
+📋 ISTRUZIONI PER DEEPL
+
+1. Vai su https://www.deepl.com/translator (o usa DeepL Pro)
+2. Lingua di partenza: ITALIANO
+3. Lingua di arrivo: TEDESCO (DE)
+4. Copia/incolla TUTTO il contenuto sotto la riga "INIZIO TESTI"
+5. Lascia che DeepL traduca
+6. Salva il risultato come "tradotto-de.txt"
+7. Ripeti per il FRANCESE (FR) → "tradotto-fr.txt"
+8. Inviami i due file e farò io l'integrazione nel sito
+
+⚠️ GLOSSARIO — TERMINI DA NON TRADURRE
+(impostali in DeepL → Glossario → Aggiungi voci IT → DE/FR identiche)
+
+  Allegria in barattolo
+  TWINT
+  PostPac
+  PostPac Economy
+  CHF
+  Claro
+  Bellinzona
+  Bellinzonese
+  Valle di Blenio
+  Ticino
+  WhatsApp
+  Sandro Allegri
+  Posta Svizzera
+  Raiffeisen
+  UBS
+  PostFinance
+  Banca Stato
+  IBAN
+  QR
+  e-banking
+  api@allegri.ch
+  allegri.ch
+  Millefiori
+  Hosting Starter
+
+✏️ NOTE PER IL TRADUTTORE
+
+- Mantieni le emoji (🍯 📱 🏦 🐝 ecc.) all'inizio o fine delle stringhe
+- Mantieni i simboli di formato (*, •, ✓)
+- Non tradurre i numeri (10, 18, 250 g, 500 g, 2 kg)
+- "barattolo" lascia in italiano (è il marchio "Allegria in barattolo")
+- "miele millefiori" è il prodotto, in DE = "Wildblütenhonig", in FR = "miel toutes fleurs"
+
+
+═══════════════════════════════════════════════════════════════
+INIZIO TESTI — copia tutto sotto questa riga in DeepL
+═══════════════════════════════════════════════════════════════
+
+
+=== 1. SEITENMETADATEN ===
+
+Allegria in barattolo — Honig aus dem Tessin
+
+Handwerklich hergestellter Honig aus dem Ticino, produziert in Claro von einem lokalen Imker. Abholung in Claro oder Versand per Post in die ganze Schweiz.
+
+
+=== 2. LOGO UND NAVIGATION ===
+
+Honig aus dem Tessin
+
+Produkte
+
+Versand
+
+Über uns
+
+Kontakt
+
+Warenkorb
+
+
+=== 3. HERO (Hauptbereich) ===
+
+Handwerklich hergestellter Honig aus dem Tessin
+
+Sorgfältig in meiner Imkerei in Claro hergestellt, fachgerecht geerntet und kaltverarbeitet, um alle natürlichen Eigenschaften zu bewahren.
+
+🌿 100 % natürlich
+
+🇨🇭 Schweizer Herkunft
+
+🐝 Lokaler Imker
+
+📦 Abholung oder Versand
+
+
+=== 4. MEINE IMKEREI ===
+
+Meine Imkerei
+
+Meine Imkerei befindet sich in Claro, nur wenige Kilometer von Bellinzona entfernt. Je nach Jahreszeit und Blütezeit werden einige Bienenvölker manchmal zum Wandern ins Bleniotal gebracht.
+
+Ich verfolge einen möglichst natürlichen Ansatz: Im Mittelpunkt steht das Wohlbefinden der Bienen, nicht die maximale Produktion. Ich respektiere den Rhythmus der Bienenvölker, greife nur ein, wenn es nötig ist, und lasse den Bienenvölkern immer genügend Vorräte, um die kalte Jahreszeit zu überstehen.
+
+Deshalb erzählt jedes Glas von einer Jahreszeit: Der Honig wird erst geerntet, wenn er wirklich reif ist, kalt gefiltert und von Hand abgefüllt. Das Hauptprodukt ist ein sommerlicher Blütenhonig, der den Duft und den Charakter der Blütenpracht aus der Region um Bellinzonese und das Valle di Blenio einfängt.
+
+Wenn du ihn probieren oder ein paar Gläser davon erhalten möchtest, kannst du mich per E-Mail, Telefon oder WhatsApp kontaktieren.
+
+
+=== 5. FEATURES (die 4 Kästchen unter „Meine Imkerei“) ===
+
+Claro + Blenio
+
+Bienenhaus im Ticino mit saisonaler Wanderimkerei
+
+Natürlicher Ansatz
+
+Das Wohlbefinden der Bienen steht vor dem Ertrag
+
+Sommer-Blütenhonig
+
+Duft des Bellinzonese-Gebiets und des Bleniotal
+
+Handgefertigt
+
+Kaltgepresst und von Hand abgefüllt
+
+
+=== 6. PRODUKTE ===
+
+Mein Honig
+
+Wähle die Größe und lege den Artikel in den Warenkorb
+
+Blütenhonig
+
+Blumiges Bouquet, das je nach Jahreszeit und Erntegebiet variiert. Farbe und Geschmack ändern sich jedes Jahr: Jedes Glas erzählt von einem anderen Frühling.
+
+Ausgewogen
+
+Vielseitig
+
+Saisonal
+
+In den Warenkorb
+
+
+=== 7. LIEFERMODALITÄTEN (Versand) ===
+
+📦 Liefermodalitäten
+
+Zwei Optionen zur Auswahl
+
+Modalität
+
+Kosten
+
+Anmerkungen
+
+🏡 Abholung in Claro
+
+Kostenlos
+
+Nach Vereinbarung
+
+📮 Versand mit PostPac
+
+CHF 5 + Gewichtsgebühr
+
+In der ganzen Schweiz
+
+Versandgebühren (PostPac Economy)
+
+Paketgewicht
+
+Versand
+
++ Verpackung
+
+Gesamt
+
+bis 2 kg
+
+bis 5 kg
+
+bis 10 kg
+
+bis 20 kg
+
+bis 30 kg
+
+über 30 kg
+
+Gewicht über 30 kg: Kontaktiere uns für ein individuelles Angebot
+
+Die Versandpreise beziehen sich auf die Richtpreise der Schweizerischen Post für den PostPac Economy-Service und können variieren. Die endgültige Berechnung wird bei der Bestellung angezeigt.
+
+
+=== 8. KONTAKT ===
+
+Kontakt
+
+Für Bestellungen, Abholungen oder Fragen
+
+WhatsApp
+
+E-Mail
+
+Abholung
+
+Claro (TI), nach Vereinbarung
+
+
+=== 9. FUSSNOTE ===
+
+© Allegria in barattolo · Sandro Allegri · Claro, Ticino (DE: Tessin / FR: Tessin) · allegri.ch
+
+
+=== 10. WARENKORB (Seitenleiste) ===
+
+🛒 Ihr Warenkorb
+
+Der Warenkorb ist leer
+
+Legen Sie ein paar Gläser Honig in den Warenkorb!
+
+Zwischensumme Produkte
+
+📦 Verpackung
+
+📮 Versand
+
+Gesamt:
+
+Zur Kasse gehen →
+
+Entfernen
+
+
+=== 11. KASSE (Bestellformular) ===
+
+📝 Bestellung abschliessen
+
+Vor- und Nachname *
+
+Telefon *
+
+E-Mail
+
+Lieferart *
+
+Abholung
+
+In Claro, kostenlos
+
+Versand
+
+Post CH
+
+Lieferadresse *
+
+📦 Versandkosten
+
+Füge Produkte zum Warenkorb hinzu, um die Versandkosten zu berechnen.
+
+Paketgewicht:
+
+Verpackung:
+
+Versand (PostPac Economy):
+
+Gesamtversandkosten:
+
+Zahlungsart *
+
+TWINT / E-Banking
+
+Sofort per QR
+
+Bar
+
+Bei Abholung bei Claro
+
+Zu zahlender Betrag
+
+TWINT
+
+Betrag manuell eingeben
+
+Bank-App
+
+Automatisches Ausfüllen ✓
+
+Mit der TWINT-App bezahlen
+
+Öffne die TWINT-App
+
+Tippe auf „Scannen“ und richte die Kamera auf diesen QR-Code
+
+Geben Sie den Betrag manuell ein
+
+Bestätigen Sie die Zahlung
+
+Bezahlen Sie mit Ihrer Bank-App
+
+Öffnen Sie die App Ihrer Bank (Raiffeisen, UBS, PostFinance, Banca Stato...)
+
+Funktion „QR-Rechnung bezahlen“ oder „QR scannen“
+
+Der Betrag ist bereits im QR-Code eingetragen
+
+Bestätige die Überweisung
+
+💡 Führe die Zahlung vor dem Absenden der Bestellung durch. Gib die Uhrzeit in den Anmerkungen an, um die Überprüfung zu erleichtern.
+
+Anmerkungen (optional)
+
+Z. B. bevorzugtes Abholdatum, Allergien, TWINT-Bestätigung...
+
+Abbrechen
+
+💬 Per WhatsApp senden
+
+✉️ Oder per E-Mail senden
+
+
+=== 12. MELDUNGEN UND PLATZHALTER ===
+
+Zum Warenkorb hinzugefügt!
+
+Zum Warenkorb hinzugefügt
+
+✓ Hinzugefügt
+
+Mario Rossi
+
+mario@example.com
+
+Via Roma 10, 6500 Bellinzona
+
+Gib deinen Namen ein
+
+Gib deine Telefonnummer ein
+
+Gib die Lieferadresse ein
+
+Wähle einen Bienenstock aus
+
+Gib Anmerkungen ein oder diktiere sie
+
+Neue Honigbestellung —
+
+
+=== 13. SEITE „DANKE“ (Bestellbestätigung) ===
+
+Vielen Dank für deine Bestellung — Allegria in barattolo
+
+Vielen Dank, dass du den Honig von Allegria in barattolo bestellt hast. Sandro Allegri wird sich so schnell wie möglich bei dir melden.
+
+Vielen Dank für deine Bestellung!
+
+Ich habe deine Anfrage erhalten und werde mich so schnell wie möglich bei dir melden.
+
+, ich habe deine Anfrage erhalten und werde mich so schnell wie möglich bei dir melden.
+
+📋 Zusammenfassung
+
+Kunde
+
+Produkte
+
+Versandart
+
+Produkt
+
+Produkte
+
+Was passiert nun?
+
+Sandro erhält deine Nachricht
+
+Er antwortet dir mit einer Bestätigung und den Details
+
+Ihr vereinbart die Bezahlung (falls noch nicht über TWINT/QR erfolgt)
+
+Du holst den Honig in Claro ab oder erhältst die Lieferung
+
+🍯 Zurück zum Shop
+
+Weiter zu allegri.ch
+
+
+=== 14. BENACHRICHTIGUNGEN UND DIALOGE ===
+
+WhatsApp hat sich mit deiner bereits ausgefüllten Bestellung geöffnet. Sende die Nachricht, um die Bestellung abzuschließen.
+
+Deine E-Mail-App hat sich mit der bereits verfassten Bestellung geöffnet. Sende die E-Mail, um den Vorgang abzuschließen.
+
+
+═════════════════════════════════ ══════════════════════════════
+ENDE DER TEXTE
+═══════════════════════════════ ════════════════════════════════

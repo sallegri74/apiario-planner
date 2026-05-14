@@ -854,117 +854,6 @@
             background: linear-gradient(135deg, var(--honey), var(--honey-dark));
         }
 
-        /* === SUCCESS MODAL === */
-        .success-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(46, 38, 32, 0.65);
-            z-index: 1200;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-        }
-        .success-overlay.open { display: flex; }
-        .success-modal {
-            background: white;
-            border-radius: 20px;
-            max-width: 460px;
-            width: 100%;
-            padding: 36px 28px 28px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: successSlideUp 0.3s ease-out;
-        }
-        @keyframes successSlideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .success-icon {
-            width: 76px;
-            height: 76px;
-            background: linear-gradient(135deg, #66BB6A, #43A047);
-            border-radius: 50%;
-            color: white;
-            font-size: 2.4em;
-            font-weight: 900;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 10px 24px rgba(76, 175, 80, 0.35);
-            animation: successPop 0.4s 0.1s backwards;
-        }
-        @keyframes successPop {
-            from { transform: scale(0); }
-            60% { transform: scale(1.15); }
-            to { transform: scale(1); }
-        }
-        .success-modal h2 {
-            color: var(--brown-dark);
-            font-size: 1.6em;
-            margin-bottom: 14px;
-            font-weight: 800;
-        }
-        .success-msg {
-            color: var(--brown);
-            margin-bottom: 22px;
-            font-size: 0.96em;
-            line-height: 1.55;
-        }
-        .success-summary {
-            background: var(--cream);
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 18px;
-            font-size: 0.95em;
-        }
-        .success-tip {
-            background: #E3F2FD;
-            color: #1565C0;
-            padding: 12px 14px;
-            border-radius: 10px;
-            font-size: 0.86em;
-            margin-bottom: 22px;
-            line-height: 1.5;
-            text-align: left;
-        }
-        .success-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .success-actions .btn-new-order {
-            background: linear-gradient(135deg, var(--honey), var(--honey-dark));
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.98em;
-            cursor: pointer;
-            font-family: inherit;
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-        .success-actions .btn-new-order:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(196, 127, 10, 0.3);
-        }
-        .success-actions .btn-keep {
-            background: white;
-            color: var(--brown-dark);
-            border: 1.5px solid #ddd;
-            padding: 12px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.92em;
-            cursor: pointer;
-            font-family: inherit;
-        }
-        .success-actions .btn-keep:hover { background: var(--cream); }
-
         /* === TOAST === */
         .toast {
             position: fixed;
@@ -1302,23 +1191,6 @@
             <button class="btn-primary btn-primary-email" style="width:100%; margin-top: 0" onclick="submitOrder('email')">
                 ✉️ Oppure invia per email
             </button>
-        </div>
-    </div>
-</div>
-
-<!-- Order success modal -->
-<div class="success-overlay" id="successOverlay" onclick="if(event.target===this)closeSuccessKeepCart()">
-    <div class="success-modal">
-        <div class="success-icon">✓</div>
-        <h2>Quasi fatto!</h2>
-        <p class="success-msg" id="successMsg"></p>
-        <div class="success-summary" id="successSummary"></div>
-        <div class="success-tip">
-            💡 Sandro ti risponderà al più presto con la conferma e i dettagli per il ritiro.
-        </div>
-        <div class="success-actions">
-            <button class="btn-new-order" onclick="closeSuccessNewOrder()">🛒 Svuota carrello</button>
-            <button class="btn-keep" onclick="closeSuccessKeepCart()">Mantieni nel carrello</button>
         </div>
     </div>
 </div>
@@ -1800,57 +1672,36 @@ function validateCheckout() {
 
 function submitOrder(method) {
     if (!validateCheckout()) return;
-    // Snapshot dei dati ordine PRIMA di aprire WhatsApp/email
+    // Snapshot dei dati ordine
     const name = document.getElementById('checkoutName').value.trim();
     const total = getCartTotal();
     const itemCount = cart.reduce((s, i) => s + i.qty, 0);
     const text = buildOrderText();
 
-    // Mostra il modal di conferma SUBITO (così è visibile anche se l'app prende il focus)
-    showSuccessModal(method, name, total, itemCount);
+    // Costruisci URL pagina di ringraziamento con parametri (per personalizzazione + tracking Google Ads)
+    const params = new URLSearchParams({
+        name: name,
+        total: total.toFixed(2),
+        items: itemCount.toString(),
+        method: method,
+        orderId: 'ORD-' + Date.now()
+    });
+    const thankYouUrl = '/negozio/grazie/?' + params.toString();
 
-    // Apri WhatsApp/email DOPO aver mostrato il modal
+    // Apri WhatsApp/email
     if (method === 'whatsapp') {
         const url = `https://wa.me/${SHOP_CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
+        // Naviga alla pagina di grazie dopo breve delay
+        // (su mobile WhatsApp prende il focus ma la navigazione è già partita)
+        setTimeout(() => { window.location.href = thankYouUrl; }, 300);
     } else {
+        // Email: triggera mailto: poi naviga
         const subject = `Nuovo ordine miele — ${name}`;
-        const url = `mailto:${SHOP_CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
-        window.location.href = url;
+        const mailUrl = `mailto:${SHOP_CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+        window.location.href = mailUrl;
+        setTimeout(() => { window.location.href = thankYouUrl; }, 500);
     }
-}
-
-function showSuccessModal(method, name, total, itemCount) {
-    const isWA = method === 'whatsapp';
-    const msg = isWA
-        ? 'Si è aperto <strong>WhatsApp</strong> con il tuo ordine già compilato. <strong>Invia il messaggio</strong> per completare l\'ordine.'
-        : 'Si è aperta la tua app <strong>email</strong> con l\'ordine già scritto. <strong>Invia l\'email</strong> ad api@allegri.ch per completare.';
-    const msgEl = document.getElementById('successMsg');
-    const sumEl = document.getElementById('successSummary');
-    if (msgEl) msgEl.innerHTML = msg;
-    if (sumEl) sumEl.innerHTML = `
-        <div style="font-size:.85em;color:var(--gray);margin-bottom:4px">Ordine di</div>
-        <div style="font-weight:700;color:var(--brown-dark);margin-bottom:8px">${name}</div>
-        <div style="font-size:.92em">${itemCount} ${itemCount === 1 ? 'prodotto' : 'prodotti'} · Totale <strong style="color:#E65100">CHF ${total.toFixed(2)}</strong></div>
-    `;
-    document.getElementById('successOverlay').classList.add('open');
-}
-
-function closeSuccessKeepCart() {
-    document.getElementById('successOverlay').classList.remove('open');
-    closeCheckout();
-}
-
-function closeSuccessNewOrder() {
-    cart = [];
-    saveCart();
-    // Reset checkout form
-    ['checkoutName', 'checkoutPhone', 'checkoutEmail', 'checkoutAddress', 'checkoutNotes'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-    });
-    document.getElementById('successOverlay').classList.remove('open');
-    closeCheckout();
 }
 
 // =============== TOAST ===============

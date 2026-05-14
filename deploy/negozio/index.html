@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="ape.png">
     <link rel="apple-touch-icon" href="ape.png">
     <meta name="description" content="Miele artigianale del Ticino, prodotto a Claro da apicoltore locale. Ritiro, consegna o spedizione postale.">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -661,6 +662,41 @@
             object-fit: contain;
             flex-shrink: 0;
         }
+        .qrbill-qr {
+            width: 160px;
+            height: 160px;
+            border-radius: 8px;
+            background: white;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .qrbill-qr svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .qrbill-qr::after {
+            content: '+';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px;
+            height: 22px;
+            background: #DA291C;
+            color: white;
+            font-weight: 900;
+            font-size: 1.2em;
+            font-family: Arial, sans-serif;
+            line-height: 22px;
+            text-align: center;
+            border: 2px solid white;
+            box-sizing: content-box;
+            pointer-events: none;
+        }
         .twint-details {
             flex: 1;
             min-width: 180px;
@@ -983,18 +1019,19 @@
                 </div>
             </div>
             <div class="twint-info-box" id="twintInfoBox">
-                <strong style="color:#E65100;display:block;margin-bottom:10px;font-size:1.05em">📱 Paga ora con TWINT</strong>
+                <strong style="color:#E65100;display:block;margin-bottom:10px;font-size:1.05em">📱 Paga con TWINT o app bancaria</strong>
                 <div class="twint-content">
-                    <img src="twint-qr.png" alt="QR TWINT" class="twint-qr" onerror="this.style.display='none'; document.getElementById('twintQrFallback').style.display='block'">
-                    <div id="twintQrFallback" style="display:none;width:140px;height:140px;background:#FFF;border:2px dashed #FFE082;border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:.78em;color:var(--gray);box-sizing:border-box">QR TWINT<br>da aggiungere</div>
+                    <div id="qrbillContainer" class="qrbill-qr"></div>
                     <div class="twint-details">
-                        <div style="font-size:.9em;color:var(--brown);margin-bottom:4px">Scansiona il QR e invia</div>
-                        <div style="font-family:'Inter',sans-serif;font-size:1.6em;font-weight:800;color:#E65100;line-height:1.1">CHF <span id="twintAmount">0.00</span></div>
-                        <div style="font-size:.82em;color:var(--gray);margin-top:8px;line-height:1.4">Oppure invia al numero TWINT<br><strong style="color:var(--brown-dark)">+41 79 225 69 48</strong></div>
+                        <div style="font-size:.9em;color:var(--brown);margin-bottom:6px">Apri TWINT e tocca <strong>"Scansiona QR"</strong>:</div>
+                        <div style="font-size:.78em;color:var(--gray);margin-bottom:4px">Importo da pagare</div>
+                        <div style="font-family:'Inter',sans-serif;font-size:1.7em;font-weight:800;color:#E65100;line-height:1.1">CHF <span id="twintAmount">0.00</span></div>
+                        <div style="font-size:.82em;color:var(--green-dark, #2E7D32);margin-top:8px;line-height:1.4;font-weight:600">✓ Importo già inserito nel QR</div>
                     </div>
                 </div>
-                <div style="font-size:.78em;color:var(--gray);margin-top:10px;padding-top:10px;border-top:1px solid #FFE082">
-                    💡 Effettua il pagamento <strong>prima</strong> di inviare l'ordine. Poi conferma scrivendo nelle note "TWINT pagato" o l'orario.
+                <div style="font-size:.76em;color:var(--gray);margin-top:12px;padding-top:10px;border-top:1px solid #FFE082;line-height:1.5">
+                    💡 Compatibile con <strong>TWINT, Raiffeisen, UBS, PostFinance, Banca Stato</strong> e altre app di mobile banking svizzere.<br>
+                    Effettua il pagamento <strong>prima</strong> di inviare l'ordine e segnala l'orario nelle note.
                 </div>
             </div>
             <div class="form-row">
@@ -1316,9 +1353,71 @@ function selectPayment(method, btn) {
     updateTwintAmount();
 }
 
+// === SWISS QR-BILL (Swiss Payments Standard) ===
+const QRBILL_CONFIG = {
+    iban: 'CH4509000000650322741',
+    creditorName: 'Sandro Allegri',
+    creditorStreet: 'a Scerése',
+    creditorHouseNum: '12',
+    creditorZip: '6702',
+    creditorCity: 'Claro',
+    creditorCountry: 'CH'
+};
+
+function generateQRBillData(amount, message) {
+    const lines = [
+        'SPC',                              // 01 QRType
+        '0200',                             // 02 Version
+        '1',                                // 03 Coding (1 = UTF-8)
+        QRBILL_CONFIG.iban.replace(/\s/g, ''), // 04 IBAN
+        // Creditor (lines 05-11)
+        'S',                                // 05 Address type: S = structured
+        QRBILL_CONFIG.creditorName,         // 06 Name
+        QRBILL_CONFIG.creditorStreet,       // 07 Street
+        QRBILL_CONFIG.creditorHouseNum,     // 08 House number
+        QRBILL_CONFIG.creditorZip,          // 09 ZIP
+        QRBILL_CONFIG.creditorCity,         // 10 City
+        QRBILL_CONFIG.creditorCountry,      // 11 Country
+        // Ultimate Creditor (lines 12-18, empty)
+        '', '', '', '', '', '', '',
+        // Payment amount info (lines 19-20)
+        amount.toFixed(2),                  // 19 Amount
+        'CHF',                              // 20 Currency
+        // Ultimate Debtor (lines 21-27, empty)
+        '', '', '', '', '', '', '',
+        // Reference (lines 28-29)
+        'NON',                              // 28 Reference type (NON = no reference)
+        '',                                 // 29 Reference (empty)
+        // Additional info (line 30)
+        message,                            // 30 Unstructured message
+        'EPD'                               // 31 Trailer
+    ];
+    return lines.join('\n');
+}
+
+function renderQRBill() {
+    const container = document.getElementById('qrbillContainer');
+    if (!container || typeof qrcode === 'undefined') return;
+    const total = getCartTotal();
+    if (total <= 0) { container.innerHTML = ''; return; }
+    // Build message from cart items (max ~140 chars for reliability)
+    const items = cart.map(i => `${i.qty}x ${i.name} ${i.sizeName}`).join(', ');
+    const message = `Allegria in barattolo - ${items}`.substring(0, 140);
+    try {
+        const data = generateQRBillData(total, message);
+        const qr = qrcode(0, 'M');
+        qr.addData(data, 'Byte');
+        qr.make();
+        container.innerHTML = qr.createSvgTag({ scalable: true, margin: 2 });
+    } catch (e) {
+        container.innerHTML = '<div style="font-size:.78em;color:var(--gray);text-align:center;padding:20px">QR non disponibile<br>usa il bonifico manuale</div>';
+    }
+}
+
 function updateTwintAmount() {
     const amountEl = document.getElementById('twintAmount');
     if (amountEl) amountEl.textContent = getCartTotal().toFixed(2);
+    renderQRBill();
 }
 
 function selectDelivery(type, btn) {

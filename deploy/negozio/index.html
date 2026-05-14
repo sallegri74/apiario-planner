@@ -639,67 +639,193 @@
             margin-bottom: 14px;
             font-size: 0.88em;
         }
-        .twint-info-box {
+        /* === PAYMENT BOX (hybrid TWINT + QR-bill) === */
+        .payment-box {
             background: linear-gradient(135deg, #FFF8E1, #FFECB3);
-            padding: 16px;
-            border-radius: 12px;
+            padding: 18px;
+            border-radius: 14px;
             border: 1.5px solid #FFE082;
             margin-bottom: 16px;
         }
-        .twint-content {
+        .payment-amount-banner {
+            background: white;
+            border-radius: 10px;
+            padding: 14px 18px;
             display: flex;
-            gap: 16px;
+            justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
-        .twint-qr {
-            width: 140px;
-            height: 140px;
-            border-radius: 8px;
+        .payment-amount-banner span:first-child {
+            font-size: 0.92em;
+            color: var(--brown);
+            font-weight: 600;
+        }
+        .payment-amount-banner strong {
+            font-size: 1.5em;
+            color: #E65100;
+            font-weight: 800;
+            font-family: 'Inter', sans-serif;
+        }
+        .payment-qrs {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 14px;
+            align-items: stretch;
+        }
+        .payment-card {
             background: white;
-            padding: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 2px solid transparent;
+        }
+        .payment-card-twint { border-color: #FF6B35; }
+        .payment-card-qrbill { border-color: #1565C0; }
+        .payment-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .payment-card-icon { font-size: 1.4em; }
+        .payment-card-title {
+            font-weight: 700;
+            font-size: 0.95em;
+            color: var(--brown-dark);
+        }
+        .payment-qr-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .payment-qr-img {
+            width: 150px;
+            height: 150px;
             object-fit: contain;
-            flex-shrink: 0;
+            border-radius: 6px;
         }
-        .qrbill-qr {
-            width: 160px;
-            height: 160px;
-            border-radius: 8px;
-            background: white;
-            padding: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            box-sizing: border-box;
-            flex-shrink: 0;
+        .payment-qr-fallback {
+            width: 150px;
+            height: 150px;
+            background: #FAFAFA;
+            border: 2px dashed #FFE082;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.82em;
+            color: var(--gray);
+            line-height: 1.4;
+            flex-direction: column;
+        }
+        .payment-qr-fallback small { font-size: 0.78em; opacity: 0.7; }
+        .payment-qr-svg {
+            width: 150px;
+            height: 150px;
             position: relative;
+            background: white;
         }
-        .qrbill-qr svg {
+        .payment-qr-svg svg {
             width: 100%;
             height: 100%;
             display: block;
         }
-        .qrbill-qr::after {
+        .payment-qr-svg::after {
             content: '+';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             background: #DA291C;
             color: white;
             font-weight: 900;
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-family: Arial, sans-serif;
-            line-height: 22px;
+            line-height: 20px;
             text-align: center;
             border: 2px solid white;
             box-sizing: content-box;
             pointer-events: none;
         }
-        .twint-details {
-            flex: 1;
-            min-width: 180px;
+        .payment-steps {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 0.82em;
+            color: var(--brown);
+            line-height: 1.55;
+        }
+        .payment-steps li { margin-bottom: 2px; }
+        .payment-separator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-width: 30px;
+        }
+        .payment-separator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            background: repeating-linear-gradient(to bottom, #FFE082 0, #FFE082 6px, transparent 6px, transparent 12px);
+            transform: translateX(-50%);
+        }
+        .payment-separator span {
+            position: relative;
+            background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+            color: var(--brown);
+            font-size: 0.78em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 6px 4px;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+        }
+        .payment-footer-note {
+            font-size: 0.8em;
+            color: var(--brown);
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #FFE082;
+            line-height: 1.5;
+        }
+        @media (max-width: 620px) {
+            .payment-qrs {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            .payment-separator {
+                min-width: 0;
+                margin: 14px 0;
+            }
+            .payment-separator::before {
+                top: 50%;
+                left: 0;
+                right: 0;
+                bottom: auto;
+                width: auto;
+                height: 2px;
+                background: repeating-linear-gradient(to right, #FFE082 0, #FFE082 6px, transparent 6px, transparent 12px);
+                transform: translateY(-50%);
+            }
+            .payment-separator span {
+                writing-mode: horizontal-tb;
+                transform: none;
+                padding: 4px 12px;
+            }
         }
         .checkout-footer {
             padding: 16px 20px;
@@ -1000,38 +1126,65 @@
             </div>
             <div class="form-row">
                 <label>Modalità di pagamento *</label>
-                <div class="delivery-options">
+                <div class="delivery-options" style="grid-template-columns:1fr 1fr">
                     <div class="delivery-option selected" onclick="selectPayment('twint', this)">
                         <div class="delivery-option-icon">📱</div>
-                        <div class="delivery-option-name">TWINT</div>
-                        <div class="delivery-option-desc">Subito</div>
+                        <div class="delivery-option-name">TWINT / e-banking</div>
+                        <div class="delivery-option-desc">Subito tramite QR</div>
                     </div>
                     <div class="delivery-option" onclick="selectPayment('contanti', this)">
                         <div class="delivery-option-icon">💵</div>
                         <div class="delivery-option-name">Contanti</div>
-                        <div class="delivery-option-desc">Al ritiro</div>
-                    </div>
-                    <div class="delivery-option" onclick="selectPayment('accordo', this)">
-                        <div class="delivery-option-icon">🤝</div>
-                        <div class="delivery-option-name">Da concordare</div>
-                        <div class="delivery-option-desc">Modalità</div>
+                        <div class="delivery-option-desc">Al ritiro/consegna</div>
                     </div>
                 </div>
             </div>
-            <div class="twint-info-box" id="twintInfoBox">
-                <strong style="color:#E65100;display:block;margin-bottom:10px;font-size:1.05em">📱 Paga con TWINT o app bancaria</strong>
-                <div class="twint-content">
-                    <div id="qrbillContainer" class="qrbill-qr"></div>
-                    <div class="twint-details">
-                        <div style="font-size:.9em;color:var(--brown);margin-bottom:6px">Apri TWINT e tocca <strong>"Scansiona QR"</strong>:</div>
-                        <div style="font-size:.78em;color:var(--gray);margin-bottom:4px">Importo da pagare</div>
-                        <div style="font-family:'Inter',sans-serif;font-size:1.7em;font-weight:800;color:#E65100;line-height:1.1">CHF <span id="twintAmount">0.00</span></div>
-                        <div style="font-size:.82em;color:var(--green-dark, #2E7D32);margin-top:8px;line-height:1.4;font-weight:600">✓ Importo già inserito nel QR</div>
+            <div class="payment-box" id="twintInfoBox">
+                <div class="payment-amount-banner">
+                    <span>Importo da pagare</span>
+                    <strong>CHF <span id="twintAmount">0.00</span></strong>
+                </div>
+                <div class="payment-qrs">
+                    <!-- TWINT QR (statico, manuale) -->
+                    <div class="payment-card payment-card-twint">
+                        <div class="payment-card-header">
+                            <span class="payment-card-icon">📱</span>
+                            <span class="payment-card-title">Paga con TWINT</span>
+                        </div>
+                        <div class="payment-qr-wrap">
+                            <img src="twint-qr.png" alt="QR TWINT personale" class="payment-qr-img" id="twintQrImg" onerror="this.style.display='none';document.getElementById('twintQrFallback').style.display='flex'">
+                            <div id="twintQrFallback" class="payment-qr-fallback" style="display:none">QR TWINT<br><small>da aggiungere</small></div>
+                        </div>
+                        <ol class="payment-steps">
+                            <li>Apri l'app <strong>TWINT</strong></li>
+                            <li>Scansiona questo QR</li>
+                            <li><strong>Inserisci l'importo</strong> indicato</li>
+                            <li>Conferma</li>
+                        </ol>
+                    </div>
+                    <!-- Separatore con OR -->
+                    <div class="payment-separator">
+                        <span>oppure</span>
+                    </div>
+                    <!-- QR-bill svizzero (dinamico, auto-fill) -->
+                    <div class="payment-card payment-card-qrbill">
+                        <div class="payment-card-header">
+                            <span class="payment-card-icon">🏦</span>
+                            <span class="payment-card-title">Paga con app bancaria</span>
+                        </div>
+                        <div class="payment-qr-wrap">
+                            <div id="qrbillContainer" class="payment-qr-svg"></div>
+                        </div>
+                        <ol class="payment-steps">
+                            <li>Apri l'app della <strong>tua banca</strong></li>
+                            <li>Scansiona il QR (Raiffeisen, UBS, PostFinance, ecc.)</li>
+                            <li>L'importo è <strong>già inserito</strong></li>
+                            <li>Conferma il pagamento</li>
+                        </ol>
                     </div>
                 </div>
-                <div style="font-size:.76em;color:var(--gray);margin-top:12px;padding-top:10px;border-top:1px solid #FFE082;line-height:1.5">
-                    💡 Compatibile con <strong>TWINT, Raiffeisen, UBS, PostFinance, Banca Stato</strong> e altre app di mobile banking svizzere.<br>
-                    Effettua il pagamento <strong>prima</strong> di inviare l'ordine e segnala l'orario nelle note.
+                <div class="payment-footer-note">
+                    💡 Effettua il pagamento <strong>prima</strong> di inviare l'ordine. Segnala l'orario nelle note per facilitare la verifica.
                 </div>
             </div>
             <div class="form-row">
@@ -1479,9 +1632,8 @@ function buildOrderText() {
     if (selectedDelivery === 'consegna') modalita = 'Consegna a domicilio in Ticino';
     else if (selectedDelivery === 'spedizione') modalita = 'Spedizione postale (PostPac Economy)';
 
-    let pagamento = 'TWINT';
+    let pagamento = 'TWINT / e-banking (QR)';
     if (selectedPayment === 'contanti') pagamento = 'Contanti al ritiro/consegna';
-    else if (selectedPayment === 'accordo') pagamento = 'Da concordare';
 
     let txt = `🍯 NUOVO ORDINE — ${SHOP_CONFIG.shopName}\n\n`;
     txt += `👤 Cliente: ${name}\n`;

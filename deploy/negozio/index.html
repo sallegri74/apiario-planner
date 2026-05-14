@@ -205,38 +205,22 @@
         }
         .product-jar {
             width: 100%;
-            height: 140px;
-            background: linear-gradient(180deg, transparent 0%, transparent 25%, var(--jar-color, #F5A623) 25%, var(--jar-color, #F5A623) 100%);
-            border-radius: 8px 8px 14px 14px;
-            position: relative;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
+            border-radius: 14px;
             overflow: hidden;
+            box-shadow: 0 6px 18px rgba(78, 52, 46, 0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+            background: var(--cream);
         }
-        .product-jar::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 50%;
-            transform: translateX(-50%);
-            width: 60%;
-            height: 18px;
-            background: var(--brown);
-            border-radius: 3px;
+        .product-jar img {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: cover;
         }
-        .product-jar::after {
-            content: attr(data-label);
-            position: absolute;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            color: var(--brown-dark);
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 0.75em;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            white-space: nowrap;
+        .product:hover .product-jar {
+            transform: translateY(-2px) rotate(-0.5deg);
+            box-shadow: 0 12px 28px rgba(78, 52, 46, 0.2);
         }
         .product h3 {
             font-size: 1.25em;
@@ -1073,7 +1057,7 @@ function renderProducts() {
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = PRODUCTS.map(p => `
         <div class="product" data-product-id="${p.id}">
-            <div class="product-jar" data-label="${p.labelText}" style="--jar-color:${p.color}"></div>
+            <div class="product-jar"><img src="etichetta.png" alt="Etichetta ${p.labelText}"></div>
             <h3>${p.icon} ${p.name}</h3>
             <p class="product-desc">${p.description}</p>
             <div class="product-tags">

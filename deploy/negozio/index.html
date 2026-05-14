@@ -69,15 +69,13 @@
         .header-logo {
             display: flex;
             align-items: center;
+            gap: 10px;
             text-decoration: none;
             color: var(--brown-dark);
         }
-        .header-logo .logo-img {
-            height: 48px;
-            width: auto;
-            display: block;
-            border-radius: 6px;
-        }
+        .header-logo img { width: 42px; height: 42px; object-fit: contain; }
+        .header-logo-text { font-weight: 800; font-size: 1.05em; line-height: 1.1; }
+        .header-logo-text small { display: block; font-size: 0.7em; color: var(--gray); font-weight: 500; }
         .header-nav { display: flex; gap: 18px; align-items: center; }
         .header-nav a { font-size: 0.92em; font-weight: 600; }
         .cart-btn {
@@ -144,19 +142,19 @@
             mask-image: linear-gradient(to right, transparent 0%, black 25%, black 70%, transparent 100%);
         }
         .hero-inner { max-width: 800px; margin: 0 auto; position: relative; z-index: 2; }
-        .hero-bee {
-            width: 180px;
-            height: 180px;
-            margin: 0 auto 16px;
+        .hero-logo {
+            max-width: 480px;
+            width: 85%;
+            margin: 0 auto 20px;
             animation: float 4s ease-in-out infinite;
         }
-        .hero-bee img {
-            width: 100%; height: 100%; object-fit: contain;
-            filter: drop-shadow(0 8px 22px rgba(196, 127, 10, 0.25));
+        .hero-logo img {
+            width: 100%; height: auto; object-fit: contain;
+            filter: drop-shadow(0 6px 18px rgba(196, 127, 10, 0.3));
         }
         @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(-1deg); }
-            50% { transform: translateY(-12px) rotate(1deg); }
+            0%, 100% { transform: translateY(0) rotate(-0.5deg); }
+            50% { transform: translateY(-10px) rotate(0.5deg); }
         }
         .hero h1 {
             font-size: 2.6em;
@@ -351,8 +349,8 @@
         }
         .about-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            gap: 30px;
             align-items: center;
         }
         .about-image { text-align: center; position: relative; }
@@ -682,10 +680,18 @@
         /* === RESPONSIVE === */
         @media (max-width: 720px) {
             .hero h1 { font-size: 2em; }
-            .hero-bee { width: 140px; height: 140px; }
+            .hero-logo { max-width: 340px; }
             .section-title { font-size: 1.5em; }
             .header-nav a:not(.cart-btn) { display: none; }
-            .about-grid { grid-template-columns: 1fr; }
+            .about-grid {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto;
+                text-align: center;
+            }
+            .about-grid .about-text {
+                grid-column: 1 / -1;
+                order: 3;
+            }
             .about-features { grid-template-columns: 1fr; }
             .delivery-options { grid-template-columns: 1fr; }
             .shipping-table th, .shipping-table td { padding: 10px 12px; font-size: 0.85em; }
@@ -696,8 +702,8 @@
 
 <header>
     <div class="header-inner">
-        <a href="#" class="header-logo" aria-label="Allegria in barattolo - Miele del Ticino">
-            <img src="logo-corsivo.png" alt="Allegria in barattolo" class="logo-img">
+        <a href="#" class="header-logo">
+            <img src="ape.png" alt="Allegria in barattolo">
         </a>
         <nav class="header-nav">
             <a href="#prodotti">Prodotti</a>
@@ -714,7 +720,7 @@
 
 <div class="hero">
     <div class="hero-inner">
-        <div class="hero-bee"><img src="ape.png" alt="Apetta con vasetto di miele"></div>
+        <div class="hero-logo"><img src="logo-corsivo.png" alt="Allegria in barattolo"></div>
         <h1>Miele artigianale del Ticino</h1>
         <p>Prodotto con cura nel mio apiario di Claro, raccolto a regola d'arte e lavorato a freddo per preservare tutte le proprietà naturali.</p>
         <div class="hero-tags">
@@ -734,8 +740,10 @@
             </div>
             <div class="about-text">
                 <h2>La mia apicoltura</h2>
-                <p>Conduco il mio apiario nel cuore del Ticino, in una zona collinare ricca di flora spontanea. Le mie api bottinano in ambienti incontaminati, a contatto con boschi di castagno, acacia e tigli secolari.</p>
-                <p>Ogni vasetto è il risultato di un lavoro stagionale che rispetta i ritmi naturali delle colonie: estraggo il miele solo quando è maturo, lo filtro a freddo e lo invaso manualmente.</p>
+                <p>Il mio apiario si trova a Claro, a pochi chilometri da Bellinzona. Seguendo le stagioni e le fioriture, alcune famiglie vengono a volte spostate in Valle di Blenio per il nomadismo.</p>
+                <p>Seguo un approccio il più possibile naturale: al centro c'è il benessere delle api, non la produzione massima. Rispetto i ritmi delle colonie, intervengo solo quando serve e lascio sempre alle famiglie scorte sufficienti per affrontare la stagione fredda.</p>
+                <p>Per questo ogni vasetto racconta una stagione: il miele viene estratto solo quando è davvero maturo, filtrato a freddo e invasato a mano. La produzione principale è un millefiori estivo, che raccoglie il profumo e il carattere delle fioriture del Bellinzonese e della Valle di Blenio.</p>
+                <p>Se desideri assaggiarlo o riceverne qualche vasetto, puoi contattarmi via email, telefono o WhatsApp.</p>
                 <div class="about-features">
                     <div class="feature">
                         <strong>🌍 Km 0</strong>
@@ -750,6 +758,9 @@
                         Solo miele puro
                     </div>
                 </div>
+            </div>
+            <div class="about-image">
+                <img src="foto-apicoltore.jpg" alt="Apicoltore con il figlio all'apiario" class="about-photo">
             </div>
         </div>
     </div>
@@ -964,7 +975,7 @@ const PRODUCTS = [
         tags: ['Equilibrato', 'Versatile', 'Stagionale'],
         sizes: [
             { name: '250 g', price: 10, weightG: 350 },
-            { name: '500 g', price: 18, weightG: 650 }
+            { name: '500 g', price: 16, weightG: 650 }
         ]
     }
 ];

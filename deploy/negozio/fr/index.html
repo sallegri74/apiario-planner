@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#C47F0A">
     <title>🍯 Allegria in barattolo — Miel du Tessin</title>
-    <link rel="icon" type="image/png" href="/negozio/ape.png">
-    <link rel="apple-touch-icon" href="/negozio/ape.png">
+    <link rel="icon" type="image/png" href="/ape.png">
+    <link rel="apple-touch-icon" href="/ape.png">
     <meta name="description" content="Miel artisanal du Tessin, produit à Claro par un apiculteur local. Retrait à Claro ou envoi postal dans toute la Suisse.">
-    <link rel="canonical" href="https://allegri.ch/negozio/fr/">
-    <link rel="alternate" hreflang="it" href="https://allegri.ch/negozio/">
-    <link rel="alternate" hreflang="de" href="https://allegri.ch/negozio/de/">
-    <link rel="alternate" hreflang="fr" href="https://allegri.ch/negozio/fr/">
-    <link rel="alternate" hreflang="x-default" href="https://allegri.ch/negozio/">
+    <link rel="canonical" href="https://allegri.ch/fr/">
+    <link rel="alternate" hreflang="it" href="https://allegri.ch/">
+    <link rel="alternate" hreflang="de" href="https://allegri.ch/de/">
+    <link rel="alternate" hreflang="fr" href="https://allegri.ch/fr/">
+    <link rel="alternate" hreflang="x-default" href="https://allegri.ch/">
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -58,7 +58,7 @@
             left: 0;
             right: 0;
             height: 38px;
-            background-image: url('/negozio/favo-strip.png');
+            background-image: url('/favo-strip.png');
             background-size: cover;
             background-position: center top;
             background-repeat: no-repeat;
@@ -150,7 +150,7 @@
             top: 0;
             bottom: 0;
             width: 55%;
-            background-image: url('/negozio/foto-fiore.jpg');
+            background-image: url('/foto-fiore.jpg');
             background-size: cover;
             background-position: left center;
             opacity: 0.25;
@@ -924,7 +924,7 @@
 <header>
     <div class="header-inner">
         <a href="#" class="header-logo">
-            <img src="/negozio/ape.png" alt="Allegria in barattolo">
+            <img src="/ape.png" alt="Allegria in barattolo">
         </a>
         <nav class="header-nav">
             <a href="#prodotti">Produits</a>
@@ -932,11 +932,11 @@
             <a href="#chi-siamo">À propos</a>
             <a href="#contatti">Contact</a>
             <div class="lang-switch">
-                <a href="/negozio/" hreflang="it" title="Italiano">IT</a>
+                <a href="/" hreflang="it" title="Italiano">IT</a>
                 <span class="sep">·</span>
-                <a href="/negozio/de/" hreflang="de" title="Deutsch">DE</a>
+                <a href="/de/" hreflang="de" title="Deutsch">DE</a>
                 <span class="sep">·</span>
-                <a href="/negozio/fr/" class="active" hreflang="fr" title="Français">FR</a>
+                <a href="/fr/" class="active" hreflang="fr" title="Français">FR</a>
             </div>
             <button class="cart-btn" onclick="openCart()">
                 🛒 Panier
@@ -948,7 +948,7 @@
 
 <div class="hero">
     <div class="hero-inner">
-        <div class="hero-logo"><img src="/negozio/logo-corsivo.png" alt="Allegria in barattolo"></div>
+        <div class="hero-logo"><img src="/logo-corsivo.png" alt="Allegria in barattolo"></div>
         <h1>Miel artisanal du Tessin</h1>
         <p>Produit avec soin dans mon rucher de Claro, récolté dans les règles de l'art et traité à froid pour préserver toutes ses propriétés naturelles.</p>
         <div class="hero-tags">
@@ -964,7 +964,7 @@
     <div class="section-inner">
         <div class="about-grid">
             <div class="about-image">
-                <img src="/negozio/foto-alveare.jpg" alt="Mes abeilles à l'entrée de la ruche" class="about-photo">
+                <img src="/foto-alveare.jpg" alt="Mes abeilles à l'entrée de la ruche" class="about-photo">
             </div>
             <div class="about-text">
                 <h2>Mon apiculture</h2>
@@ -974,7 +974,7 @@
                 <p>Si vous souhaitez le déguster ou en recevoir quelques pots, vous pouvez me contacter par e-mail, téléphone ou WhatsApp.</p>
             </div>
             <div class="about-image">
-                <img src="/negozio/foto-apicoltore.jpg" alt="Apiculteur avec son fils au rucher" class="about-photo">
+                <img src="/foto-apicoltore.jpg" alt="Apiculteur avec son fils au rucher" class="about-photo">
             </div>
         </div>
         <div class="about-features">
@@ -1178,7 +1178,7 @@
                 <!-- Panneau TWINT (visible par défaut) -->
                 <div class="payment-panel" id="paymentPanelTwint">
                     <div class="payment-panel-qr">
-                        <img src="/negozio/twint-qr.png" alt="QR TWINT personnel" class="payment-qr-big" id="twintQrImg" onerror="this.style.display='none';document.getElementById('twintQrFallback').style.display='flex'">
+                        <img src="/twint-qr.png" alt="QR TWINT personnel" class="payment-qr-big" id="twintQrImg" onerror="this.style.display='none';document.getElementById('twintQrFallback').style.display='flex'">
                         <div id="twintQrFallback" class="payment-qr-fallback-big" style="display:none">QR TWINT<br><small>à ajouter</small></div>
                     </div>
                     <div class="payment-panel-info">
@@ -1369,7 +1369,7 @@ function renderProducts() {
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = PRODUCTS.map(p => `
         <div class="product" data-product-id="${p.id}">
-            <div class="product-jar"><img src="/negozio/etichetta.png" alt="Étiquette ${p.labelText}"></div>
+            <div class="product-jar"><img src="/etichetta.png" alt="Étiquette ${p.labelText}"></div>
             <h3>${p.icon} ${p.name}</h3>
             <p class="product-desc">${p.description}</p>
             <div class="product-tags">
@@ -1719,7 +1719,7 @@ function submitOrder(method) {
         method: method,
         orderId: 'ORD-' + Date.now()
     });
-    const thankYouUrl = '/negozio/fr/grazie/?' + params.toString();
+    const thankYouUrl = '/fr/grazie/?' + params.toString();
 
     if (method === 'whatsapp') {
         const url = `https://wa.me/${SHOP_CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`;

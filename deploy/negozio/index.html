@@ -8,11 +8,11 @@
     <link rel="icon" type="image/png" href="ape.png">
     <link rel="apple-touch-icon" href="ape.png">
     <meta name="description" content="Miele artigianale del Ticino, prodotto a Claro da apicoltore locale. Ritiro a Claro o spedizione postale in tutta la Svizzera.">
-    <link rel="canonical" href="https://allegri.ch/negozio/">
-    <link rel="alternate" hreflang="it" href="https://allegri.ch/negozio/">
-    <link rel="alternate" hreflang="de" href="https://allegri.ch/negozio/de/">
-    <link rel="alternate" hreflang="fr" href="https://allegri.ch/negozio/fr/">
-    <link rel="alternate" hreflang="x-default" href="https://allegri.ch/negozio/">
+    <link rel="canonical" href="https://allegri.ch/">
+    <link rel="alternate" hreflang="it" href="https://allegri.ch/">
+    <link rel="alternate" hreflang="de" href="https://allegri.ch/de/">
+    <link rel="alternate" hreflang="fr" href="https://allegri.ch/fr/">
+    <link rel="alternate" hreflang="x-default" href="https://allegri.ch/">
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -932,11 +932,11 @@
             <a href="#chi-siamo">Chi siamo</a>
             <a href="#contatti">Contatti</a>
             <div class="lang-switch">
-                <a href="/negozio/" class="active" hreflang="it" title="Italiano">IT</a>
+                <a href="/" class="active" hreflang="it" title="Italiano">IT</a>
                 <span class="sep">·</span>
-                <a href="/negozio/de/" hreflang="de" title="Deutsch">DE</a>
+                <a href="/de/" hreflang="de" title="Deutsch">DE</a>
                 <span class="sep">·</span>
-                <a href="/negozio/fr/" hreflang="fr" title="Français">FR</a>
+                <a href="/fr/" hreflang="fr" title="Français">FR</a>
             </div>
             <button class="cart-btn" onclick="openCart()">
                 🛒 Carrello
@@ -1720,7 +1720,7 @@ function submitOrder(method) {
         method: method,
         orderId: 'ORD-' + Date.now()
     });
-    const thankYouUrl = '/negozio/grazie/?' + params.toString();
+    const thankYouUrl = '/grazie/?' + params.toString();
 
     // Apri WhatsApp/email
     if (method === 'whatsapp') {

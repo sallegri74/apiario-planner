@@ -7,7 +7,7 @@
     <title>🍯 Allegria in barattolo — Miele del Ticino</title>
     <link rel="icon" type="image/png" href="ape.png">
     <link rel="apple-touch-icon" href="ape.png">
-    <meta name="description" content="Miele artigianale del Ticino, prodotto a Claro da apicoltore locale. Ritiro, consegna o spedizione postale.">
+    <meta name="description" content="Miele artigianale del Ticino, prodotto a Claro da apicoltore locale. Ritiro a Claro o spedizione postale in tutta la Svizzera.">
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -988,11 +988,6 @@
                         <td>Su appuntamento</td>
                     </tr>
                     <tr>
-                        <td><strong>🚗 Consegna in Ticino</strong></td>
-                        <td><strong style="color:var(--green)">Gratuita</strong></td>
-                        <td>Da concordare insieme</td>
-                    </tr>
-                    <tr>
                         <td><strong>📮 Spedizione PostPac</strong></td>
                         <td><strong style="color:var(--honey-dark)">CHF 5 + tariffa peso</strong></td>
                         <td>In tutta la Svizzera</td>
@@ -1092,16 +1087,11 @@
             </div>
             <div class="form-row">
                 <label>Modalità di consegna *</label>
-                <div class="delivery-options">
+                <div class="delivery-options" style="grid-template-columns:1fr 1fr">
                     <div class="delivery-option selected" onclick="selectDelivery('ritiro', this)">
                         <div class="delivery-option-icon">🏡</div>
                         <div class="delivery-option-name">Ritiro</div>
                         <div class="delivery-option-desc">A Claro, gratis</div>
-                    </div>
-                    <div class="delivery-option" onclick="selectDelivery('consegna', this)">
-                        <div class="delivery-option-icon">🚗</div>
-                        <div class="delivery-option-name">Consegna</div>
-                        <div class="delivery-option-desc">In Ticino, gratis</div>
                     </div>
                     <div class="delivery-option" onclick="selectDelivery('spedizione', this)">
                         <div class="delivery-option-icon">📦</div>
@@ -1129,7 +1119,7 @@
                     <div class="delivery-option" onclick="selectPayment('contanti', this)">
                         <div class="delivery-option-icon">💵</div>
                         <div class="delivery-option-name">Contanti</div>
-                        <div class="delivery-option-desc">Al ritiro/consegna</div>
+                        <div class="delivery-option-desc">Al ritiro a Claro</div>
                     </div>
                 </div>
             </div>
@@ -1596,11 +1586,6 @@ function selectDelivery(type, btn) {
     if (type === 'ritiro') {
         addressRow.style.display = 'none';
         shippingBox.style.display = 'none';
-    } else if (type === 'consegna') {
-        addressRow.style.display = '';
-        addressLabel.textContent = 'Indirizzo di consegna *';
-        if (addressInput) addressInput.placeholder = 'Via Roma 10, 6500 Bellinzona';
-        shippingBox.style.display = 'none';
     } else if (type === 'spedizione') {
         addressRow.style.display = '';
         addressLabel.textContent = 'Indirizzo di spedizione *';
@@ -1641,11 +1626,10 @@ function buildOrderText() {
     const notes = document.getElementById('checkoutNotes').value.trim();
 
     let modalita = 'Ritiro a Claro';
-    if (selectedDelivery === 'consegna') modalita = 'Consegna a domicilio in Ticino';
-    else if (selectedDelivery === 'spedizione') modalita = 'Spedizione postale (PostPac Economy)';
+    if (selectedDelivery === 'spedizione') modalita = 'Spedizione postale (PostPac Economy)';
 
     let pagamento = 'TWINT / e-banking (QR)';
-    if (selectedPayment === 'contanti') pagamento = 'Contanti al ritiro/consegna';
+    if (selectedPayment === 'contanti') pagamento = 'Contanti al ritiro';
 
     let txt = `🍯 NUOVO ORDINE — ${SHOP_CONFIG.shopName}\n\n`;
     txt += `👤 Cliente: ${name}\n`;
@@ -1653,7 +1637,7 @@ function buildOrderText() {
     if (email) txt += `✉️ Email: ${email}\n`;
     txt += `\n📦 Modalità: ${modalita}\n`;
     txt += `💳 Pagamento: ${pagamento}\n`;
-    if ((selectedDelivery === 'consegna' || selectedDelivery === 'spedizione') && address) {
+    if (selectedDelivery === 'spedizione' && address) {
         txt += `📍 Indirizzo: ${address}\n`;
     }
     txt += `\n🛒 PRODOTTI:\n`;
@@ -1681,8 +1665,8 @@ function validateCheckout() {
     const address = document.getElementById('checkoutAddress').value.trim();
     if (!name) { alert('Inserisci il tuo nome'); document.getElementById('checkoutName').focus(); return false; }
     if (!phone) { alert('Inserisci il tuo telefono'); document.getElementById('checkoutPhone').focus(); return false; }
-    if ((selectedDelivery === 'consegna' || selectedDelivery === 'spedizione') && !address) {
-        alert(selectedDelivery === 'spedizione' ? 'Inserisci l\'indirizzo di spedizione' : 'Inserisci l\'indirizzo di consegna');
+    if (selectedDelivery === 'spedizione' && !address) {
+        alert('Inserisci l\'indirizzo di spedizione');
         document.getElementById('checkoutAddress').focus();
         return false;
     }

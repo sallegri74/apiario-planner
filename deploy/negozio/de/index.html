@@ -1618,7 +1618,7 @@ function selectDelivery(type, btn) {
         shippingBox.style.display = 'none';
     } else if (type === 'spedizione') {
         addressRow.style.display = '';
-        addressLabel.textContent = 'Indirizzo di spedizione *';
+        addressLabel.textContent = 'Versandadresse *';
         if (addressInput) addressInput.placeholder = 'Via Roma 10, 6500 Bellinzona';
         shippingBox.style.display = '';
         renderShippingDetails();
@@ -1633,18 +1633,18 @@ function renderShippingDetails() {
     const el = document.getElementById('shippingDetails');
     if (!el) return;
     if (ship.weight === 0) {
-        el.innerHTML = 'Aggiungi prodotti al carrello per calcolare la spedizione.';
+        el.innerHTML = 'Füge Produkte zum Warenkorb hinzu, um die Versandkosten zu berechnen.';
         return;
     }
     if (ship.overweight) {
-        el.innerHTML = `Peso pacco: <strong>${(ship.weight/1000).toFixed(2)} kg</strong><br>${SHIPPING_CONFIG.overweightMessage}`;
+        el.innerHTML = `Paketgewicht: <strong>${(ship.weight/1000).toFixed(2)} kg</strong><br>${SHIPPING_CONFIG.overweightMessage}`;
         return;
     }
     el.innerHTML = `
-        Peso pacco: <strong>${(ship.weight/1000).toFixed(2)} kg</strong> (${ship.label})<br>
-        Imballaggio: <strong>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</strong><br>
-        Spedizione (PostPac Economy): <strong>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</strong><br>
-        <span style="color:#E65100; font-weight:700">Totale spedizione: ${SHOP_CONFIG.currency} ${ship.fee.toFixed(2)}</span>
+        Paketgewicht: <strong>${(ship.weight/1000).toFixed(2)} kg</strong> (${ship.label})<br>
+        Verpackung: <strong>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</strong><br>
+        Versand (PostPac Economy): <strong>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</strong><br>
+        <span style="color:#E65100; font-weight:700">Versand gesamt: ${SHOP_CONFIG.currency} ${ship.fee.toFixed(2)}</span>
     `;
 }
 
@@ -1655,37 +1655,37 @@ function buildOrderText() {
     const address = document.getElementById('checkoutAddress').value.trim();
     const notes = document.getElementById('checkoutNotes').value.trim();
 
-    let modalita = 'Ritiro a Claro';
-    if (selectedDelivery === 'spedizione') modalita = 'Spedizione postale (PostPac Economy)';
+    let modalita = 'Abholung in Claro';
+    if (selectedDelivery === 'spedizione') modalita = 'Postversand (PostPac Economy)';
 
-    let pagamento = 'TWINT / e-banking (QR)';
-    if (selectedPayment === 'contanti') pagamento = 'Contanti al ritiro';
+    let pagamento = 'TWINT / E-Banking (QR)';
+    if (selectedPayment === 'contanti') pagamento = 'Bar bei Abholung';
 
-    let txt = `🍯 NUOVO ORDINE — ${SHOP_CONFIG.shopName}\n\n`;
-    txt += `👤 Cliente: ${name}\n`;
-    txt += `📱 Telefono: ${phone}\n`;
-    if (email) txt += `✉️ Email: ${email}\n`;
-    txt += `\n📦 Modalità: ${modalita}\n`;
-    txt += `💳 Pagamento: ${pagamento}\n`;
+    let txt = `🍯 NEUE BESTELLUNG — ${SHOP_CONFIG.shopName}\n\n`;
+    txt += `👤 Kunde: ${name}\n`;
+    txt += `📱 Telefon: ${phone}\n`;
+    if (email) txt += `✉️ E-Mail: ${email}\n`;
+    txt += `\n📦 Lieferart: ${modalita}\n`;
+    txt += `💳 Zahlung: ${pagamento}\n`;
     if (selectedDelivery === 'spedizione' && address) {
-        txt += `📍 Indirizzo: ${address}\n`;
+        txt += `📍 Adresse: ${address}\n`;
     }
-    txt += `\n🛒 PRODOTTI:\n`;
+    txt += `\n🛒 PRODUKTE:\n`;
     cart.forEach(i => {
         txt += `  • ${i.name} (${i.sizeName}) × ${i.qty} = ${SHOP_CONFIG.currency} ${(i.price * i.qty).toFixed(2)}\n`;
     });
     const subtotal = getCartSubtotal();
     const ship = calculateShipping(selectedDelivery);
     if (selectedDelivery === 'spedizione' && ship.fee > 0) {
-        txt += `\n📋 RIEPILOGO COSTI:\n`;
-        txt += `  Subtotale prodotti: ${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}\n`;
-        txt += `  Imballaggio: ${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}\n`;
-        txt += `  Spedizione PostPac (${(ship.weight/1000).toFixed(2)} kg): ${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}\n`;
+        txt += `\n📋 KOSTENZUSAMMENFASSUNG:\n`;
+        txt += `  Zwischensumme Produkte: ${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}\n`;
+        txt += `  Verpackung: ${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}\n`;
+        txt += `  Versand PostPac (${(ship.weight/1000).toFixed(2)} kg): ${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}\n`;
     } else if (selectedDelivery === 'spedizione' && ship.overweight) {
-        txt += `\n⚠️ Peso totale: ${(ship.weight/1000).toFixed(2)} kg — spedizione da concordare\n`;
+        txt += `\n⚠️ Gesamtgewicht: ${(ship.weight/1000).toFixed(2)} kg — Versand individuell zu vereinbaren\n`;
     }
-    txt += `\n💰 TOTALE: ${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}\n`;
-    if (notes) txt += `\n📝 Note: ${notes}\n`;
+    txt += `\n💰 GESAMT: ${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}\n`;
+    if (notes) txt += `\n📝 Anmerkungen: ${notes}\n`;
     return txt;
 }
 
@@ -1693,10 +1693,10 @@ function validateCheckout() {
     const name = document.getElementById('checkoutName').value.trim();
     const phone = document.getElementById('checkoutPhone').value.trim();
     const address = document.getElementById('checkoutAddress').value.trim();
-    if (!name) { alert('Inserisci il tuo nome'); document.getElementById('checkoutName').focus(); return false; }
-    if (!phone) { alert('Inserisci il tuo telefono'); document.getElementById('checkoutPhone').focus(); return false; }
+    if (!name) { alert('Bitte gib deinen Namen ein'); document.getElementById('checkoutName').focus(); return false; }
+    if (!phone) { alert('Bitte gib deine Telefonnummer ein'); document.getElementById('checkoutPhone').focus(); return false; }
     if (selectedDelivery === 'spedizione' && !address) {
-        alert('Inserisci l\'indirizzo di spedizione');
+        alert('Bitte gib die Versandadresse ein');
         document.getElementById('checkoutAddress').focus();
         return false;
     }
@@ -1705,13 +1705,11 @@ function validateCheckout() {
 
 function submitOrder(method) {
     if (!validateCheckout()) return;
-    // Snapshot dei dati ordine
     const name = document.getElementById('checkoutName').value.trim();
     const total = getCartTotal();
     const itemCount = cart.reduce((s, i) => s + i.qty, 0);
     const text = buildOrderText();
 
-    // Costruisci URL pagina di ringraziamento con parametri (per personalizzazione + tracking Google Ads)
     const params = new URLSearchParams({
         name: name,
         total: total.toFixed(2),
@@ -1719,18 +1717,14 @@ function submitOrder(method) {
         method: method,
         orderId: 'ORD-' + Date.now()
     });
-    const thankYouUrl = '/negozio/grazie/?' + params.toString();
+    const thankYouUrl = '/negozio/de/grazie/?' + params.toString();
 
-    // Apri WhatsApp/email
     if (method === 'whatsapp') {
         const url = `https://wa.me/${SHOP_CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
-        // Naviga alla pagina di grazie dopo breve delay
-        // (su mobile WhatsApp prende il focus ma la navigazione è già partita)
         setTimeout(() => { window.location.href = thankYouUrl; }, 300);
     } else {
-        // Email: triggera mailto: poi naviga
-        const subject = `Nuovo ordine miele — ${name}`;
+        const subject = `Neue Honigbestellung — ${name}`;
         const mailUrl = `mailto:${SHOP_CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
         window.location.href = mailUrl;
         setTimeout(() => { window.location.href = thankYouUrl; }, 500);

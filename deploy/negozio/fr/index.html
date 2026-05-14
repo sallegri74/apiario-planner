@@ -1384,7 +1384,7 @@ function renderProducts() {
                 `).join('')}
             </div>
             <button class="product-add" onclick="addSelectedToCart('${p.id}')">
-                🛒 Aggiungi al carrello
+                🛒 Ajouter au panier
             </button>
         </div>
     `).join('');
@@ -1428,8 +1428,8 @@ function renderCart() {
         body.innerHTML = `
             <div class="cart-empty">
                 <div class="cart-empty-icon">🛒</div>
-                <p>Il carrello è vuoto</p>
-                <p style="font-size:.85em; margin-top:6px">Aggiungi qualche vasetto di miele!</p>
+                <p>Votre panier est vide</p>
+                <p style="font-size:.85em; margin-top:6px">Ajoutez quelques pots de miel !</p>
             </div>`;
         total.textContent = `${SHOP_CONFIG.currency} 0.00`;
         checkoutBtn.disabled = true;
@@ -1445,7 +1445,7 @@ function renderCart() {
                     <button class="qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
                     <span class="qty-val">${item.qty}</span>
                     <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
-                    <button class="cart-item-remove" onclick="removeItem('${item.id}')" title="Rimuovi">🗑️</button>
+                    <button class="cart-item-remove" onclick="removeItem('${item.id}')" title="Supprimer">🗑️</button>
                 </div>
             </div>
             <div class="cart-item-price">${SHOP_CONFIG.currency} ${(item.price * item.qty).toFixed(2)}</div>
@@ -1456,9 +1456,9 @@ function renderCart() {
     if (selectedDelivery === 'spedizione' && ship.fee > 0) {
         h += `
         <div class="cart-breakdown">
-            <div class="cart-breakdown-row"><span>Subtotale prodotti</span><span>${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}</span></div>
-            <div class="cart-breakdown-row"><span>📦 Imballaggio</span><span>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</span></div>
-            <div class="cart-breakdown-row"><span>📮 Spedizione (${(ship.weight/1000).toFixed(2)} kg)</span><span>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</span></div>
+            <div class="cart-breakdown-row"><span>Sous-total produits</span><span>${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}</span></div>
+            <div class="cart-breakdown-row"><span>📦 Emballage</span><span>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</span></div>
+            <div class="cart-breakdown-row"><span>📮 Livraison (${(ship.weight/1000).toFixed(2)} kg)</span><span>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</span></div>
         </div>`;
     } else if (selectedDelivery === 'spedizione' && ship.overweight) {
         h += `
@@ -1499,21 +1499,21 @@ function renderCheckoutSummary() {
     if (selectedDelivery === 'spedizione' && ship.fee > 0) {
         h += `
             <div class="checkout-summary-item" style="border-top:1px solid var(--gold); margin-top:6px; padding-top:6px">
-                <span>Subtotale prodotti</span>
+                <span>Sous-total produits</span>
                 <span>${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}</span>
             </div>
             <div class="checkout-summary-item">
-                <span>📦 Imballaggio</span>
+                <span>📦 Emballage</span>
                 <span>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</span>
             </div>
             <div class="checkout-summary-item">
-                <span>📮 Spedizione (${(ship.weight/1000).toFixed(2)} kg)</span>
+                <span>📮 Livraison (${(ship.weight/1000).toFixed(2)} kg)</span>
                 <span>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</span>
             </div>`;
     }
     h += `
         <div class="checkout-summary-item checkout-summary-total">
-            <span>Totale</span>
+            <span>Total</span>
             <span>${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}</span>
         </div>`;
     sum.innerHTML = h;
@@ -1585,7 +1585,7 @@ function renderQRBill() {
         qr.make();
         container.innerHTML = qr.createSvgTag({ scalable: true, margin: 2 });
     } catch (e) {
-        container.innerHTML = '<div style="font-size:.78em;color:var(--gray);text-align:center;padding:20px">QR non disponibile<br>usa il bonifico manuale</div>';
+        container.innerHTML = '<div style="font-size:.78em;color:var(--gray);text-align:center;padding:20px">QR non disponible<br>utilisez le virement manuel</div>';
     }
 }
 
@@ -1618,7 +1618,7 @@ function selectDelivery(type, btn) {
         shippingBox.style.display = 'none';
     } else if (type === 'spedizione') {
         addressRow.style.display = '';
-        addressLabel.textContent = 'Indirizzo di spedizione *';
+        addressLabel.textContent = 'Adresse de livraison *';
         if (addressInput) addressInput.placeholder = 'Via Roma 10, 6500 Bellinzona';
         shippingBox.style.display = '';
         renderShippingDetails();
@@ -1633,18 +1633,18 @@ function renderShippingDetails() {
     const el = document.getElementById('shippingDetails');
     if (!el) return;
     if (ship.weight === 0) {
-        el.innerHTML = 'Aggiungi prodotti al carrello per calcolare la spedizione.';
+        el.innerHTML = 'Ajoutez des produits au panier pour calculer les frais de livraison.';
         return;
     }
     if (ship.overweight) {
-        el.innerHTML = `Peso pacco: <strong>${(ship.weight/1000).toFixed(2)} kg</strong><br>${SHIPPING_CONFIG.overweightMessage}`;
+        el.innerHTML = `Poids du colis : <strong>${(ship.weight/1000).toFixed(2)} kg</strong><br>${SHIPPING_CONFIG.overweightMessage}`;
         return;
     }
     el.innerHTML = `
-        Peso pacco: <strong>${(ship.weight/1000).toFixed(2)} kg</strong> (${ship.label})<br>
-        Imballaggio: <strong>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</strong><br>
-        Spedizione (PostPac Economy): <strong>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</strong><br>
-        <span style="color:#E65100; font-weight:700">Totale spedizione: ${SHOP_CONFIG.currency} ${ship.fee.toFixed(2)}</span>
+        Poids du colis : <strong>${(ship.weight/1000).toFixed(2)} kg</strong> (${ship.label})<br>
+        Emballage : <strong>${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}</strong><br>
+        Livraison (PostPac Economy) : <strong>${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}</strong><br>
+        <span style="color:#E65100; font-weight:700">Total livraison : ${SHOP_CONFIG.currency} ${ship.fee.toFixed(2)}</span>
     `;
 }
 
@@ -1655,37 +1655,37 @@ function buildOrderText() {
     const address = document.getElementById('checkoutAddress').value.trim();
     const notes = document.getElementById('checkoutNotes').value.trim();
 
-    let modalita = 'Ritiro a Claro';
-    if (selectedDelivery === 'spedizione') modalita = 'Spedizione postale (PostPac Economy)';
+    let modalita = 'Retrait à Claro';
+    if (selectedDelivery === 'spedizione') modalita = 'Envoi postal (PostPac Economy)';
 
     let pagamento = 'TWINT / e-banking (QR)';
-    if (selectedPayment === 'contanti') pagamento = 'Contanti al ritiro';
+    if (selectedPayment === 'contanti') pagamento = 'Espèces au retrait';
 
-    let txt = `🍯 NUOVO ORDINE — ${SHOP_CONFIG.shopName}\n\n`;
-    txt += `👤 Cliente: ${name}\n`;
-    txt += `📱 Telefono: ${phone}\n`;
-    if (email) txt += `✉️ Email: ${email}\n`;
-    txt += `\n📦 Modalità: ${modalita}\n`;
-    txt += `💳 Pagamento: ${pagamento}\n`;
+    let txt = `🍯 NOUVELLE COMMANDE — ${SHOP_CONFIG.shopName}\n\n`;
+    txt += `👤 Client : ${name}\n`;
+    txt += `📱 Téléphone : ${phone}\n`;
+    if (email) txt += `✉️ E-mail : ${email}\n`;
+    txt += `\n📦 Mode : ${modalita}\n`;
+    txt += `💳 Paiement : ${pagamento}\n`;
     if (selectedDelivery === 'spedizione' && address) {
-        txt += `📍 Indirizzo: ${address}\n`;
+        txt += `📍 Adresse : ${address}\n`;
     }
-    txt += `\n🛒 PRODOTTI:\n`;
+    txt += `\n🛒 PRODUITS :\n`;
     cart.forEach(i => {
         txt += `  • ${i.name} (${i.sizeName}) × ${i.qty} = ${SHOP_CONFIG.currency} ${(i.price * i.qty).toFixed(2)}\n`;
     });
     const subtotal = getCartSubtotal();
     const ship = calculateShipping(selectedDelivery);
     if (selectedDelivery === 'spedizione' && ship.fee > 0) {
-        txt += `\n📋 RIEPILOGO COSTI:\n`;
-        txt += `  Subtotale prodotti: ${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}\n`;
-        txt += `  Imballaggio: ${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}\n`;
-        txt += `  Spedizione PostPac (${(ship.weight/1000).toFixed(2)} kg): ${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}\n`;
+        txt += `\n📋 RÉCAPITULATIF DES COÛTS :\n`;
+        txt += `  Sous-total produits : ${SHOP_CONFIG.currency} ${subtotal.toFixed(2)}\n`;
+        txt += `  Emballage : ${SHOP_CONFIG.currency} ${ship.packaging.toFixed(2)}\n`;
+        txt += `  Livraison PostPac (${(ship.weight/1000).toFixed(2)} kg) : ${SHOP_CONFIG.currency} ${ship.postage.toFixed(2)}\n`;
     } else if (selectedDelivery === 'spedizione' && ship.overweight) {
-        txt += `\n⚠️ Peso totale: ${(ship.weight/1000).toFixed(2)} kg — spedizione da concordare\n`;
+        txt += `\n⚠️ Poids total : ${(ship.weight/1000).toFixed(2)} kg — livraison à convenir\n`;
     }
-    txt += `\n💰 TOTALE: ${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}\n`;
-    if (notes) txt += `\n📝 Note: ${notes}\n`;
+    txt += `\n💰 TOTAL : ${SHOP_CONFIG.currency} ${getCartTotal().toFixed(2)}\n`;
+    if (notes) txt += `\n📝 Remarques : ${notes}\n`;
     return txt;
 }
 

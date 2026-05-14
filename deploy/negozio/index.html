@@ -69,13 +69,15 @@
         .header-logo {
             display: flex;
             align-items: center;
-            gap: 10px;
             text-decoration: none;
             color: var(--brown-dark);
         }
-        .header-logo img { width: 42px; height: 42px; object-fit: contain; }
-        .header-logo-text { font-weight: 800; font-size: 1.05em; line-height: 1.1; }
-        .header-logo-text small { display: block; font-size: 0.7em; color: var(--gray); font-weight: 500; }
+        .header-logo .logo-img {
+            height: 48px;
+            width: auto;
+            display: block;
+            border-radius: 6px;
+        }
         .header-nav { display: flex; gap: 18px; align-items: center; }
         .header-nav a { font-size: 0.92em; font-weight: 600; }
         .cart-btn {
@@ -694,12 +696,8 @@
 
 <header>
     <div class="header-inner">
-        <a href="#" class="header-logo">
-            <img src="ape.png" alt="">
-            <div class="header-logo-text">
-                Allegria in barattolo
-                <small>Miele del Ticino</small>
-            </div>
+        <a href="#" class="header-logo" aria-label="Allegria in barattolo - Miele del Ticino">
+            <img src="logo-corsivo.png" alt="Allegria in barattolo" class="logo-img">
         </a>
         <nav class="header-nav">
             <a href="#prodotti">Prodotti</a>

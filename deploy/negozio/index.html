@@ -668,132 +668,133 @@
             font-weight: 800;
             font-family: 'Inter', sans-serif;
         }
-        .payment-qrs {
+        /* Tab selector */
+        .payment-tabs {
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 14px;
-            align-items: stretch;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
         }
-        .payment-card {
+        .payment-tab {
             background: white;
+            border: 2px solid #E5E5E5;
             border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border: 2px solid transparent;
-        }
-        .payment-card-twint { border-color: #FF6B35; }
-        .payment-card-qrbill { border-color: #1565C0; }
-        .payment-card-header {
+            padding: 12px 14px;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #f0f0f0;
+            gap: 10px;
+            transition: all 0.18s;
+            font-family: inherit;
+            text-align: left;
         }
-        .payment-card-icon { font-size: 1.4em; }
-        .payment-card-title {
+        .payment-tab:hover { border-color: #BDBDBD; }
+        .payment-tab.active {
+            background: white;
+            border-color: var(--brown-dark);
+            box-shadow: 0 4px 14px rgba(78, 52, 46, 0.18);
+            transform: translateY(-1px);
+        }
+        .payment-tab[data-method="twint"].active { border-color: #FF6B35; box-shadow: 0 4px 14px rgba(255, 107, 53, 0.25); }
+        .payment-tab[data-method="qrbill"].active { border-color: #1565C0; box-shadow: 0 4px 14px rgba(21, 101, 192, 0.22); }
+        .payment-tab-icon { font-size: 1.6em; flex-shrink: 0; }
+        .payment-tab-info { display: flex; flex-direction: column; line-height: 1.2; }
+        .payment-tab-title {
             font-weight: 700;
             font-size: 0.95em;
             color: var(--brown-dark);
         }
-        .payment-qr-wrap {
+        .payment-tab-sub {
+            font-size: 0.74em;
+            color: var(--gray);
+            margin-top: 2px;
+        }
+        .payment-tab.active .payment-tab-sub { color: var(--brown); font-weight: 600; }
+
+        /* Panel (single QR visible) */
+        .payment-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             display: flex;
-            justify-content: center;
+            gap: 24px;
             align-items: center;
-            margin-bottom: 12px;
         }
-        .payment-qr-img {
-            width: 150px;
-            height: 150px;
+        .payment-panel-qr {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .payment-qr-big {
+            width: 210px;
+            height: 210px;
             object-fit: contain;
-            border-radius: 6px;
+            border-radius: 8px;
+            display: block;
         }
-        .payment-qr-fallback {
-            width: 150px;
-            height: 150px;
+        .payment-qr-fallback-big {
+            width: 210px;
+            height: 210px;
             background: #FAFAFA;
             border: 2px dashed #FFE082;
-            border-radius: 6px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            font-size: 0.82em;
+            font-size: 0.92em;
             color: var(--gray);
             line-height: 1.4;
             flex-direction: column;
         }
-        .payment-qr-fallback small { font-size: 0.78em; opacity: 0.7; }
-        .payment-qr-svg {
-            width: 150px;
-            height: 150px;
+        .payment-qr-fallback-big small { font-size: 0.78em; opacity: 0.7; }
+        .payment-qr-svg-big {
+            width: 210px;
+            height: 210px;
             position: relative;
             background: white;
         }
-        .payment-qr-svg svg {
+        .payment-qr-svg-big svg {
             width: 100%;
             height: 100%;
             display: block;
         }
-        .payment-qr-svg::after {
+        .payment-qr-svg-big::after {
             content: '+';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 20px;
-            height: 20px;
+            width: 26px;
+            height: 26px;
             background: #DA291C;
             color: white;
             font-weight: 900;
-            font-size: 1.1em;
+            font-size: 1.4em;
             font-family: Arial, sans-serif;
-            line-height: 20px;
+            line-height: 26px;
             text-align: center;
-            border: 2px solid white;
+            border: 3px solid white;
             box-sizing: content-box;
             pointer-events: none;
         }
-        .payment-steps {
-            margin: 0;
-            padding-left: 20px;
-            font-size: 0.82em;
-            color: var(--brown);
-            line-height: 1.55;
-        }
-        .payment-steps li { margin-bottom: 2px; }
-        .payment-separator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            min-width: 30px;
-        }
-        .payment-separator::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            width: 2px;
-            background: repeating-linear-gradient(to bottom, #FFE082 0, #FFE082 6px, transparent 6px, transparent 12px);
-            transform: translateX(-50%);
-        }
-        .payment-separator span {
-            position: relative;
-            background: linear-gradient(135deg, #FFF8E1, #FFECB3);
-            color: var(--brown);
-            font-size: 0.78em;
+        .payment-panel-info { flex: 1; min-width: 0; }
+        .payment-panel-title {
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            padding: 6px 4px;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
+            font-size: 1em;
+            color: var(--brown-dark);
+            margin-bottom: 10px;
         }
+        .payment-steps-big {
+            margin: 0;
+            padding-left: 22px;
+            font-size: 0.92em;
+            color: var(--brown);
+            line-height: 1.6;
+        }
+        .payment-steps-big li { margin-bottom: 4px; }
         .payment-footer-note {
             font-size: 0.8em;
             color: var(--brown);
@@ -803,28 +804,21 @@
             line-height: 1.5;
         }
         @media (max-width: 620px) {
-            .payment-qrs {
-                grid-template-columns: 1fr;
-                gap: 0;
+            .payment-tabs { gap: 6px; }
+            .payment-tab { padding: 10px; }
+            .payment-tab-icon { font-size: 1.4em; }
+            .payment-tab-title { font-size: 0.88em; }
+            .payment-tab-sub { font-size: 0.7em; }
+            .payment-panel {
+                flex-direction: column;
+                gap: 16px;
+                padding: 18px;
+                text-align: center;
             }
-            .payment-separator {
-                min-width: 0;
-                margin: 14px 0;
-            }
-            .payment-separator::before {
-                top: 50%;
-                left: 0;
-                right: 0;
-                bottom: auto;
-                width: auto;
-                height: 2px;
-                background: repeating-linear-gradient(to right, #FFE082 0, #FFE082 6px, transparent 6px, transparent 12px);
-                transform: translateY(-50%);
-            }
-            .payment-separator span {
-                writing-mode: horizontal-tb;
-                transform: none;
-                padding: 4px 12px;
+            .payment-steps-big { text-align: left; }
+            .payment-qr-big, .payment-qr-fallback-big, .payment-qr-svg-big {
+                width: 180px;
+                height: 180px;
             }
         }
         .checkout-footer {
@@ -1144,42 +1138,50 @@
                     <span>Importo da pagare</span>
                     <strong>CHF <span id="twintAmount">0.00</span></strong>
                 </div>
-                <div class="payment-qrs">
-                    <!-- TWINT QR (statico, manuale) -->
-                    <div class="payment-card payment-card-twint">
-                        <div class="payment-card-header">
-                            <span class="payment-card-icon">📱</span>
-                            <span class="payment-card-title">Paga con TWINT</span>
-                        </div>
-                        <div class="payment-qr-wrap">
-                            <img src="twint-qr.png" alt="QR TWINT personale" class="payment-qr-img" id="twintQrImg" onerror="this.style.display='none';document.getElementById('twintQrFallback').style.display='flex'">
-                            <div id="twintQrFallback" class="payment-qr-fallback" style="display:none">QR TWINT<br><small>da aggiungere</small></div>
-                        </div>
-                        <ol class="payment-steps">
+                <div class="payment-tabs">
+                    <button type="button" class="payment-tab active" data-method="twint" onclick="switchPaymentMethod('twint')">
+                        <span class="payment-tab-icon">📱</span>
+                        <span class="payment-tab-info">
+                            <span class="payment-tab-title">TWINT</span>
+                            <span class="payment-tab-sub">Importo manuale</span>
+                        </span>
+                    </button>
+                    <button type="button" class="payment-tab" data-method="qrbill" onclick="switchPaymentMethod('qrbill')">
+                        <span class="payment-tab-icon">🏦</span>
+                        <span class="payment-tab-info">
+                            <span class="payment-tab-title">App bancaria</span>
+                            <span class="payment-tab-sub">Auto-fill ✓</span>
+                        </span>
+                    </button>
+                </div>
+                <!-- Pannello TWINT (visibile di default) -->
+                <div class="payment-panel" id="paymentPanelTwint">
+                    <div class="payment-panel-qr">
+                        <img src="twint-qr.png" alt="QR TWINT personale" class="payment-qr-big" id="twintQrImg" onerror="this.style.display='none';document.getElementById('twintQrFallback').style.display='flex'">
+                        <div id="twintQrFallback" class="payment-qr-fallback-big" style="display:none">QR TWINT<br><small>da aggiungere</small></div>
+                    </div>
+                    <div class="payment-panel-info">
+                        <div class="payment-panel-title">Paga con l'app TWINT</div>
+                        <ol class="payment-steps-big">
                             <li>Apri l'app <strong>TWINT</strong></li>
-                            <li>Scansiona questo QR</li>
-                            <li><strong>Inserisci l'importo</strong> indicato</li>
-                            <li>Conferma</li>
+                            <li>Tocca "Scansiona" e inquadra questo QR</li>
+                            <li><strong>Inserisci manualmente l'importo</strong></li>
+                            <li>Conferma il pagamento</li>
                         </ol>
                     </div>
-                    <!-- Separatore con OR -->
-                    <div class="payment-separator">
-                        <span>oppure</span>
+                </div>
+                <!-- Pannello QR-bill (nascosto inizialmente) -->
+                <div class="payment-panel" id="paymentPanelQrbill" style="display:none">
+                    <div class="payment-panel-qr">
+                        <div id="qrbillContainer" class="payment-qr-svg-big"></div>
                     </div>
-                    <!-- QR-bill svizzero (dinamico, auto-fill) -->
-                    <div class="payment-card payment-card-qrbill">
-                        <div class="payment-card-header">
-                            <span class="payment-card-icon">🏦</span>
-                            <span class="payment-card-title">Paga con app bancaria</span>
-                        </div>
-                        <div class="payment-qr-wrap">
-                            <div id="qrbillContainer" class="payment-qr-svg"></div>
-                        </div>
-                        <ol class="payment-steps">
-                            <li>Apri l'app della <strong>tua banca</strong></li>
-                            <li>Scansiona il QR (Raiffeisen, UBS, PostFinance, ecc.)</li>
-                            <li>L'importo è <strong>già inserito</strong></li>
-                            <li>Conferma il pagamento</li>
+                    <div class="payment-panel-info">
+                        <div class="payment-panel-title">Paga con la tua app bancaria</div>
+                        <ol class="payment-steps-big">
+                            <li>Apri l'app della <strong>tua banca</strong> (Raiffeisen, UBS, PostFinance, Banca Stato...)</li>
+                            <li>Funzione "Paga fattura QR" o "Scansiona QR"</li>
+                            <li>L'importo è <strong>già inserito</strong> nel QR</li>
+                            <li>Conferma il bonifico</li>
                         </ol>
                     </div>
                 </div>
@@ -1571,6 +1573,16 @@ function updateTwintAmount() {
     const amountEl = document.getElementById('twintAmount');
     if (amountEl) amountEl.textContent = getCartTotal().toFixed(2);
     renderQRBill();
+}
+
+function switchPaymentMethod(method) {
+    // Toggle tab active state
+    document.querySelectorAll('.payment-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.method === method);
+    });
+    // Show only the selected panel
+    document.getElementById('paymentPanelTwint').style.display = method === 'twint' ? '' : 'none';
+    document.getElementById('paymentPanelQrbill').style.display = method === 'qrbill' ? '' : 'none';
 }
 
 function selectDelivery(type, btn) {

@@ -638,6 +638,33 @@
             margin-bottom: 14px;
             font-size: 0.88em;
         }
+        .twint-info-box {
+            background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1.5px solid #FFE082;
+            margin-bottom: 16px;
+        }
+        .twint-content {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .twint-qr {
+            width: 140px;
+            height: 140px;
+            border-radius: 8px;
+            background: white;
+            padding: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        .twint-details {
+            flex: 1;
+            min-width: 180px;
+        }
         .checkout-footer {
             padding: 16px 20px;
             background: var(--cream);
@@ -936,8 +963,43 @@
                 <div id="shippingDetails" style="margin-top:6px; color:var(--brown)"></div>
             </div>
             <div class="form-row">
+                <label>Modalità di pagamento *</label>
+                <div class="delivery-options">
+                    <div class="delivery-option selected" onclick="selectPayment('twint', this)">
+                        <div class="delivery-option-icon">📱</div>
+                        <div class="delivery-option-name">TWINT</div>
+                        <div class="delivery-option-desc">Subito</div>
+                    </div>
+                    <div class="delivery-option" onclick="selectPayment('contanti', this)">
+                        <div class="delivery-option-icon">💵</div>
+                        <div class="delivery-option-name">Contanti</div>
+                        <div class="delivery-option-desc">Al ritiro</div>
+                    </div>
+                    <div class="delivery-option" onclick="selectPayment('accordo', this)">
+                        <div class="delivery-option-icon">🤝</div>
+                        <div class="delivery-option-name">Da concordare</div>
+                        <div class="delivery-option-desc">Modalità</div>
+                    </div>
+                </div>
+            </div>
+            <div class="twint-info-box" id="twintInfoBox">
+                <strong style="color:#E65100;display:block;margin-bottom:10px;font-size:1.05em">📱 Paga ora con TWINT</strong>
+                <div class="twint-content">
+                    <img src="twint-qr.png" alt="QR TWINT" class="twint-qr" onerror="this.style.display='none'; document.getElementById('twintQrFallback').style.display='block'">
+                    <div id="twintQrFallback" style="display:none;width:140px;height:140px;background:#FFF;border:2px dashed #FFE082;border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:.78em;color:var(--gray);box-sizing:border-box">QR TWINT<br>da aggiungere</div>
+                    <div class="twint-details">
+                        <div style="font-size:.9em;color:var(--brown);margin-bottom:4px">Scansiona il QR e invia</div>
+                        <div style="font-family:'Inter',sans-serif;font-size:1.6em;font-weight:800;color:#E65100;line-height:1.1">CHF <span id="twintAmount">0.00</span></div>
+                        <div style="font-size:.82em;color:var(--gray);margin-top:8px;line-height:1.4">Oppure invia al numero TWINT<br><strong style="color:var(--brown-dark)">+41 79 225 69 48</strong></div>
+                    </div>
+                </div>
+                <div style="font-size:.78em;color:var(--gray);margin-top:10px;padding-top:10px;border-top:1px solid #FFE082">
+                    💡 Effettua il pagamento <strong>prima</strong> di inviare l'ordine. Poi conferma scrivendo nelle note "TWINT pagato" o l'orario.
+                </div>
+            </div>
+            <div class="form-row">
                 <label>Note (opzionale)</label>
-                <textarea id="checkoutNotes" placeholder="Es. data preferita per il ritiro, allergie, ecc."></textarea>
+                <textarea id="checkoutNotes" placeholder="Es. data preferita per il ritiro, allergie, conferma TWINT..."></textarea>
             </div>
         </div>
         <div class="checkout-footer">
@@ -999,6 +1061,7 @@ const PRODUCTS = [
 const CART_KEY = 'apiario-shop-cart';
 let cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
 let selectedDelivery = 'ritiro';
+let selectedPayment = 'twint';
 let toastTimer;
 
 // =============== CART ===============
@@ -1205,6 +1268,7 @@ function openCheckout() {
     if (cart.length === 0) return;
     closeCart();
     renderCheckoutSummary();
+    updateTwintAmount();
     document.getElementById('checkoutOverlay').classList.add('open');
 }
 function closeCheckout() { document.getElementById('checkoutOverlay').classList.remove('open'); }
@@ -1243,6 +1307,20 @@ function renderCheckoutSummary() {
     sum.innerHTML = h;
 }
 
+function selectPayment(method, btn) {
+    selectedPayment = method;
+    btn.parentElement.querySelectorAll('.delivery-option').forEach(o => o.classList.remove('selected'));
+    btn.classList.add('selected');
+    const twintBox = document.getElementById('twintInfoBox');
+    if (twintBox) twintBox.style.display = method === 'twint' ? '' : 'none';
+    updateTwintAmount();
+}
+
+function updateTwintAmount() {
+    const amountEl = document.getElementById('twintAmount');
+    if (amountEl) amountEl.textContent = getCartTotal().toFixed(2);
+}
+
 function selectDelivery(type, btn) {
     selectedDelivery = type;
     btn.parentElement.querySelectorAll('.delivery-option').forEach(o => o.classList.remove('selected'));
@@ -1268,6 +1346,7 @@ function selectDelivery(type, btn) {
     }
     renderCheckoutSummary();
     renderCart();
+    updateTwintAmount();
 }
 
 function renderShippingDetails() {
@@ -1301,11 +1380,16 @@ function buildOrderText() {
     if (selectedDelivery === 'consegna') modalita = 'Consegna a domicilio in Ticino';
     else if (selectedDelivery === 'spedizione') modalita = 'Spedizione postale (PostPac Economy)';
 
+    let pagamento = 'TWINT';
+    if (selectedPayment === 'contanti') pagamento = 'Contanti al ritiro/consegna';
+    else if (selectedPayment === 'accordo') pagamento = 'Da concordare';
+
     let txt = `🍯 NUOVO ORDINE — ${SHOP_CONFIG.shopName}\n\n`;
     txt += `👤 Cliente: ${name}\n`;
     txt += `📱 Telefono: ${phone}\n`;
     if (email) txt += `✉️ Email: ${email}\n`;
     txt += `\n📦 Modalità: ${modalita}\n`;
+    txt += `💳 Pagamento: ${pagamento}\n`;
     if ((selectedDelivery === 'consegna' || selectedDelivery === 'spedizione') && address) {
         txt += `📍 Indirizzo: ${address}\n`;
     }

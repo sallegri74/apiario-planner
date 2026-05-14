@@ -1,0 +1,401 @@
+═══════════════════════════════════════════════════════════════
+ TESTI DA TRADURRE — Allegria in barattolo
+ Versione italiana sorgente · da tradurre in tedesco e francese
+═══════════════════════════════════════════════════════════════
+
+📋 ISTRUZIONI PER DEEPL
+
+1. Vai su https://www.deepl.com/translator (o usa DeepL Pro)
+2. Lingua di partenza: ITALIANO
+3. Lingua di arrivo: TEDESCO (DE)
+4. Copia/incolla TUTTO il contenuto sotto la riga "INIZIO TESTI"
+5. Lascia che DeepL traduca
+6. Salva il risultato come "tradotto-de.txt"
+7. Ripeti per il FRANCESE (FR) → "tradotto-fr.txt"
+8. Inviami i due file e farò io l'integrazione nel sito
+
+⚠️ GLOSSARIO — TERMINI DA NON TRADURRE
+(impostali in DeepL → Glossario → Aggiungi voci IT → DE/FR identiche)
+
+  Allegria in barattolo
+  TWINT
+  PostPac
+  PostPac Economy
+  CHF
+  Claro
+  Bellinzona
+  Bellinzonese
+  Valle di Blenio
+  Ticino
+  WhatsApp
+  Sandro Allegri
+  Posta Svizzera
+  Raiffeisen
+  UBS
+  PostFinance
+  Banca Stato
+  IBAN
+  QR
+  e-banking
+  api@allegri.ch
+  allegri.ch
+  Millefiori
+  Hosting Starter
+
+✏️ NOTE PER IL TRADUTTORE
+
+- Mantieni le emoji (🍯 📱 🏦 🐝 ecc.) all'inizio o fine delle stringhe
+- Mantieni i simboli di formato (*, •, ✓)
+- Non tradurre i numeri (10, 18, 250 g, 500 g, 2 kg)
+- "barattolo" lascia in italiano (è il marchio "Allegria in barattolo")
+- "miele millefiori" è il prodotto, in DE = "Wildblütenhonig", in FR = "miel toutes fleurs"
+
+
+═══════════════════════════════════════════════════════════════
+INIZIO TESTI — copia tutto sotto questa riga in DeepL
+═══════════════════════════════════════════════════════════════
+
+
+=== 1. METADATI PAGINA ===
+
+Allegria in barattolo — Miele del Ticino
+
+Miele artigianale del Ticino, prodotto a Claro da apicoltore locale. Ritiro a Claro o spedizione postale in tutta la Svizzera.
+
+
+=== 2. LOGO E NAVIGAZIONE ===
+
+Miele del Ticino
+
+Prodotti
+
+Spedizione
+
+Chi siamo
+
+Contatti
+
+Carrello
+
+
+=== 3. HERO (sezione principale) ===
+
+Miele artigianale del Ticino
+
+Prodotto con cura nel mio apiario di Claro, raccolto a regola d'arte e lavorato a freddo per preservare tutte le proprietà naturali.
+
+🌿 100% naturale
+
+🇨🇭 Origine svizzera
+
+🐝 Apicoltore locale
+
+📦 Ritiro o spedizione
+
+
+=== 4. LA MIA APICOLTURA ===
+
+La mia apicoltura
+
+Il mio apiario si trova a Claro, a pochi chilometri da Bellinzona. Seguendo le stagioni e le fioriture, alcune famiglie vengono a volte spostate in Valle di Blenio per il nomadismo.
+
+Seguo un approccio il più possibile naturale: al centro c'è il benessere delle api, non la produzione massima. Rispetto i ritmi delle colonie, intervengo solo quando serve e lascio sempre alle famiglie scorte sufficienti per affrontare la stagione fredda.
+
+Per questo ogni vasetto racconta una stagione: il miele viene estratto solo quando è davvero maturo, filtrato a freddo e invasato a mano. La produzione principale è un millefiori estivo, che raccoglie il profumo e il carattere delle fioriture del Bellinzonese e della Valle di Blenio.
+
+Se desideri assaggiarlo o riceverne qualche vasetto, puoi contattarmi via email, telefono o WhatsApp.
+
+
+=== 5. FEATURES (i 4 riquadri sotto "La mia apicoltura") ===
+
+Claro + Blenio
+
+Apiario in Ticino con nomadismo stagionale
+
+Approccio naturale
+
+Benessere delle api prima della resa
+
+Millefiori estivo
+
+Profumo del Bellinzonese e della Valle di Blenio
+
+Lavorato a mano
+
+Estratto a freddo e invasato manualmente
+
+
+=== 6. PRODOTTI ===
+
+Il mio miele
+
+Seleziona il formato e aggiungi al carrello
+
+Millefiori
+
+Bouquet floreale variabile a seconda della stagione e della zona di raccolta. Colore e gusto cambiano ogni anno: ogni vasetto racconta una primavera diversa.
+
+Equilibrato
+
+Versatile
+
+Stagionale
+
+Aggiungi al carrello
+
+
+=== 7. MODALITÀ DI CONSEGNA (sezione spedizione) ===
+
+📦 Modalità di consegna
+
+Due opzioni a tua scelta
+
+Modalità
+
+Costo
+
+Note
+
+🏡 Ritiro a Claro
+
+Gratuito
+
+Su appuntamento
+
+📮 Spedizione PostPac
+
+CHF 5 + tariffa peso
+
+In tutta la Svizzera
+
+Tariffe spedizione (PostPac Economy)
+
+Peso pacco
+
+Spedizione
+
++ Imballaggio
+
+Totale
+
+fino a 2 kg
+
+fino a 5 kg
+
+fino a 10 kg
+
+fino a 20 kg
+
+fino a 30 kg
+
+oltre 30 kg
+
+Peso superiore a 30 kg: contattaci per un preventivo personalizzato
+
+I prezzi delle spedizioni si riferiscono alle tariffe indicative della Posta Svizzera per il servizio PostPac Economy e possono variare. Il calcolo definitivo viene mostrato al momento dell'ordine.
+
+
+=== 8. CONTATTI ===
+
+Contatti
+
+Per ordini, ritiri o domande
+
+WhatsApp
+
+Email
+
+Ritiro
+
+Claro (TI), su appuntamento
+
+
+=== 9. FOOTER ===
+
+© Allegria in barattolo · Sandro Allegri · Claro, Ticino · allegri.ch
+
+
+=== 10. CARRELLO (pannello laterale) ===
+
+🛒 Il tuo carrello
+
+Il carrello è vuoto
+
+Aggiungi qualche vasetto di miele!
+
+Subtotale prodotti
+
+📦 Imballaggio
+
+📮 Spedizione
+
+Totale:
+
+Procedi all'ordine →
+
+Rimuovi
+
+
+=== 11. CHECKOUT (modale ordinazione) ===
+
+📝 Completa l'ordine
+
+Nome e cognome *
+
+Telefono *
+
+Email
+
+Modalità di consegna *
+
+Ritiro
+
+A Claro, gratis
+
+Spedizione
+
+Posta CH
+
+Indirizzo di spedizione *
+
+📦 Costi di spedizione
+
+Aggiungi prodotti al carrello per calcolare la spedizione.
+
+Peso pacco:
+
+Imballaggio:
+
+Spedizione (PostPac Economy):
+
+Totale spedizione:
+
+Modalità di pagamento *
+
+TWINT / e-banking
+
+Subito tramite QR
+
+Contanti
+
+Al ritiro a Claro
+
+Importo da pagare
+
+TWINT
+
+Importo manuale
+
+App bancaria
+
+Auto-fill ✓
+
+Paga con l'app TWINT
+
+Apri l'app TWINT
+
+Tocca "Scansiona" e inquadra questo QR
+
+Inserisci manualmente l'importo
+
+Conferma il pagamento
+
+Paga con la tua app bancaria
+
+Apri l'app della tua banca (Raiffeisen, UBS, PostFinance, Banca Stato...)
+
+Funzione "Paga fattura QR" o "Scansiona QR"
+
+L'importo è già inserito nel QR
+
+Conferma il bonifico
+
+💡 Effettua il pagamento prima di inviare l'ordine. Segnala l'orario nelle note per facilitare la verifica.
+
+Note (opzionale)
+
+Es. data preferita per il ritiro, allergie, conferma TWINT...
+
+Annulla
+
+💬 Invia con WhatsApp
+
+✉️ Oppure invia per email
+
+
+=== 12. MESSAGGI E PLACEHOLDER ===
+
+Aggiunto al carrello!
+
+aggiunto al carrello
+
+✓ Aggiunto
+
+Mario Rossi
+
+mario@example.com
+
+Via Roma 10, 6500 Bellinzona
+
+Inserisci il tuo nome
+
+Inserisci il tuo telefono
+
+Inserisci l'indirizzo di spedizione
+
+Seleziona un'arnia
+
+Inserisci o detta delle note
+
+Nuovo ordine miele —
+
+
+=== 13. PAGINA "GRAZIE" (conferma ordine) ===
+
+Grazie per il tuo ordine — Allegria in barattolo
+
+Grazie per aver ordinato il miele di Allegria in barattolo. Sandro Allegri ti contatterà al più presto.
+
+Grazie per il tuo ordine!
+
+Ho ricevuto la tua richiesta e ti contatterò al più presto.
+
+, ho ricevuto la tua richiesta e ti contatterò al più presto.
+
+📋 Riepilogo
+
+Cliente
+
+Prodotti
+
+Modalità invio
+
+prodotto
+
+prodotti
+
+Cosa succede ora?
+
+Sandro riceve il tuo messaggio
+
+Ti risponde con conferma e dettagli
+
+Concordate il pagamento (se non ancora fatto via TWINT/QR)
+
+Ritiri il miele a Claro o ricevi la spedizione
+
+🍯 Torna al negozio
+
+Vai a allegri.ch
+
+
+=== 14. ALERT E DIALOGHI ===
+
+Si è aperto WhatsApp con il tuo ordine già compilato. Invia il messaggio per completare l'ordine.
+
+Si è aperta la tua app email con l'ordine già scritto. Invia l'email per completare.
+
+
+═══════════════════════════════════════════════════════════════
+FINE TESTI
+═══════════════════════════════════════════════════════════════
